@@ -5,7 +5,7 @@ const venData = require("../models/vendors");
 const userData = require("../models/users");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
-const { getDeviceToken } = require("../controllers.js/employees");
+const { getDeviceToken } = require("../controllers/employees");
 const { fetchProjects } = require("./projects");
 
 router.get("/", async (req, res) => {

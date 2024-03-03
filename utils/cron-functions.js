@@ -1,9 +1,9 @@
 const userData = require("../models/users");
 const workData = require("../models/workData");
 const moment = require("moment");
-
 const send = require("../utils/sendEmailNode");
 const mjml2html = require("mjml");
+const EquipmentController = require("../controllers/equipments");
 
 let link = process.env.CTK_APP_URL
   ? process.env.CTK_APP_URL
@@ -124,13 +124,17 @@ async function getWorksToExpireToday() {
       )
         .then(() => console.log("Sent"))
         .catch((err) => {
-          (err);
+          err;
         });
   } catch (err) {
-    (err);
+    err;
   }
 }
-
+async function equipmentsUtilization() {
+  // CALL CONTROLLER METHOD TO CAPTURE EQUIPMENT UTILIZATION SNAPSHOTS AND SAVE DAILY DATA TO DATABASE
+  // Equipement Controller will be called here: EquipmentController.captureEquipmentUtilization();
+}
 module.exports = {
   getWorksToExpireToday,
+  equipmentsUtilization,
 };

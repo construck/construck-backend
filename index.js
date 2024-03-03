@@ -1,12 +1,14 @@
 const express = require("express");
-var cors = require("cors");
+const cors = require("cors");
 const app = express();
 const bodyParser = require("body-parser");
 const cron = require("node-cron");
+const morgan = require("morgan");
+const dotenv = require("dotenv").config();
 
 const PORT = process.env.PORT ? process.env.PORT : 9000;
 
-var mongoose = require("mongoose");
+const mongoose = require("mongoose");
 const equipments = require("./routes/equipments");
 const downtimes = require("./routes/downtimes");
 const users = require("./routes/users");
@@ -26,25 +28,17 @@ const avblty = require("./routes/assetAvailability");
 const sendEmail = require("./routes/sendEmailRoute");
 const maintenance = require("./routes/maintenances");
 const maintenanceLogs = require("./routes/maintenanceLogs");
-const item = require('./routes/items');
-const mechanics = require('./routes/mechanics');
-const mechanical = require('./routes/mechanicals');
+const item = require("./routes/items");
+const mechanics = require("./routes/mechanics");
+const mechanical = require("./routes/mechanicals");
 const send = require("./utils/sendEmailNode");
 const fun = require("./utils/cron-functions");
 
-const _ = require('lodash')
+const _ = require("lodash");
 
 //Set up default mongoose connection
-// var mongoDB =
-  // "mongodb://dbAdmin:Adm1n%402023@localhost:27017/construck?authSource=admin";
 
-// var mongoDB =
-  // "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck-playground?retryWrites=true&w=majority";
-// "mongodb+srv://root:Beniyak1@cluster0.8ycbagi.mongodb.net/construck?retryWrites=true&w=majority";
-
-var mongoDB = "";
-
-mongoDB = process.env.CONS_MONGO_DB;
+const mongoDB = process.env.CONS_MONGO_DB;
 
 mongoose.connect(mongoDB, { useNewUrlParser: true });
 //Get the default connection
@@ -55,13 +49,14 @@ db.on("error", console.error.bind(console, "MongoDB connection error:"));
 
 db.once("open", () => console.log("connected to db"));
 
+app.use(morgan("tiny"));
+
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 //Basic Authorization
 let auth = (req, res, next) => {
-  // const auth = { login: "sh4b1k4", password: "@9T4Tr73%62l!iHqdhWv" }; // change this
   const auth = {
     login: process.env.CONS_API_USER,
     password: process.env.CONS_API_PASS,
@@ -97,11 +92,11 @@ app.use("/logs", auth, logs);
 app.use("/dispatches", auth, dispatches);
 app.use("/jobtypes", auth, jobTypes);
 app.use("/requests", auth, equipmentRequests);
-app.use('/api', maintenanceLogs);
+app.use("/api", maintenanceLogs);
 app.use("/api", maintenance);
-app.use('/api',auth, item);
-app.use('/api',auth, mechanics);
-app.use('/api',auth, mechanical);
+app.use("/api", auth, item);
+app.use("/api", auth, mechanics);
+app.use("/api", auth, mechanical);
 app.use("/equipmentTypes", auth, equipmentTypes);
 
 app.listen(PORT, async () => {
@@ -109,5 +104,16 @@ app.listen(PORT, async () => {
   cron.schedule("0 8 * * *", () => {
     fun.getWorksToExpireToday().then((res) => {});
   });
-  
+  // NOTE: AUTOMATICALLY CHECK EQUIPMENT UTILIZATION AT 8:00AM EVERYDAY OF THE FOLLOWING DAY:
+
+  cron.schedule(
+    "*/10 * * * * *",
+    () => {
+      fun.equipmentsUtilization();
+    },
+    {
+      scheduled: true,
+      timezone: "Africa/Kigali",
+    }
+  );
 });
