@@ -1,23 +1,23 @@
-const mongoose = require("mongoose");
+import * as mongoose from "mongoose";
 
 const mechanicSchema = new mongoose.Schema({
-    '# ': {
-        type: String
+    "# ": {
+        type: String,
     },
     " FIRST NAME ": {
-        type: String
+        type: String,
     },
     " LAST NAME ": {
-        type: String
+        type: String,
     },
     " TITLE ": {
-        type: String
+        type: String,
     },
     "CONTACT NUMBER": {
-        type: String
-    }
-})
+        type: String,
+    },
+});
 
-const Mechanics = mongoose.model('Mechanics', mechanicSchema);
 
-exports.Mechanics = Mechanics;
+export const Mechanics = mongoose.model("Mechanics", mechanicSchema);
+export default mechanicSchema;

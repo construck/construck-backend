@@ -1,5 +1,6 @@
-const mongoose = require("mongoose");
-const VendorSchema = mongoose.Schema({
+import * as mongoose from "mongoose";
+
+const VendorSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -24,7 +25,5 @@ const VendorSchema = mongoose.Schema({
   },
 });
 
-module.exports = {
-  model: mongoose.model("vendors", VendorSchema),
-  schema: VendorSchema,
-};
+export const Vendor = mongoose.model("vendors", VendorSchema);
+export default VendorSchema; 

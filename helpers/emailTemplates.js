@@ -1,5 +1,5 @@
 const templates = {
-    riskMapUpdated: `
+  riskMapUpdated: `
                     <mjml>
                     <mj-body>
                         <!-- Company Header -->
@@ -41,7 +41,7 @@ const templates = {
 
                     </mj-body>
                     </mjml>`,
-    riskToleranceUploaded: `
+  riskToleranceUploaded: `
                     <mjml>
                     <mj-body>
                         <!-- Company Header -->
@@ -84,7 +84,7 @@ const templates = {
                     </mj-body>
                     </mjml>`,
 
-    passwordUpdated: `<mjml>
+  passwordUpdated: `<mjml>
                     <mj-body>
                         <!-- Company Header -->
                         <mj-section background-color="#f0f0f0">

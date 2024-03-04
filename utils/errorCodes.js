@@ -1,4 +1,4 @@
-let _ = require("lodash");
+import  _ from "lodash";
 
 let errorCodes = {
   OK: 0,
@@ -162,4 +162,4 @@ function findError(code) {
   });
 }
 
-module.exports = findError;
+export default findError;

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import * as mongoose from "mongoose";
 
 const mechanicalSchema = new mongoose.Schema({
     'SERVICE': {
@@ -6,6 +6,9 @@ const mechanicalSchema = new mongoose.Schema({
     }
 })
 
-const Mechanicals = mongoose.model('Mechanicals', mechanicalSchema);
+// const Mechanicals = mongoose.model('Mechanicals', mechanicalSchema);
 
-exports.Mechanicals = Mechanicals;
+// exports.Mechanicals = Mechanicals;
+
+export const Mechanicals = mongoose.model("Mechanicals", mechanicalSchema);
+export default mechanicalSchema; 

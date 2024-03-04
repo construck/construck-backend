@@ -1,18 +1,16 @@
-const mongoose = require("mongoose");
-const EquipmentTypeSchema = mongoose.Schema(
-  {
-    description: {
-      type: String,
-      required: true,
-      unique: true,
-      dropDups: true,
-    },
+import * as mongoose from "mongoose";
 
-  },
-  { timestamps: true }
+const EquipmentTypeSchema = new mongoose.Schema(
+    {
+        description: {
+            type: String,
+            required: true,
+            unique: true,
+            dropDups: true,
+        },
+    },
+    { timestamps: true }
 );
 
-module.exports = {
-  model: mongoose.model("equipmenttypes", EquipmentTypeSchema),
-  schema: EquipmentTypeSchema,
-};
+export const EquipmentType = mongoose.model("equipmenttypes", EquipmentTypeSchema);
+export default EquipmentTypeSchema;

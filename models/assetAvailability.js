@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const AssetAvbltySchema = mongoose.Schema({
+import * as mongoose from "mongoose";
+const AssetAvbltySchema = new mongoose.Schema({
   date: {
     type: mongoose.SchemaTypes.Date,
   },
@@ -17,7 +17,5 @@ const AssetAvbltySchema = mongoose.Schema({
   },
 });
 
-module.exports = {
-  model: mongoose.model("asset_availability", AssetAvbltySchema),
-  schema: AssetAvbltySchema,
-};
+export const Asset = mongoose.model("asset_availalabilities", AssetAvbltySchema);
+export default AssetAvbltySchema; 

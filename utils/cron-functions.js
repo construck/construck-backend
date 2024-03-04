@@ -1,61 +1,59 @@
-const userData = require("../models/users");
-const workData = require("../models/workData");
-const moment = require("moment");
-const send = require("../utils/sendEmailNode");
-const mjml2html = require("mjml");
-const EquipmentController = require("../controllers/equipments");
+import { User } from "../models/users";
+import { Work } from "../models/works";
+import moment from "moment";
+import send from "../utils/sendEmailNode";
+import mjml2html from "mjml";
+import EquipmentController from "../controllers/equipments";
 
-let link = process.env.CTK_APP_URL
-  ? process.env.CTK_APP_URL
-  : "https://shabika.construck.rw/";
+let link = process.env.CTK_APP_URL ? process.env.CTK_APP_URL : "https://shabika.construck.rw/";
 
 async function getDispatchOfficers() {
-  try {
-    let dispatchOfficers = await userData.model.find(
-      {
-        userType: "dispatch",
-      },
-      { email: 1, _id: 0 }
-    );
-    return dispatchOfficers;
-  } catch (err) {}
+    try {
+        let dispatchOfficers = await User.find(
+            {
+                userType: "dispatch",
+            },
+            { email: 1, _id: 0 }
+        );
+        return dispatchOfficers;
+    } catch (err) {}
 }
 
 async function getWorksToExpireToday() {
-  let list = await getDispatchOfficers();
-  let emailList = list?.map(($) => {
-    return $.email;
-  });
+    let list = await getDispatchOfficers();
+    let emailList = list?.map($ => {
+        return $.email;
+    });
 
-  try {
-    let worksToExpireToday = await workData.model.aggregate([
-      {
-        $addFields: {
-          workEndDateStr: {
-            $dateToString: {
-              format: "%Y-%m-%d",
-              date: "$workEndDate",
+    try {
+        let worksToExpireToday = await Work.aggregate([
+            {
+                $addFields: {
+                    workEndDateStr: {
+                        $dateToString: {
+                            format: "%Y-%m-%d",
+                            date: "$workEndDate",
+                        },
+                    },
+                },
             },
-          },
-        },
-      },
-      {
-        $match: {
-          workEndDateStr: moment().format("YYYY-MM-DD"),
-          status: { $nin: ["stopped", "recalled"] },
-          siteWork: true,
-        },
-      },
-      {
-        $project: {
-          "equipment.plateNumber": 1,
-          "equipment.eqDescription": 1,
-          "project.prjDescription": 1,
-        },
-      },
-    ]);
+            {
+                $match: {
+                    workEndDateStr: moment().format("YYYY-MM-DD"),
+                    status: { $nin: ["stopped", "recalled"] },
+                    siteWork: true,
+                },
+            },
+            {
+                $project: {
+                    "equipment.plateNumber": 1,
+                    "equipment.eqDescription": 1,
+                    "project.prjDescription": 1,
+                },
+            },
+        ]);
 
-    let emailBody = `
+        let emailBody = `
         <mjml>
           <mj-head>
               <mj-attributes>
@@ -98,8 +96,8 @@ async function getWorksToExpireToday() {
                           This is to notify you that we found jobs that are ending today.<br>
                           Please see the list below of the equipment that will be free for new dispatch and decide accordingly:
                       </mj-text>
-                      ${worksToExpireToday.map((w) => {
-                        return `<mj-text font-weight="bold">
+                      ${worksToExpireToday.map(w => {
+                          return `<mj-text font-weight="bold">
                         ${w?.equipment.eqDescription} - ${w?.equipment?.plateNumber} @ ${w?.project?.prjDescription}
                     </mj-text>`;
                       })}        
@@ -112,29 +110,31 @@ async function getWorksToExpireToday() {
           </mj-body>
         </mjml>`;
 
-    if (worksToExpireToday.length > 0)
-      send(
-        "appinfo@construck.rw",
-        emailList, //TO CHANGE
-        "Jobs to expire today.",
-        "",
-        mjml2html(emailBody, {
-          keepComments: false,
-        }).html
-      )
-        .then(() => console.log("Sent"))
-        .catch((err) => {
-          err;
-        });
-  } catch (err) {
-    err;
-  }
+        if (worksToExpireToday.length > 0)
+            send(
+                "appinfo@construck.rw",
+                emailList, //TO CHANGE
+                "Jobs to expire today.",
+                "",
+                mjml2html(emailBody, {
+                    keepComments: false,
+                }).html
+            )
+                .then(() => console.log("Sent"))
+                .catch(err => {
+                    err;
+                });
+    } catch (err) {
+        err;
+    }
 }
 async function equipmentsUtilization() {
-  // CALL CONTROLLER METHOD TO CAPTURE EQUIPMENT UTILIZATION SNAPSHOTS AND SAVE DAILY DATA TO DATABASE
-  // Equipement Controller will be called here: EquipmentController.captureEquipmentUtilization();
+    // CALL CONTROLLER METHOD TO CAPTURE EQUIPMENT UTILIZATION SNAPSHOTS AND SAVE DAILY DATA TO DATABASE
+    // Equipement Controller will be called here
+    await EquipmentController.captureEquipmentUtilization();
+    // console.log("Equip utilization");
 }
-module.exports = {
-  getWorksToExpireToday,
-  equipmentsUtilization,
+export default {
+    getWorksToExpireToday,
+    equipmentsUtilization,
 };

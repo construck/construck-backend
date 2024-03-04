@@ -1,106 +1,107 @@
-const mongoose = require("mongoose");
-const moment = require('moment')
+import * as mongoose from "mongoose";
+import moment from "moment";
 
 const maintenanceLogsSchema = new mongoose.Schema({
     jobCard_Id: {
-        type: String
+        type: String,
     },
     entryDate: {
         type: Date,
-        default: moment()
+        default: moment(),
     },
     driver: {
-        type: Object
+        type: Object,
     },
     plate: {
-        type: Object
+        type: Object,
     },
     mileage: {
-        type: String
+        type: String,
     },
     location: {
-        type: Object
+        type: Object,
     },
     startRepair: {
-        type: Date
+        type: Date,
     },
     endRepair: {
-        type: Date
+        type: Date,
     },
     inspectionTools: {
         type: [String],
-
     },
     mechanicalInspections: {
-        type: [String]
+        type: [String],
     },
     assignIssue: {
-        type: [Object]
+        type: [Object],
     },
     operator: {
-        type: String
+        type: String,
     },
     status: {
         type: String,
-        default: 'entry'
+        default: "entry",
     },
     transferData: {
-        type: [Object]
+        type: [Object],
     },
     inventoryData: {
-        type: [[Object]]
+        type: [[Object]],
     },
     inventoryItems: {
-        type: [Object]
+        type: [Object],
     },
     teamApproval: {
         type: Boolean,
-        default: false
+        default: false,
     },
     supervisorApproval: {
         type: Boolean,
-        default: false
+        default: false,
     },
     sourceItem: {
-        type: String
+        type: String,
     },
     operatorApproval: {
-        type: [String]
+        type: [String],
     },
     transferParts: {
-        type: [String]
+        type: [String],
     },
     isViewed: {
         type: String,
-        default: 'not viewed'
+        default: "not viewed",
     },
     reason: {
         type: String,
-        default: ''
+        default: "",
     },
     jobCard_status: {
         type: String,
-        default: 'opened'
+        default: "opened",
     },
     updated_At: {
         type: Date,
-        default: moment()
+        default: moment(),
     },
     operatorNotApplicable: {
-        type: Boolean
+        type: Boolean,
     },
     mileagesNotApplicable: {
-        type: Boolean
+        type: Boolean,
     },
     requestParts: {
-        type: Date
+        type: Date,
     },
     receivedParts: {
-        type: Date
-    }
+        type: Date,
+    },
 });
 
-const MaintenanceLogs = mongoose.model('MaintenanceLogs', maintenanceLogsSchema);
+// const MaintenanceLogs = mongoose.model('MaintenanceLogs', maintenanceLogsSchema);
 
-exports.MaintenanceLogs = MaintenanceLogs;
-exports.maintenanceLogsSchema = maintenanceLogsSchema;
+// exports.MaintenanceLogs = MaintenanceLogs;
+// exports.maintenanceLogsSchema = maintenanceLogsSchema;
+export const MaintenanceLogs = mongoose.model("MaintenanceLogs", maintenanceLogsSchema);
+export default maintenanceLogsSchema;

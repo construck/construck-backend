@@ -1,5 +1,6 @@
-const mongoose = require("mongoose");
-const prSchema = require("./projects");
+import * as mongoose from "mongoose";
+
+// const prSchema = require("./projects");
 
 const EquipmentSchema = new mongoose.Schema(
   {
@@ -66,7 +67,10 @@ const EquipmentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = {
-  model: mongoose.model("equipments", EquipmentSchema),
-  schema: EquipmentSchema,
-};
+// module.exports = {
+//   model: mongoose.model("equipments", EquipmentSchema),
+//   schema: EquipmentSchema,
+// };
+
+export const Equipment = mongoose.model("equipments", EquipmentSchema);
+export default EquipmentSchema; 

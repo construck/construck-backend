@@ -1,29 +1,27 @@
-const mongoose = require("mongoose");
-const LogSchema = mongoose.Schema(
-  {
-    action: {
-      type: String,
+import * as mongoose from "mongoose";
+const LogSchema = new mongoose.Schema(
+    {
+        action: {
+            type: String,
+        },
+        doneBy: {
+            type: mongoose.SchemaTypes.ObjectId,
+            transform: v => (v === "" ? null : v),
+            ref: "users",
+        },
+        request: {
+            type: Object,
+        },
+        payload: {
+            type: Object,
+        },
+        createdOn: {
+            type: mongoose.SchemaTypes.Date,
+            default: Date.now(),
+        },
     },
-    doneBy: {
-      type: mongoose.SchemaTypes.ObjectId,
-      transform: (v) => (v === "" ? null : v),
-      ref: "users",
-    },
-    request: {
-      type: Object,
-    },
-    payload: {
-      type: Object,
-    },
-    createdOn: {
-      type: mongoose.SchemaTypes.Date,
-      default: Date.now(),
-    },
-  },
-  { timestamps: true }
+    { timestamps: true }
 );
 
-module.exports = {
-  model: mongoose.model("logs", LogSchema),
-  schema: LogSchema,
-};
+export const Log = mongoose.model("logs", LogSchema);
+export default LogSchema;

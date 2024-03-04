@@ -1,20 +1,23 @@
-const mongoose = require("mongoose");
+import * as mongoose from "mongoose";
 
 const itemSchema = new mongoose.Schema({
-    '#': {
-        type: String
+    "#": {
+        type: String,
     },
     "ITEM & PART": {
-        type: String
+        type: String,
     },
-    "UOM": {
-        type: String
+    UOM: {
+        type: String,
     },
     "ITEM CATEGORY": {
-        type: String
-    }
-})
+        type: String,
+    },
+});
 
-const Items = mongoose.model('Items', itemSchema);
+// const Items = mongoose.model('Items', itemSchema);
 
-exports.Items = Items;
+// export default Items;
+
+export const Items = mongoose.model("Items", itemSchema);
+export default itemSchema;

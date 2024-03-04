@@ -1,40 +1,31 @@
-const templates = require("../utils/emailTemplates");
-const send = require("../utils/sendEmailNode");
-const moment = require("moment");
+import express from "express";
+import template from "./../utils/emailTemplates";
+import send from "./../utils/sendEmailNode";
+import moment from "moment";
+import mjml2html from "mjml";
 
-const express = require("express");
 const router = express.Router();
-const mjml2html = require("mjml");
 
 router.post("/send", async (req, res) => {
-  let { from, to, subject, messageType, password, workPayload } = req.body;
-  try {
-    await sendEmail(from, to, subject, messageType, password, workPayload);
-    res.send({
-      error: false,
-      message: "Email Sent!",
-    });
-  } catch (err) {
-    res.status(500).send({
-      error: true,
-      errorMessage: err.response,
-    });
-  }
+    let { from, to, subject, messageType, password, workPayload } = req.body;
+    try {
+        await sendEmail(from, to, subject, messageType, password, workPayload);
+        res.send({
+            error: false,
+            message: "Email Sent!",
+        });
+    } catch (err) {
+        res.status(500).send({
+            error: true,
+            errorMessage: err.response,
+        });
+    }
 });
 
-async function sendEmail(
-  from,
-  to,
-  subject,
-  messageType,
-  password,
-  workPayload
-) {
-  let link = process.env.CTK_APP_URL
-    ? process.env.CTK_APP_URL
-    : "https://playground-construck.vercel.app/";
-  if (messageType === "accountCreated") {
-    templates.accountCreated = `<mjml>
+export async function sendEmail(from, to, subject, messageType, password, workPayload) {
+    let link = process.env.CTK_APP_URL ? process.env.CTK_APP_URL : "https://playground-construck.vercel.app/";
+    if (messageType === "accountCreated") {
+        templates.accountCreated = `<mjml>
                     <mj-body>
                         <!-- Company Header -->
                         <mj-section background-color="#f0f0f0">
@@ -81,10 +72,10 @@ async function sendEmail(
 
                     </mj-body>
                     </mjml>`;
-  }
+    }
 
-  if (messageType === "passwordReset") {
-    templates.passwordReset = `
+    if (messageType === "passwordReset") {
+        templates.passwordReset = `
       <mjml>
         <mj-head>
             <mj-attributes>
@@ -141,10 +132,10 @@ async function sendEmail(
 
         </mj-body>
     </mjml>`;
-  }
+    }
 
-  if (messageType === "workRejected") {
-    templates.workRejected = `
+    if (messageType === "workRejected") {
+        templates.workRejected = `
       <mjml>
         <mj-head>
             <mj-attributes>
@@ -201,10 +192,10 @@ async function sendEmail(
 
         </mj-body>
     </mjml>`;
-  }
+    }
 
-  if (messageType === "notification") {
-    templates.notification = `
+    if (messageType === "notification") {
+        templates.notification = `
     <mjml>
     <mj-head>
       <mj-attributes>
@@ -255,32 +246,31 @@ async function sendEmail(
   
     </mj-body>
   </mjml>`;
-  }
+    }
 
-  return send(
-    from,
-    to,
-    subject,
-    "",
-    mjml2html(templates[messageType], {
-      keepComments: false,
-    }).html
-  );
-  // .then(() =>
-  //   res.send({
-  //     error: false,
-  //     message: "Email Sent!",
-  //   })
-  // )
-  // .catch((err) => {
-  //   res.status(500).send({
-  //     error: true,
-  //     errorMessage: err.response,
-  //   });
-  // });
+    return send(
+        from,
+        to,
+        subject,
+        "",
+        mjml2html(templates[messageType], {
+            keepComments: false,
+        }).html
+    );
+    // .then(() =>
+    //   res.send({
+    //     error: false,
+    //     message: "Email Sent!",
+    //   })
+    // )
+    // .catch((err) => {
+    //   res.status(500).send({
+    //     error: true,
+    //     errorMessage: err.response,
+    //   });
+    // });
 }
 
-module.exports = {
-  router,
-  sendEmail,
+export default {
+    router,
 };

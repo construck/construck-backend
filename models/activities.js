@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const ActivitySchema = mongoose.Schema({
+import * as mongoose from "mongoose";
+const ActivitySchema = new mongoose.Schema({
   activityDescription: {
     type: String,
     required: true,
@@ -12,7 +12,5 @@ const ActivitySchema = mongoose.Schema({
   },
 });
 
-module.exports = {
-  model: mongoose.model("activities", ActivitySchema),
-  schema: ActivitySchema,
-};
+export const Activity = mongoose.model("activities", ActivitySchema);
+export default ActivitySchema; 
