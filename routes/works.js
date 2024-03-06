@@ -154,7 +154,7 @@ router.get("/filtered/:page", async (req, res) => {
     let searchByPlateNumber = searchText && searchText.length >= 1;
     let searchByProject = project && project.length >= 1;
 
-    let projects = userType !== "vendor" ? JSON.parse(userProjects) : [];
+    let projects = userType !== "vendor" ? userProjects &&JSON.parse(userProjects) : [];
     let prjs = projects?.map(p => {
         return p?.prjDescription;
     });
@@ -650,6 +650,7 @@ router.get("/filtered/:page", async (req, res) => {
                         },
                     ],
                 };
+                console.log('@@query',query)
             } else if (searchByPlateNumber && !searchByProject) {
                 query = {
                     $or: [

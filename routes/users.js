@@ -1,7 +1,7 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import { User } from "../models/users";
-import venData from "../models/vendors";
+import { Vendor } from "../models/vendors";
 import findError from "../utils/errorCodes";
 import _ from "lodash";
 const router = express.Router();
@@ -64,7 +64,7 @@ router.post("/login", async (req, res) => {
     try {
         let user = await User.findOne({ email: email }).populate("company");
 
-        let vendor = await venData.model.findOne({ phone: email });
+        let vendor = await Vendor.findOne({ phone: email });
 
         console.log(vendor);
 
@@ -109,6 +109,7 @@ router.post("/login", async (req, res) => {
             });
         }
     } catch (err) {
+        console.log("err: ", err);
         return res.status(500).send({
             message: `${err}`,
             error: true,

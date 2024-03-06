@@ -54,7 +54,6 @@ export default class EquipmentController {
         date = new Date(date);
         date.setHours(0, 0, 0, 0);
         try {
-            console.log("date: ", date);
             const response = await EquipmentUtilization.find({
                 createdOn: {
                     $gte: date,

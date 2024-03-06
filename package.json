@@ -6,7 +6,8 @@
     "type": "module",
     "scripts": {
         "start": "node index.js",
-        "dev": "nodemon  --experimental-specifier-resolution=node index.js",
+        "start:live": "DATABASE=live  nodemon --experimental-specifier-resolution=node index.js",
+        "start:dev": "DATABASE=dev nodemon --experimental-specifier-resolution=node index.js",
         "lint": "eslint .",
         "format:check": "prettier --check .",
         "format:write": "prettier --write ."
