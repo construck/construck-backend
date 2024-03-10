@@ -4342,10 +4342,7 @@ router.put("/stop/:id", async (req, res) => {
             expenditure = (supplierRate * work.duration) / 3600000;
           } else {
             work.duration = duration > 0 ? duration * 3600000 : 0;
-            revenue =
-              tripsRatio > 0
-                ? (tripsRatio * (rate * work.duration)) / 3600000
-                : (rate * work.duration) / 3600000;
+            revenue = (rate * work.duration) / 3600000;
             expenditure =
               tripsRatio > 0
                 ? (tripsRatio * (supplierRate * work.duration)) / 3600000
@@ -4461,6 +4458,7 @@ router.put("/stop/:id", async (req, res) => {
         res.status(201).send(savedRecord);
       }
     } else {
+      return;
       res.status(200).send(work);
     }
   } catch (err) {
@@ -6381,7 +6379,6 @@ async function stopWork(
     console.log(work.siteWork);
 
     if (work.siteWork) {
-      console.log("hjere");
       let dailyWorks = [...work.dailyWork];
       let indexToUpdate = -1;
       let initDuration = 0;

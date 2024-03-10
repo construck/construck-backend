@@ -31,18 +31,9 @@ const mechanics = require('./routes/mechanics');
 const mechanical = require('./routes/mechanicals');
 const send = require("./utils/sendEmailNode");
 const fun = require("./utils/cron-functions");
-
+const dotenv = require('dotenv').config()
 const _ = require('lodash')
 
-//Set up default mongoose connection
-// var mongoDB =
-//   "mongodb://dbAdmin:Adm1n%402023@localhost:27017/construck?authSource=admin";
-
-// var mongoDB =
-  // "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck-playground?retryWrites=true&w=majority";
-// "mongodb+srv://root:Beniyak1@cluster0.8ycbagi.mongodb.net/construck?retryWrites=true&w=majority";
-
-var mongoDB = "";
 
 mongoDB = process.env.CONS_MONGO_DB;
 
