@@ -1821,6 +1821,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
     //   .sort([["_id", "descending"]]);
 
     let workList = await workData.model.aggregate(pipeline);
+    console.log("##", pipeline);
+    console.log("##", workList.length);
 
     let listToSend = workList;
 
@@ -3387,25 +3389,24 @@ router.put("/:id", async (req, res) => {
     delete req.body.driver;
     updateObj = req.body;
   }
-
-  let project = await getProject(customerName, projectId);
-  let projectAdmin = project?.projectAdmin;
+  delete updateObj.driver;
   try {
-    let updatedWork = await workData.model.findOneAndUpdate(
-      { _id: id },
-      req.body
+    let currentWork = await workData.model.updateOne(
+      { _id: new mongoose.Types.ObjectId(id) },
+      updateObj
     );
+    // currentWork.driver = new mongoose.Types.ObjectId(currentWork.driver)
 
-    await workData.model.updateMany(
-      {
-        "project._id": projectId,
-      },
-      {
-        $set: {
-          "project.projectAdmin": new mongoose.Types.ObjectId(projectAdmin),
-        },
-      }
-    );
+    // await workData.model.updateMany(
+    //   {
+    //     "project._id": projectId,
+    //   },
+    //   {
+    //     $set: {
+    //       "project.projectAdmin": new mongoose.Types.ObjectId(projectAdmin),
+    //     },
+    //   }
+    // );
 
     // employee.assignedToSiteWork = req.body?.siteWork;
     //   employee.assignedDate = moment(req.body?.dispatch?.date);
@@ -3434,7 +3435,7 @@ router.put("/:id", async (req, res) => {
     res.send({ message: "done" });
   } catch (err) {
     console.log(err);
-    res.send({
+    return res.send({
       error: true,
     });
   }
@@ -4148,10 +4149,10 @@ router.put("/stop/:id", async (req, res) => {
 
     //You can only stop jobs in progress
     if (
-      work.status === "in progress" ||
-      (work.siteWork &&
-        moment(postingDate).isSameOrAfter(moment(work.workStartDate), "day") &&
-        moment(postingDate).isSameOrBefore(moment(work.workEndDate), "day"))
+      work?.status === "in progress" ||
+      (work?.siteWork &&
+        moment(postingDate).isSameOrAfter(moment(work?.workStartDate), "day") &&
+        moment(postingDate).isSameOrBefore(moment(work?.workEndDate), "day"))
     ) {
       let equipment = await eqData.model.findById(work?.equipment?._id);
       let workEnded = false;
