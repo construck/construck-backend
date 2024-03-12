@@ -3389,31 +3389,24 @@ router.put("/:id", async (req, res) => {
     delete req.body.driver;
     updateObj = req.body;
   }
-
-  let project = await getProject(customerName, projectId);
-  let projectAdmin = project?.projectAdmin;
+  delete updateObj.driver;
   try {
-    // let updatedWork = await workData.model.findOneAndUpdate(
-    //   { _id: id },
-    //   req.body
-    // );
-    let updatedWork = await workData.model.findById(
-      { _id: new mongoose.Types.ObjectId(id) }
-      // req.body
+    let currentWork = await workData.model.updateOne(
+      { _id: new mongoose.Types.ObjectId(id) },
+      updateObj
     );
-    res.send(req.body);
+    // currentWork.driver = new mongoose.Types.ObjectId(currentWork.driver)
 
-    return;
-    await workData.model.updateMany(
-      {
-        "project._id": projectId,
-      },
-      {
-        $set: {
-          "project.projectAdmin": new mongoose.Types.ObjectId(projectAdmin),
-        },
-      }
-    );
+    // await workData.model.updateMany(
+    //   {
+    //     "project._id": projectId,
+    //   },
+    //   {
+    //     $set: {
+    //       "project.projectAdmin": new mongoose.Types.ObjectId(projectAdmin),
+    //     },
+    //   }
+    // );
 
     // employee.assignedToSiteWork = req.body?.siteWork;
     //   employee.assignedDate = moment(req.body?.dispatch?.date);
