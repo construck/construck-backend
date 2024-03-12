@@ -197,7 +197,7 @@ router.get("/filtered/:page", async (req, res) => {
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
 
-  let projects = userType !== "vendor" ? JSON.parse(userProjects) : [];
+  let projects = userType !== "vendor" ? userProjects && JSON.parse(userProjects) : [];
   let prjs = projects?.map((p) => {
     return p?.prjDescription;
   });
@@ -1930,13 +1930,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 "Actual Revenue":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
-                    : (dP.duration >= 0 ? 1 : 0) * dP.rate,
+                    : (dP.duration > 0 ? 1 : 0) * dP.rate,
                 // "Vendor payment": dP.expenditure,
                 "Vendor payment":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
                       w?.equipment?.supplierRate
-                    : (dP.duration >= 0 ? 1 : 0) * w?.equipment?.supplierRate,
+                    : (dP.duration > 0 ? 1 : 0) * w?.equipment?.supplierRate,
               }),
 
               "Driver Names": w.driver
@@ -1977,6 +1977,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             });
           }
         });
+
+        
 
         dateNotPosted.map((dNP) => {
           if (
@@ -2221,13 +2223,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 "Actual Revenue":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
-                    : (dP.duration >= 0 ? 1 : 0) * dP.rate,
+                    : (dP.duration > 0 ? 1 : 0) * dP.rate,
                 // "Vendor payment": dP.expenditure,
                 "Vendor payment":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
                       w?.equipment?.supplierRate
-                    : (dP.duration >= 0 ? 1 : 0) * w?.equipment?.supplierRate,
+                    : (dP.duration > 0 ? 1 : 0) * w?.equipment?.supplierRate,
               }),
 
               "Driver Names": w.driver
@@ -2452,7 +2454,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
       return work;
     });
-
     let finalList = l.concat(siteWorkList);
 
     let orderedList = _.orderBy(finalList, "Dispatch date", "desc");

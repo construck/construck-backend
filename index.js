@@ -29,6 +29,7 @@ const maintenanceLogs = require("./routes/maintenanceLogs");
 const item = require('./routes/items');
 const mechanics = require('./routes/mechanics');
 const mechanical = require('./routes/mechanicals');
+const donwload = require('./routes/donwload');
 const send = require("./utils/sendEmailNode");
 const fun = require("./utils/cron-functions");
 const dotenv = require('dotenv').config()
@@ -94,6 +95,7 @@ app.use('/api',auth, item);
 app.use('/api',auth, mechanics);
 app.use('/api',auth, mechanical);
 app.use("/equipmentTypes", auth, equipmentTypes);
+app.use("/download", donwload);
 
 app.listen(PORT, async () => {
   console.log(`Listening on Port ${PORT}`);
