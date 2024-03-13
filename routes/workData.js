@@ -3346,6 +3346,7 @@ router.post("/getAnalytics", async (req, res) => {
     // } else {
     //   listDispaches = dispatches;
     // }
+    
     console.log({
       totalRevenue: totalRevenue ? _.round(totalRevenue, 0).toFixed(2) : "0.00",
       projectedRevenue: projectedRevenue ? projectedRevenue.toFixed(2) : "0.00",
