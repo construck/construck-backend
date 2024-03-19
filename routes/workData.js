@@ -1287,7 +1287,12 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
                 ? w.driver?.firstName + " " + w.driver?.lastName
                 : w.equipment?.eqOwner,
               owner: w.equipment?.eqOwner,
-              totalRevenue: parseFloat(dP.totalRevenue).toFixed(2),
+              totalRevenue:
+                w?.equipment?.eqDescription === "TIPPER TRUCK"
+                  ? // CHECK IBIBAZO BYA Panne
+                    // CHECK uom = day
+                    dP.duration * w?.equipment?.rate
+                  : parseFloat(dP.totalRevenue).toFixed(2),
               totalExpenditure: parseFloat(dP.totalExpenditure).toFixed(2),
               duration:
                 dP.uom === "hour"
@@ -1313,7 +1318,10 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
               ).toFixed(2),
               // millage: w.equipment.millage ? w.equipment.millage : 0,
             });
+            console.log("@@dp", dP);
           });
+
+          return;
 
           // dateNotPosted.map((dNP) => {
           //   siteWorkList.push({
@@ -1801,26 +1809,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         },
       },
     ];
-    // let workList = await workData.model
-    //   .find(query, {
-    //     "project.createdOn": false,
-    //     "equipment.__v": false,
-    //     "equipment.createdOn": false,
-    //     "dispatch.project": false,
-    //     "dispatch.equipments": false,
-    //     "driver.password": false,
-    //     "driver.email": false,
-    //     "driver.createdOn": false,
-    //     "driver.__v": false,
-    //     "driver._id": false,
-    //   })
-    //   .populate("driver")
-    //   .populate("appovedBy")
-    //   .populate("createdBy")
-    //   .populate("workDone")
-    //   .populate('dispatch.astDriver')
-    //   .sort([["_id", "descending"]]);
-
     let workList = await workData.model.aggregate(pipeline);
     console.log("##", pipeline);
     console.log("##", workList.length);
@@ -2136,6 +2124,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               actualRevenue: d.totalRevenue,
               expenditure: d.totalExpenditure,
               rate: d.rate,
+              comment: d.comment,
             };
           });
 
@@ -2165,32 +2154,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             !_.includes(datesPendingPosted, d) &&
             moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
         );
-        // {
-        //     'Dispatch date': moment(Date.parse(w.dispatch?.date),
-        //     'Dispatch Shift': w.dispatch?.shift?.toLocaleUpperCase(),
-        //     'Site work': w.siteWork ? 'YES' : 'NO',
-        //     'Project Description': w.project.prjDescription,
-        //     'Equipment-PlateNumber': w.equipment?.plateNumber,
-        //     'Equipment Type': w.equipment?.eqDescription,
-        //     'Duration (HRS)':
-        //       w.equipment?.uom === 'hour' ? msToTime(w.duration) : 0,
-        //     'Duration (DAYS)':
-        //       w.equipment?.uom === 'day'
-        //         ? Math.round(w.duration * 100) / 100
-        //         : 0,
-        //     'Work done': w?.workDone?.jobDescription,
-        //     'Other work description': w.dispatch?.otherJobType,
-        // 'Driver Names': w.driver
-        //   ? w?.driver?.firstName + ' ' + w?.driver?.lastName
-        //   : w.equipment?.eqOwner,
-        //     'Driver contacts': w.driver?.phone,
-        //     'Target trips': w.dispatch?.targetTrips,
-        //     'Trips done': w?.tripsDone,
-        //     "Driver's/Operator's Comment": w.comment,
-        //     Customer: w.project?.customer,
-        //     Status: w.status,
-        //   }
-
         datesPosted.map((dP) => {
           if (
             moment(Date.parse(dP.date)).isSameOrAfter(moment(startDate)) &&
@@ -2224,6 +2187,9 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 "Actual Revenue":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
+                    : w?.equipment?.eqDescription === "TIPPER TRUCK" &&
+                      dP.comment === "Ibibazo bya panne"
+                    ? dP.duration * w?.equipment?.rate
                     : (dP.duration > 0 ? 1 : 0) * dP.rate,
                 // "Vendor payment": dP.expenditure,
                 "Vendor payment":
@@ -4789,7 +4755,7 @@ router.put("/swamend/:id", async (req, res) => {
         }
       }
     }
-    
+
     dailyWork.totalRevenue = revenue ? revenue : 0;
     dailyWork.totalExpenditure = expenditure ? expenditure : 0;
     dailyWork.comment = comment;
