@@ -1826,7 +1826,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               expenditure: d.totalExpenditure,
               status: d.status,
               rate: d.rate,
-              comment: d.comment,
+              comment: d.comment
             };
           });
 
@@ -1858,6 +1858,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         );
 
         datesPosted.map((dP) => {
+          console.log('@@@dPP1', dP)
           if (
             moment(Date.parse(dP.date)).isSameOrAfter(moment(startDate)) &&
             moment(Date.parse(dP.date)).isSameOrBefore(
