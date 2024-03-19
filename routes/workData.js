@@ -1818,6 +1818,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       let work = null;
 
       if (w.siteWork && w.status !== "stopped" && w.status !== "recalled") {
+        
         let dailyWorks = w.dailyWork;
 
         let datesPosted = dailyWorks
@@ -1862,6 +1863,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         );
 
         datesPosted.map((dP) => {
+          console.log('@@@dPP1', dP)
           if (
             moment(Date.parse(dP.date)).isSameOrAfter(moment(startDate)) &&
             moment(Date.parse(dP.date)).isSameOrBefore(
@@ -1945,6 +1947,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         });
 
         dateNotPosted.map((dNP) => {
+          console.log('@@@dPP2', dNP)
           if (
             moment(Date.parse(dNP)).isSameOrAfter(moment(startDate)) &&
             moment(Date.parse(dNP)).isSameOrBefore(
