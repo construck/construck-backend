@@ -1318,6 +1318,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
               ).toFixed(2),
               // millage: w.equipment.millage ? w.equipment.millage : 0,
             });
+            console.log("@@dp", dP);
           });
 
 
