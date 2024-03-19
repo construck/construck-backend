@@ -9,6 +9,7 @@ const moment = require("moment");
 const { eq } = require("lodash");
 const { default: mongoose, Types } = require("mongoose");
 const { getListOfEquipmentOnDuty, stopWork } = require("./workData");
+const EquipmentController = require("./../controllers/equipments");
 
 router.get("/", async (req, res) => {
   try {
@@ -673,6 +674,19 @@ router.put("/:id", async (req, res) => {
     console.log(err);
     res.status(500);
   }
+});
+
+router.get("/utilization/all", (req, res) => {
+  EquipmentController.getEquipmentUtilization(req, res);
+});
+router.get("/utilization/date/:date", (req, res) => {
+  EquipmentController.getEquipmentUtilizationByDate(req, res);
+});
+router.get("/utilization/download/:startdate/:enddate", (req, res) => {
+  EquipmentController.downloadEquipmentUtilizationByDates(req, res);
+});
+router.post("/utilization/:date", (req, res) => {
+  EquipmentController.captureEquipmentUtilization(req, res);
 });
 
 module.exports = router;

@@ -21,6 +21,7 @@ const customers = require("../models/customers");
 const MS_IN_A_DAY = 86400000;
 const HOURS_IN_A_DAY = 8;
 const ObjectId = require("mongoose").Types.ObjectId;
+const works = require("../controllers/works");
 
 const DURATION_LIMIT = 16;
 
@@ -864,8 +865,6 @@ router.get("/filtered/:page", async (req, res) => {
       .limit(perPage)
       .skip(parseInt(page - 1) * perPage)
       .sort([["_id", "descending"]]);
-
-    // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
 
     res.status(200).send({ workList, dataCount });
   } catch (err) {
@@ -1819,6 +1818,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       let work = null;
 
       if (w.siteWork && w.status !== "stopped" && w.status !== "recalled") {
+        console.log('not stopped, and not recalled')
         let dailyWorks = w.dailyWork;
 
         let datesPosted = dailyWorks
@@ -4491,15 +4491,15 @@ router.put("/amend/:id", async (req, res) => {
 
     // if rate is per hour and we have target trips to be done
     if (uom === "hour") {
-      if (comment !== "Ibibazo bya panne") {
+      // if (comment !== "Ibibazo bya panne") {
         work.duration = duration > 0 ? duration * 3600000 : 0;
         revenue = (rate * work.duration) / 3600000;
         expenditure = (supplierRate * work.duration) / 3600000;
-      } else {
-        work.duration = duration > 0 ? duration * 3600000 : 0;
-        revenue = (tripsRatio * (rate * work.duration)) / 3600000;
-        expenditure = (tripsRatio * (supplierRate * work.duration)) / 3600000;
-      }
+      // } else {
+      //   work.duration = duration > 0 ? duration * 3600000 : 0;
+      //   revenue = (tripsRatio * (rate * work.duration)) / 3600000;
+      //   expenditure = (tripsRatio * (supplierRate * work.duration)) / 3600000;
+      // }
     }
 
     //if rate is per day
@@ -4852,6 +4852,13 @@ router.put("/driverassistants/", async (req, res) => {
     let list = await getEmployees(uniqueAssistants);
     res.send(list);
   } catch (err) {}
+});
+
+router.post("/reports/generate", (req, res) => {
+  works.captureDispatchDailyReport(req, res);
+});
+router.get("/reports/:date", (req, res) => {
+  works.getDispatchDailyReport(req, res);
 });
 
 async function getEmployees(listIds) {
