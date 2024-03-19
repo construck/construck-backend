@@ -197,7 +197,8 @@ router.get("/filtered/:page", async (req, res) => {
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
 
-  let projects = userType !== "vendor" ? userProjects && JSON.parse(userProjects) : [];
+  let projects =
+    userType !== "vendor" ? userProjects && JSON.parse(userProjects) : [];
   let prjs = projects?.map((p) => {
     return p?.prjDescription;
   });
@@ -1979,8 +1980,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             });
           }
         });
-
-        
 
         dateNotPosted.map((dNP) => {
           if (
@@ -4731,13 +4730,8 @@ router.put("/swamend/:id", async (req, res) => {
 
   let duration = Math.abs(req.body.duration);
   if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
+  postingDate = moment(postingDate, "DD-MMM-YYYY").format("YYYY-MM-DD");
 
-  let dd = postingDate?.split(".")[0];
-  let mm = postingDate?.split(".")[1];
-  let yyyy = postingDate?.split(".")[2];
-  if (dd?.length < 2) dd = "0" + dd;
-  if (mm?.length < 2) mm = "0" + mm;
-  if (dd && mm && yyyy) postingDate = `${yyyy}-${mm}-${dd}`;
   try {
     let work = await workData.model.findOne({
       _id: id,
@@ -4776,8 +4770,6 @@ router.put("/swamend/:id", async (req, res) => {
 
     //if rate is per day
     if (uom === "day") {
-      // work.duration = duration;
-      // revenue = rate * duration;
       if (comment !== "Ibibazo bya panne") {
         dailyWork.duration = duration / HOURS_IN_A_DAY;
         revenue = rate * (duration >= 1 ? 1 : 0);
@@ -4787,13 +4779,17 @@ router.put("/swamend/:id", async (req, res) => {
 
         let targetDuration = 5;
         let durationRation =
-          duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
+          duration >= 5 ? 1 : _.round(duration / HOURS_IN_A_DAY, 2);
         dailyWork.duration = duration / HOURS_IN_A_DAY;
-        revenue = rate * (duration >= 1 ? 1 : 0);
         expenditure = supplierRate;
+        if (equipment?.eqDescription === "TIPPER TRUCK") {
+          revenue = rate * durationRation;
+        } else {
+          revenue = rate;
+        }
       }
     }
-
+    
     dailyWork.totalRevenue = revenue ? revenue : 0;
     dailyWork.totalExpenditure = expenditure ? expenditure : 0;
     dailyWork.comment = comment;
@@ -4836,7 +4832,12 @@ router.put("/swamend/:id", async (req, res) => {
     await logTobeSaved.save();
 
     res.status(201).send(savedRecord);
-  } catch (err) {}
+  } catch (err) {
+    console.log("##", err);
+    return res.status(503).send({
+      error: err,
+    });
+  }
 });
 
 router.put("/swreverse/:id", async (req, res) => {
