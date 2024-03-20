@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "deploy:staging": "git push staging staging:master",
-    "deploy:production": "git push production staging:master"
+    "deploy:staging": "git push staging dev:master",
+    "deploy:production": "git push production dev:master"
   },
   "keywords": [],
   "author": "",
