@@ -35,7 +35,8 @@ router.post("/", async (req, res) => {
     userType,
     company,
     status,
-    assignedProjects
+    assignedProjects,
+    permissions,
   } = req.body;
 
   try {
@@ -50,7 +51,8 @@ router.post("/", async (req, res) => {
       userType,
       company,
       status,
-      assignedProjects
+      assignedProjects,
+      permissions,
     });
 
     let userCreated = await userToCreate.save();
@@ -77,7 +79,7 @@ router.post("/login", async (req, res) => {
 
     let vendor = await venData.model.findOne({ phone: email });
 
-    console.log(vendor)
+    console.log(vendor);
 
     if (user?.length === 0 || !user) {
       if (vendor?.length === 0 || !vendor) {
@@ -196,6 +198,7 @@ router.put("/:id", async (req, res) => {
     userType,
     company,
     assignedProjects,
+    permissions,
   } = req.body;
 
   try {
@@ -207,6 +210,7 @@ router.put("/:id", async (req, res) => {
       userType,
       company,
       assignedProjects,
+      permissions,
     });
 
     res.status(200).send(user);
