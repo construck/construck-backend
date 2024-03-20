@@ -1818,7 +1818,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       let work = null;
 
       if (w.siteWork && w.status !== "stopped" && w.status !== "recalled") {
-        
         let dailyWorks = w.dailyWork;
 
         let datesPosted = dailyWorks
@@ -1831,7 +1830,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               expenditure: d.totalExpenditure,
               status: d.status,
               rate: d.rate,
-              comment: d.comment
+              comment: d.comment,
             };
           });
 
@@ -1863,7 +1862,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         );
 
         datesPosted.map((dP) => {
-          console.log('@@@dPP1', dP)
           if (
             moment(Date.parse(dP.date)).isSameOrAfter(moment(startDate)) &&
             moment(Date.parse(dP.date)).isSameOrBefore(
@@ -1895,7 +1893,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   w.equipment?.uom === "hour" ? dP?.rate * 5 : dP?.rate,
                 "Actual Revenue":
                   w.equipment?.uom === "hour"
-<<<<<<< HEAD
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
                     : w?.equipment?.eqDescription === "TIPPER TRUCK" &&
                       dP.comment === "Ibibazo bya panne"
@@ -1903,15 +1900,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     : (dP.duration > 0 ? 1 : 0) * dP.rate,
                 // ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
                 // : (dP.duration > 0 ? 1 : 0) * dP.rate,
-=======
-                  ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
-                  : (w?.equipment?.eqDescription === "TIPPER TRUCK" &&
-                    dP.comment === "Ibibazo bya panne")
-                  ? dP.duration * w?.equipment?.rate
-                  : (dP.duration > 0 ? 1 : 0) * dP.rate,
-                    // ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
-                    // : (dP.duration > 0 ? 1 : 0) * dP.rate,
->>>>>>> 9aa110b (Add tipper truck and check comment before generating actual revenue on download on all site works)
                 // "Vendor payment": dP.expenditure,
                 "Vendor payment":
                   w.equipment?.uom === "hour"
@@ -1960,11 +1948,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         });
 
         dateNotPosted.map((dNP) => {
-<<<<<<< HEAD
-          console.log("@@@dPP2", dNP);
-=======
-          console.log('@@@dPP2', dNP)
->>>>>>> 9aa110b (Add tipper truck and check comment before generating actual revenue on download on all site works)
           if (
             moment(Date.parse(dNP)).isSameOrAfter(moment(startDate)) &&
             moment(Date.parse(dNP)).isSameOrBefore(
@@ -2035,10 +2018,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           }
         });
 
-<<<<<<< HEAD
-=======
-        
->>>>>>> 9aa110b (Add tipper truck and check comment before generating actual revenue on download on all site works)
         datesPendingPosted.map((dPP) => {
           if (
             moment(Date.parse(dPP)).isSameOrAfter(moment(startDate)) &&
