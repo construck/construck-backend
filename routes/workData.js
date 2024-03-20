@@ -1819,7 +1819,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       let work = null;
 
       if (w.siteWork && w.status !== "stopped" && w.status !== "recalled") {
-        
         let dailyWorks = w.dailyWork;
 
         let datesPosted = dailyWorks
@@ -1832,7 +1831,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               expenditure: d.totalExpenditure,
               status: d.status,
               rate: d.rate,
-              comment: d.comment
+              comment: d.comment,
             };
           });
 
@@ -1864,7 +1863,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         );
 
         datesPosted.map((dP) => {
-          console.log('@@@dPP1', dP)
           if (
             moment(Date.parse(dP.date)).isSameOrAfter(moment(startDate)) &&
             moment(Date.parse(dP.date)).isSameOrBefore(
@@ -1896,13 +1894,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   w.equipment?.uom === "hour" ? dP?.rate * 5 : dP?.rate,
                 "Actual Revenue":
                   w.equipment?.uom === "hour"
-                  ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
-                  : (w?.equipment?.eqDescription === "TIPPER TRUCK" &&
-                    dP.comment === "Ibibazo bya panne")
-                  ? dP.duration * w?.equipment?.rate
-                  : (dP.duration > 0 ? 1 : 0) * dP.rate,
-                    // ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
-                    // : (dP.duration > 0 ? 1 : 0) * dP.rate,
+                    ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
+                    : w?.equipment?.eqDescription === "TIPPER TRUCK" &&
+                      dP.comment === "Ibibazo bya panne"
+                    ? dP.duration * w?.equipment?.rate
+                    : (dP.duration > 0 ? 1 : 0) * dP.rate,
+                // ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
+                // : (dP.duration > 0 ? 1 : 0) * dP.rate,
                 // "Vendor payment": dP.expenditure,
                 "Vendor payment":
                   w.equipment?.uom === "hour"
@@ -1951,7 +1949,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         });
 
         dateNotPosted.map((dNP) => {
-          console.log('@@@dPP2', dNP)
+          console.log("@@@dPP2", dNP);
           if (
             moment(Date.parse(dNP)).isSameOrAfter(moment(startDate)) &&
             moment(Date.parse(dNP)).isSameOrBefore(
@@ -2022,7 +2020,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           }
         });
 
-        
         datesPendingPosted.map((dPP) => {
           if (
             moment(Date.parse(dPP)).isSameOrAfter(moment(startDate)) &&
@@ -4078,12 +4075,15 @@ router.put("/stop/:id", async (req, res) => {
             let durationRation =
               duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
             dailyWork.duration = duration / HOURS_IN_A_DAY;
-            revenue = rate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
+            revenue =
+              equipment?.eqDescription === "TIPPER TRUCK" &&
+              comment === "Ibibazo bya panne"
+                ? duration >= 5 ? rate : rate * _.round(duration / HOURS_IN_A_DAY, 2)
+                : rate;
             expenditure =
               supplierRate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
           }
         }
-
         dailyWork.rate = rate;
         dailyWork.uom = uom;
         dailyWork.date = moment(postingDate).isValid()
@@ -4117,7 +4117,6 @@ router.put("/stop/:id", async (req, res) => {
         work.equipment = equipment;
         work.moreComment = moreComment;
         work.status = workEnded ? "stopped" : "on going";
-
         await equipment.save();
         if (employee) await employee.save();
         let savedRecord = await work.save();
