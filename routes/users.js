@@ -213,6 +213,7 @@ router.put("/:id", async (req, res) => {
       permissions,
     });
 
+    
     res.status(200).send(user);
   } catch (err) {
     res.send(err);
