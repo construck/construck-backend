@@ -1854,7 +1854,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               expenditure: d.totalExpenditure,
               status: d.status,
               rate: d.rate,
-              comment: d.comment
+              comment: d.comment,
             };
           });
 
