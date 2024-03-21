@@ -8,9 +8,9 @@ const mongoose = require("mongoose");
 const getStatus = (status) => {
   switch (status) {
     case "standby":
-      return "Available";
+      return "Open";
     case "dispatched":
-      return "Available";
+      return "Open";
     case "workshop":
       return "Workshop";
     case "disposed":
@@ -86,8 +86,6 @@ async function getEquipmentUtilization(req, res) {
 // GET EQUIPMENT UTILIZATION BY A SPECIFIC DATE
 async function getEquipmentUtilizationByDate(req, res) {
   let { date } = req.params;
-  // date = new Date(date);
-  // date.setHours(0, 0, 0, 0);
   date = moment(date, "YYYY-MM-DD", "UTC");
   date = date.format("YYYY-MM-DDTHH:mm:ss.SSS") + "Z";
   try {
@@ -96,11 +94,6 @@ async function getEquipmentUtilizationByDate(req, res) {
     // GET UTILIZATION
     const query = {
       date,
-      // }
-      // date: {
-      //   $gte: date,
-      //   $eq: new Date(date.getTime() + 24 * 60 * 60 * 1000),
-      // },
     };
     const response = await EquipmentUtilization.model
       .find(query)
@@ -111,8 +104,8 @@ async function getEquipmentUtilizationByDate(req, res) {
         date: "",
         type: type.description,
         total: 0,
-        available: 0,
-        availablePercent: 0,
+        open: 0,
+        openPercent: 0,
         workshop: 0,
         workshopPercent: 0,
       };
@@ -122,9 +115,8 @@ async function getEquipmentUtilizationByDate(req, res) {
             ...count,
             date: r.date,
             total: 0,
-            available:
-              r.status === "Available" ? count.available + 1 : count.available,
-            availablePercent: 0,
+            open: r.status === "Open" ? count.open + 1 : count.open,
+            openPercent: 0,
             workshop:
               r.status === "Workshop" ? count.workshop + 1 : count.workshop,
             workshopPercent: 0,
@@ -136,10 +128,10 @@ async function getEquipmentUtilizationByDate(req, res) {
     });
     // REMOVE EQUIPMENT TYPES WITHOUT DATA
     utilization = utilization.filter((r) => {
-      return !(r.available === 0 && r.workshop === 0);
+      return !(r.open === 0 && r.workshop === 0);
     });
     utilization.sort((a, b) => {
-      return b.available + b.workshop - (a.available + a.workshop);
+      return b.open + b.workshop - (a.open + a.workshop);
     });
     return res
       .status(200)
@@ -160,10 +152,25 @@ async function downloadEquipmentUtilizationByDates(req, res) {
   enddate.setHours(23, 59, 59, 0);
 
   try {
-    const response = await EquipmentUtilization.find({
-      createdOn: { $gte: startdate, $lte: enddate },
-    }).populate("type", { createdAt: 0, updatedAt: 0 });
-    return res.status(200).send(response);
+    let response;
+    response = await EquipmentUtilization.model
+      .find({
+        createdOn: { $gte: startdate, $lte: enddate },
+      })
+      .populate("type", { createdAt: 0, updatedAt: 0 });
+    const utilization = response.map((r) => {
+      return {
+        Date: moment(r.date).format("YYYY-MM-DD"),
+        "Plate number": r.plateNumber,
+        "Equipment type": r.type,
+        "Asset class": r.assetClass,
+        "Equipment category": r.equipmentCategory,
+        Owner: r.owner,
+        Status: r.status,
+      };
+    });
+
+    return res.status(200).send(utilization);
   } catch (error) {
     console.log("error", error);
     return res.status(503).send({

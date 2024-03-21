@@ -24,16 +24,12 @@ const EquipmentUtilizationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Available", "Workshop", "Disposed"],
-      default: "Available",
+      enum: ["Open", "Workshop", "Disposed"],
+      default: "Open",
     },
     date: {
       type: Date,
     },
-    // createdOn: {
-    //     type: mongoose.SchemaTypes.Date,
-    //     default: Date.now(),
-    // },
   },
   { timestamps: true }
 );
