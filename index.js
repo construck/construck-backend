@@ -35,7 +35,7 @@ const fun = require("./utils/cron-functions");
 const dotenv = require('dotenv').config()
 const _ = require('lodash')
 
-
+var mongoDB = "";
 mongoDB = process.env.CONS_MONGO_DB;
 
 mongoose.connect(mongoDB, { useNewUrlParser: true });
