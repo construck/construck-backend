@@ -4073,7 +4073,9 @@ router.put("/stop/:id", async (req, res) => {
             revenue =
               equipment?.eqDescription === "TIPPER TRUCK" &&
               comment === "Ibibazo bya panne"
-                ? duration >= 5 ? rate : rate * _.round(duration / HOURS_IN_A_DAY, 2)
+                ? duration >= 5
+                  ? rate
+                  : rate * _.round(duration / HOURS_IN_A_DAY, 2)
                 : rate;
             expenditure =
               supplierRate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
@@ -4524,7 +4526,7 @@ router.put("/amend/:id", async (req, res) => {
             let durationRation =
               duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
             work.duration = duration / HOURS_IN_A_DAY;
-            revenue = rate;
+            revenue = rate * (duration >= 1 ? rate : 0);
             expenditure = supplierRate;
           }
         }
