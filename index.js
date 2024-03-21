@@ -34,6 +34,8 @@ const send = require("./utils/sendEmailNode");
 const fun = require("./utils/cron-functions");
 const dotenv = require("dotenv").config();
 const _ = require("lodash");
+const dispatchCronjobs = require("./cronjobs/works");
+const equipmentCronjobs = require("./cronjobs/equipments");
 
 const { NODE_ENV } = process.env;
 
@@ -107,4 +109,6 @@ app.listen(PORT, async () => {
   cron.schedule("0 8 * * *", () => {
     fun.getWorksToExpireToday().then((res) => {});
   });
+  dispatchCronjobs.dispatchCronjobs();
+equipmentCronjobs.equipmentCronjobs();
 });

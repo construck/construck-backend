@@ -21,14 +21,19 @@ const getStatus = (status) => {
 };
 // Equipment Controller will hosted here
 async function captureEquipmentUtilization(req, res) {
-  let { date } = req.params;
-  date = moment(date, "YYYY-MM-DD", "UTC");
-  date = date.format("YYYY-MM-DDTHH:mm:ss.SSS") + "Z";
+  let date = moment()
+    .subtract(1, "days")
+    .startOf("day")
+    .set("hour", 0)
+    .set("minute", 0)
+    .format("YYYY-MM-DD");
+  // date = moment(date, "YYYY-MM-DD", "UTC");
+  // date = date.format("YYYY-MM-DDTHH:mm:ss.SSS") + "Z";
 
-  console.log(
-    date,
-    "Run cron job every 10 seconds in the development environment"
-  );
+  // console.log(
+  //   date,
+  //   "Run cron job every 10 seconds in the development environment"
+  // );
   try {
     // 1. CHECK IF THERE IS DATA FOR SELECTED DATE
     const snapshotExist = await EquipmentUtilization.model.find({
@@ -86,6 +91,9 @@ async function getEquipmentUtilization(req, res) {
 // GET EQUIPMENT UTILIZATION BY A SPECIFIC DATE
 async function getEquipmentUtilizationByDate(req, res) {
   let { date } = req.params;
+  let { eqtypes } = req.query;
+  eqtypes = !_.isEmpty(eqtypes) ? eqtypes.split(",") : [];
+  // types = JSON.parse(`${types}`);
   date = moment(date, "YYYY-MM-DD", "UTC");
   date = date.format("YYYY-MM-DDTHH:mm:ss.SSS") + "Z";
   try {
@@ -95,37 +103,71 @@ async function getEquipmentUtilizationByDate(req, res) {
     const query = {
       date,
     };
-    const response = await EquipmentUtilization.model
-      .find(query)
-      .populate("equipment", { createdAt: 0, updatedAt: 0, eqStatus: 0 });
+
+    const response = await EquipmentUtilization.model.find(query);
+    // .populate("equipment", { createdAt: 0, updatedAt: 0, eqStatus: 0 });
     // GET NUMBER OF EQUIPMENT BY TYPES
-    let utilization = types.map((type) => {
-      let count = {
-        date: "",
-        type: type.description,
-        total: 0,
-        open: 0,
-        openPercent: 0,
-        workshop: 0,
-        workshopPercent: 0,
-      };
-      response.map((r) => {
-        if (r.equipmentCategory === type.description) {
-          count = {
-            ...count,
-            date: r.date,
-            total: 0,
-            open: r.status === "Open" ? count.open + 1 : count.open,
-            openPercent: 0,
-            workshop:
-              r.status === "Workshop" ? count.workshop + 1 : count.workshop,
-            workshopPercent: 0,
-          };
-          return count;
-        }
+    let utilization = [];
+    if (_.isEmpty(eqtypes)) {
+      utilization = types.map((type) => {
+        let count = {
+          date: "",
+          type: type.description,
+          total: 0,
+          open: 0,
+          availablePercent: 0,
+          workshop: 0,
+          workshopPercent: 0,
+        };
+        response.map((r) => {
+          if (r.equipmentCategory === type.description) {
+            count = {
+              ...count,
+              date: r.date,
+              total: 0,
+              open: r.status === "Open" ? count.open + 1 : count.open,
+              openPercent: 0,
+              workshop:
+                r.status === "Workshop" ? count.workshop + 1 : count.workshop,
+              workshopPercent: 0,
+            };
+            return count;
+          }
+        });
+        return count;
       });
-      return count;
-    });
+    } else {
+      utilization = types.map((type) => {
+        let count = {
+          date: "",
+          type: type.description,
+          total: 0,
+          open: 0,
+          openPercent: 0,
+          workshop: 0,
+          workshopPercent: 0,
+        };
+        response.map((r) => {
+          if (
+            r.equipmentCategory === type.description &&
+            eqtypes.includes(r.equipmentCategory)
+          ) {
+            count = {
+              ...count,
+              date: r.date,
+              total: 0,
+              open: r.status === "Open" ? count.open + 1 : count.open,
+              openPercent: 0,
+              workshop:
+                r.status === "Workshop" ? count.workshop + 1 : count.workshop,
+              workshopPercent: 0,
+            };
+            return count;
+          }
+        });
+        return count;
+      });
+    }
     // REMOVE EQUIPMENT TYPES WITHOUT DATA
     utilization = utilization.filter((r) => {
       return !(r.open === 0 && r.workshop === 0);
@@ -137,7 +179,6 @@ async function getEquipmentUtilizationByDate(req, res) {
       .status(200)
       .send({ count: utilization.length, response: utilization });
   } catch (error) {
-    console.log("eee", error);
     return res.status(503).send({
       error: "Something went wrong, try again",
     });
@@ -146,6 +187,7 @@ async function getEquipmentUtilizationByDate(req, res) {
 // GET AVERAGE EQUIPMENT UTILIZATION BY DATE RANGE
 async function downloadEquipmentUtilizationByDates(req, res) {
   let { startdate, enddate } = req.params;
+  console.log("range", startdate, enddate);
   startdate = new Date(startdate);
   enddate = new Date(enddate);
   startdate.setHours(0, 0, 0, 0);
@@ -155,22 +197,23 @@ async function downloadEquipmentUtilizationByDates(req, res) {
     let response;
     response = await EquipmentUtilization.model
       .find({
-        createdOn: { $gte: startdate, $lte: enddate },
+        date: { $gte: startdate, $lte: enddate },
       })
       .populate("type", { createdAt: 0, updatedAt: 0 });
-    const utilization = response.map((r) => {
-      return {
+    // Convert to data for Excel
+    response = response.map((r) => {
+      let data = {
         Date: moment(r.date).format("YYYY-MM-DD"),
         "Plate number": r.plateNumber,
-        "Equipment type": r.type,
+        "Equipment type": r.equipmentCategory,
         "Asset class": r.assetClass,
-        "Equipment category": r.equipmentCategory,
+        "Equipment category": r.type,
         Owner: r.owner,
         Status: r.status,
       };
+      return data;
     });
-
-    return res.status(200).send(utilization);
+    return res.status(200).send(response);
   } catch (error) {
     console.log("error", error);
     return res.status(503).send({
