@@ -1317,10 +1317,8 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
               ).toFixed(2),
               // millage: w.equipment.millage ? w.equipment.millage : 0,
             });
-            console.log("@@dp", dP);
           });
 
-          return;
 
           // dateNotPosted.map((dNP) => {
           //   siteWorkList.push({
@@ -1818,7 +1816,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       let work = null;
 
       if (w.siteWork && w.status !== "stopped" && w.status !== "recalled") {
-        console.log('not stopped, and not recalled')
         let dailyWorks = w.dailyWork;
 
         let datesPosted = dailyWorks
@@ -1949,7 +1946,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         });
 
         dateNotPosted.map((dNP) => {
-          console.log("@@@dPP2", dNP);
           if (
             moment(Date.parse(dNP)).isSameOrAfter(moment(startDate)) &&
             moment(Date.parse(dNP)).isSameOrBefore(
