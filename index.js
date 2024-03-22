@@ -26,16 +26,19 @@ const avblty = require("./routes/assetAvailability");
 const sendEmail = require("./routes/sendEmailRoute");
 const maintenance = require("./routes/maintenances");
 const maintenanceLogs = require("./routes/maintenanceLogs");
-const item = require('./routes/items');
-const mechanics = require('./routes/mechanics');
-const mechanical = require('./routes/mechanicals');
-const donwload = require('./routes/donwload');
+const item = require("./routes/items");
+const mechanics = require("./routes/mechanics");
+const mechanical = require("./routes/mechanicals");
+const download = require("./routes/download");
 const send = require("./utils/sendEmailNode");
 const fun = require("./utils/cron-functions");
-const dotenv = require('dotenv').config()
-const _ = require('lodash')
+const dotenv = require("dotenv").config();
+const _ = require("lodash");
+const dispatchCronjobs = require("./cronjobs/works");
+const equipmentCronjobs = require("./cronjobs/equipments");
 
-var mongoDB = "";
+const { NODE_ENV } = process.env;
+
 mongoDB = process.env.CONS_MONGO_DB;
 
 mongoose.connect(mongoDB, { useNewUrlParser: true });
@@ -64,6 +67,10 @@ let auth = (req, res, next) => {
     .split(":");
   if (login && password && login === auth.login && password === auth.password) {
     return next();
+  } else {
+    if (NODE_ENV === "development") {
+      return next();
+    }
   }
   res.set("WWW-Authenticate", 'Basic realm="401"'); // change this
   res.status(401).send("Authentication required."); // custom message
@@ -89,18 +96,19 @@ app.use("/logs", auth, logs);
 app.use("/dispatches", auth, dispatches);
 app.use("/jobtypes", auth, jobTypes);
 app.use("/requests", auth, equipmentRequests);
-app.use('/api', maintenanceLogs);
+app.use("/api", maintenanceLogs);
 app.use("/api", maintenance);
-app.use('/api',auth, item);
-app.use('/api',auth, mechanics);
-app.use('/api',auth, mechanical);
+app.use("/api", auth, item);
+app.use("/api", auth, mechanics);
+app.use("/api", auth, mechanical);
 app.use("/equipmentTypes", auth, equipmentTypes);
-app.use("/download", donwload);
+app.use("/download", download);
 
 app.listen(PORT, async () => {
   console.log(`Listening on Port ${PORT}`);
   cron.schedule("0 8 * * *", () => {
     fun.getWorksToExpireToday().then((res) => {});
   });
-  
+  dispatchCronjobs.dispatchCronjobs();
+  equipmentCronjobs.equipmentCronjobs();
 });
