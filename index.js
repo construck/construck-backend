@@ -110,5 +110,5 @@ app.listen(PORT, async () => {
     fun.getWorksToExpireToday().then((res) => {});
   });
   dispatchCronjobs.dispatchCronjobs();
-equipmentCronjobs.equipmentCronjobs();
+  equipmentCronjobs.equipmentCronjobs();
 });
