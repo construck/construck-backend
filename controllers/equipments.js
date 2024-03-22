@@ -27,13 +27,6 @@ async function captureEquipmentUtilization(req, res) {
     .set("hour", 0)
     .set("minute", 0)
     .format("YYYY-MM-DD");
-  // date = moment(date, "YYYY-MM-DD", "UTC");
-  // date = date.format("YYYY-MM-DDTHH:mm:ss.SSS") + "Z";
-
-  // console.log(
-  //   date,
-  //   "Run cron job every 10 seconds in the development environment"
-  // );
   try {
     // 1. CHECK IF THERE IS DATA FOR SELECTED DATE
     const snapshotExist = await EquipmentUtilization.model.find({
@@ -71,23 +64,15 @@ async function captureEquipmentUtilization(req, res) {
       });
       // SAVE DATA IN DATABASE
       await EquipmentUtilization.model.insertMany(utilization);
-      return res.status(201).send({
-        message: "Equipment utilization captured successfully",
-      });
+      console.log("Equipment utilization captured successfully");
     } else {
-      return res.status(409).send({
-        error: "Equipment utilization on the selected date exists already",
-      });
+      console.log("Equipment utilization on the selected date exists already");
     }
   } catch (err) {
-    return res.status(503).send(err);
+    console.log("Cronjob: Cannot capture equipment report:", err);
   }
 }
 
-// GET DAILY EQUIPMENT UTILIZATION: ACCEPT FILTERS TOO
-async function getEquipmentUtilization(req, res) {
-  console.log("Get equipment utilization");
-}
 // GET EQUIPMENT UTILIZATION BY A SPECIFIC DATE
 async function getEquipmentUtilizationByDate(req, res) {
   let { date } = req.params;
@@ -105,7 +90,6 @@ async function getEquipmentUtilizationByDate(req, res) {
     };
 
     const response = await EquipmentUtilization.model.find(query);
-    // .populate("equipment", { createdAt: 0, updatedAt: 0, eqStatus: 0 });
     // GET NUMBER OF EQUIPMENT BY TYPES
     let utilization = [];
     if (_.isEmpty(eqtypes)) {
@@ -224,7 +208,6 @@ async function downloadEquipmentUtilizationByDates(req, res) {
 
 module.exports = {
   captureEquipmentUtilization,
-  getEquipmentUtilization,
   getEquipmentUtilizationByDate,
   downloadEquipmentUtilizationByDates,
 };

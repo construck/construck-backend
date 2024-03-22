@@ -676,9 +676,6 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.get("/utilization/all", (req, res) => {
-  EquipmentController.getEquipmentUtilization(req, res);
-});
 router.get("/utilization/date/:date", (req, res) => {
   EquipmentController.getEquipmentUtilizationByDate(req, res);
 });

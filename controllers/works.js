@@ -1,6 +1,5 @@
 const _ = require("lodash");
 const moment = require("moment");
-// const { Work } = require("../models/works");
 const Work = require("./../models/workData");
 const { Project } = require("../models/projects");
 const Customer = require("./../models/customers");
@@ -38,14 +37,6 @@ async function captureDispatchDailyReport() {
           });
         }
       });
-      // 2. GET DISPATCHES THAT MATCHES WITH DATE
-      // const yesterday = moment()
-      //   .subtract(1, "days")
-      //   .startOf("day")
-      //   .set("hour", 0)
-      //   .set("minute", 0)
-      //   .format("YYYY-MM-DD");
-      // date = !_.isEmpty(date) ? date : yesterday;
       const query = {
         $or: [
           { siteWork: false, workStartDate: date },
@@ -109,25 +100,17 @@ async function captureDispatchDailyReport() {
       // SAVE DISPATCH REPORT ONE BY ONE
       await DispatchReport.model.insertMany(report);
 
-      // return res.status(201).send({
-      //   total: report.length,
-      //   report,
-      //   message: "Dispatch report has been captured successfully",
-      // });
       console.log("Cronjob: Dispatch report has been captured successfully");
     } else {
       console.log("Equipment utilization on the selected date exists already");
     }
   } catch (err) {
     console.log("Cronjob: Cannot capture dispatch report: ", err);
-    // console.log("err: ", err);
-    // return res.status(503).send(err);
   }
 }
 
 async function getDispatchDailyReport(req, res) {
   const { date } = req.params;
-  console.log('@@date',date)
   if (date === null || date === undefined || date === "") {
     return res
       .status(503)
