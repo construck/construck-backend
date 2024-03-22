@@ -4,9 +4,9 @@ const EquipmentController = require("../controllers/equipments");
 // All cronjobs related to equipments
 async function equipmentCronjobs(req, res) {
   cron.schedule(
-    "*/10 * * * * *",
+    "0 18 * * *", // Run every day at 6:00 PM
     async () => {
-        await EquipmentController.captureEquipmentUtilization(req, res);
+      await EquipmentController.captureEquipmentUtilization(req, res);
     },
     {
       scheduled: true,

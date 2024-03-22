@@ -4,9 +4,9 @@ const WorkController = require("../controllers/works");
 // All cronjobs related to dispatches
 async function dispatchCronjobs(req, res) {
   cron.schedule(
-    "*/10 * * * * *",
+    "0 8 * * *", // Run every day at 8:00 AM
     async () => {
-        await WorkController.captureDispatchDailyReport(req, res);
+      await WorkController.captureDispatchDailyReport(req, res);
     },
     {
       scheduled: true,
