@@ -23,6 +23,7 @@ const HOURS_IN_A_DAY = 8;
 const ObjectId = require("mongoose").Types.ObjectId;
 const works = require("../controllers/works");
 
+
 const DURATION_LIMIT = 16;
 
 function isValidObjectId(id) {
@@ -1896,9 +1897,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                       dP.comment === "Ibibazo bya panne"
                     ? dP.duration * w?.equipment?.rate
                     : (dP.duration > 0 ? 1 : 0) * dP.rate,
-                // ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
-                // : (dP.duration > 0 ? 1 : 0) * dP.rate,
-                // "Vendor payment": dP.expenditure,
                 "Vendor payment":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
@@ -2015,7 +2013,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             });
           }
         });
-
         datesPendingPosted.map((dPP) => {
           if (
             moment(Date.parse(dPP)).isSameOrAfter(moment(startDate)) &&
@@ -4851,7 +4848,7 @@ router.put("/driverassistants/", async (req, res) => {
 });
 
 router.post("/reports/generate", (req, res) => {
-  works.captureDispatchDailyReport(req, res);
+  works.captureDispatchDailyReport(req.query.date);
 });
 router.get("/reports/:date", (req, res) => {
   works.getDispatchDailyReport(req, res);

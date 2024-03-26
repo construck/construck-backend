@@ -106,7 +106,7 @@ app.use("/download", download);
 
 app.listen(PORT, async () => {
   console.log(`Listening on Port ${PORT}`);
-  cron.schedule("0 8 * * *", () => {
+  cron.schedule("* 8 * * * *", () => {
     fun.getWorksToExpireToday().then((res) => {});
   });
   dispatchCronjobs.dispatchCronjobs();

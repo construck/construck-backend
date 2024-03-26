@@ -676,10 +676,13 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+router.post("/utilization", (req, res) => {
+  EquipmentController.captureEquipmentUtilization(req, res);
+});
 router.get("/utilization/date/:date", (req, res) => {
   EquipmentController.getEquipmentUtilizationByDate(req, res);
 });
-router.get("/utilization/download/:startdate/:enddate", (req, res) => {
+router.get("/utilization/:startdate/:enddate/download", (req, res) => {
   EquipmentController.downloadEquipmentUtilizationByDates(req, res);
 });
 router.post("/utilization/:date", (req, res) => {

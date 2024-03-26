@@ -5,15 +5,15 @@ const transporter = nodemailer.createTransport({
   host: "smtp.office365.com",
   port: 587,
   auth: {
-    user: process.env.CTK_SENDER_EMAIL,
-    pass: process.env.CTK_SENDER_PASSWORD,
+    user: "appinfo@construck.rw",
+    pass: "ConsApp@20",
   },
 });
 
 // send email
 async function send(from, to, subject, text, html) {
   return await transporter.sendMail({
-    from: process.env.CTK_SENDER_EMAIL,
+    from: "appinfo@construck.rw",
     to: to,
     subject: subject,
     text: text,
