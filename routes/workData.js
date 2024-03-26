@@ -23,6 +23,7 @@ const HOURS_IN_A_DAY = 8;
 const ObjectId = require("mongoose").Types.ObjectId;
 const works = require("../controllers/works");
 
+
 const DURATION_LIMIT = 16;
 
 function isValidObjectId(id) {
@@ -4847,7 +4848,7 @@ router.put("/driverassistants/", async (req, res) => {
 });
 
 router.post("/reports/generate", (req, res) => {
-  works.captureDispatchDailyReport(req, res);
+  works.captureDispatchDailyReport(req.query.date);
 });
 router.get("/reports/:date", (req, res) => {
   works.getDispatchDailyReport(req, res);

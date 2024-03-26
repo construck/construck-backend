@@ -5,14 +5,21 @@ const { Project } = require("../models/projects");
 const Customer = require("./../models/customers");
 const DispatchReport = require("./../models/dispatchReports");
 const mongoose = require("mongoose");
+const mailer = require("./../helpers/mailer/dispatchReport");
 
-async function captureDispatchDailyReport() {
-  let date = moment()
-    .subtract(1, "days")
-    .startOf("day")
-    .set("hour", 0)
-    .set("minute", 0)
-    .format("YYYY-MM-DD");
+async function captureDispatchDailyReport(date) {
+  const { NODE_ENV } = process.env;
+  // THIS LINE SHOULD BE COMMENTED OUT IN PRODUCTION
+  if (NODE_ENV === "development") {
+    date = date;
+  } else {
+    date = moment()
+      .subtract(1, "days")
+      .startOf("day")
+      .set("hour", 0)
+      .set("minute", 0)
+      .format("YYYY-MM-DD");
+  }
   console.log(
     "Run cron job every 10 seconds in the development environment",
     date
@@ -39,7 +46,10 @@ async function captureDispatchDailyReport() {
       });
       const query = {
         $or: [
-          { siteWork: false, workStartDate: date },
+          {
+            siteWork: false,
+            workStartDate: date,
+          },
           {
             workStartDate: { $lte: date },
             workEndDate: { $gte: date },
@@ -53,8 +63,10 @@ async function captureDispatchDailyReport() {
         workEndDate: 1,
         date: 1,
         siteWork: 1,
+        dailyWork: 1,
         "project._id": 1,
       });
+
       // 3. LOOP THROUGH PROJECT AND RECORD REPORT
       let report = await Promise.all(
         projects.map(async (project) => {
@@ -62,21 +74,46 @@ async function captureDispatchDailyReport() {
             stopped: 0,
             created: 0,
             inProgress: 0,
-            recalled: 0,
           };
           const projectId = new mongoose.Types.ObjectId(project._id);
           const projectIdString = projectId.toString();
           works.map((work) => {
-            if (projectIdString === work.project._id) {
-              if (work.status === "stopped") {
-                count.stopped = count.stopped + 1;
-              } else if (work.status === "created") {
-                count.created = count.created + 1;
-              } else if (work.status === "in progress") {
-                count.inProgress = count.inProgress + 1;
-              } else if (work.status === "recalled") {
-                count.recalled = count.recalled + 1;
-              } else {
+            // SITE WORKS
+            if (work.siteWork) {
+              if (projectIdString === work.project._id) {
+                if (_.isEmpty(work?.dailyWork) && work.status === "on going") {
+                  count.inProgress = count.inProgress + 1;
+                } else {
+                  work?.dailyWork &&
+                    work?.dailyWork?.map((d) => {
+                      if (
+                        date === moment(d?.date).format("YYYY-MM-DD") &&
+                        d.pending
+                      ) {
+                        count.created = count.created + 1;
+                      } else if (
+                        date === moment(d?.date).format("YYYY-MM-DD") &&
+                        !d.pending
+                      ) {
+                        count.stopped = count.stopped + 1;
+                      } else {
+                      }
+                      return count;
+                    });
+                }
+              }
+              return count;
+            } else {
+              // NON SITE WORKS
+              if (projectIdString === work.project._id) {
+                if (work.status === "stopped") {
+                  count.stopped = count.stopped + 1;
+                } else if (work.status === "created") {
+                  count.created = count.created + 1;
+                } else if (work.status === "in progress") {
+                  count.inProgress = count.inProgress + 1;
+                } else {
+                }
               }
             }
             return count;
@@ -99,8 +136,11 @@ async function captureDispatchDailyReport() {
       });
       // SAVE DISPATCH REPORT ONE BY ONE
       await DispatchReport.model.insertMany(report);
-
-      console.log("Cronjob: Dispatch report has been captured successfully");
+      // SEND EMAIL
+      await mailer.dispatchReport(date, report);
+      console.log(
+        `Cronjob: Dispatch report has been captured successfully: ${date}`
+      );
     } else {
       console.log("Equipment utilization on the selected date exists already");
     }

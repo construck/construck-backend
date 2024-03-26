@@ -24,8 +24,8 @@ const EquipmentUtilizationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Open", "Workshop", "Disposed"],
-      default: "Open",
+      enum: ["available", "workshop"],
+      default: "available",
     },
     date: {
       type: Date,
