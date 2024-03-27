@@ -1,7 +1,8 @@
+
+const dotenv = require("dotenv").config();
 const _ = require("lodash");
 const moment = require("moment");
 const send = require("../../utils/sendEmailNode");
-// const mjml2html = require("mjml");
 const template = require("./template");
 async function dispatchReport(date, dispatches) {
   const { EMAIL_DISPATCH_REPORT_RECEIVER } = process.env;
@@ -51,7 +52,7 @@ async function dispatchReport(date, dispatches) {
       <div style="text-align:left">
         Hello,<br />
         <p>
-          Daily dispatch report as of date: <b><u>${date}</u></b>,
+          Daily dispatch report as of date: <b><u>${moment(date).format("MMM DD, YYYY")}</u></b>,
         <br />
         </p>
       </div>
@@ -74,7 +75,7 @@ async function dispatchReport(date, dispatches) {
   send(
     "appinfo@construck.rw",
     to,
-    `Dispatch report - ${moment(date).format("MM DD, YYYY")}`,
+    `Dispatch report - ${moment(date).format("MMM DD, YYYY")}`,
     "Daily dispatch report",
     await template.layout(htmlTable)
   )
