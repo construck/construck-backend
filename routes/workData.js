@@ -1476,6 +1476,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
   let searchByProject = project && project.length >= 1;
 
   if (!searchByPlateNumber && !searchByProject) {
+    console.log('@@@11')
     query = {
       $or: [
         {
