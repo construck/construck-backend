@@ -1318,6 +1318,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
               ).toFixed(2),
               // millage: w.equipment.millage ? w.equipment.millage : 0,
             });
+            console.log("@@dp", dP);
           });
 
 
@@ -1944,6 +1945,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         });
 
         dateNotPosted.map((dNP) => {
+          console.log("@@@dPP2", dNP);
           if (
             moment(Date.parse(dNP)).isSameOrAfter(moment(startDate)) &&
             moment(Date.parse(dNP)).isSameOrBefore(
@@ -4071,7 +4073,9 @@ router.put("/stop/:id", async (req, res) => {
             revenue =
               equipment?.eqDescription === "TIPPER TRUCK" &&
               comment === "Ibibazo bya panne"
-                ? duration >= 5 ? rate : rate * _.round(duration / HOURS_IN_A_DAY, 2)
+                ? duration >= 5
+                  ? rate
+                  : rate * _.round(duration / HOURS_IN_A_DAY, 2)
                 : rate;
             expenditure =
               supplierRate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
@@ -4522,7 +4526,7 @@ router.put("/amend/:id", async (req, res) => {
             let durationRation =
               duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
             work.duration = duration / HOURS_IN_A_DAY;
-            revenue = rate;
+            revenue = rate * (duration >= 1 ? rate : 0);
             expenditure = supplierRate;
           }
         }
