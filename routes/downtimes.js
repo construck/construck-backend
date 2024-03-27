@@ -4,79 +4,10 @@ const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const moment = require("moment");
 const workData = require("../models/workData");
-const equipments = require("../models/equipments");
-const {Maintenance} = require("../models/maintenance");
 
 router.get("/", async (req, res) => {
   try {
-    let pipeline= [
-      {
-        '$addFields': {
-          'downtime': {
-            '$dateDiff': {
-              'startDate': {
-                '$cond': {
-                  'if': {
-                    '$lte': [
-                      '$entryDate', new Date('Mon, 01 May 2023 00:00:00 GMT')
-                    ]
-                  }, 
-                  'then': new Date('Mon, 01 May 2023 00:00:00 GMT'), 
-                  'else': '$entryDate'
-                }
-              }, 
-              'endDate': {
-                '$cond': {
-                  'if': {
-                    '$lte': [
-                      '$endRepair', null
-                    ]
-                  }, 
-                  'then': new Date(), 
-                  'else': '$endRepair'
-                }
-              }, 
-              'unit': 'hour'
-            }
-          }
-        }
-      }, {
-        '$addFields': {
-          'downtimeInDays': {
-            '$divide': [
-              '$downtime', 24
-            ]
-          }
-        }
-      }, {
-        '$addFields': {
-          'equipment': {
-            '$toObjectId': '$plate.value'
-          }
-        }
-      }, {
-        '$lookup': {
-          'from': 'equipments', 
-          'localField': 'equipment', 
-          'foreignField': '_id', 
-          'as': 'equipment'
-        }
-      }, {
-        '$unwind': {
-          'path': '$equipment', 
-          'preserveNullAndEmptyArrays': true
-        }
-      }, {
-        '$group': {
-          '_id': '$equipment.eqtype', 
-          'fieldN': {
-            '$avg': '$downtimeInDays'
-          }
-        }
-      }
-    ]
-    // let downtimes = await downTimeData.model.find().populate("equipment");
-    let downtimes = await Maintenance.aggregate(pipeline)
+    let downtimes = await downTimeData.model.find().populate("equipment");
 
     res.send(downtimes);
   } catch (err) {}
@@ -249,4 +180,3 @@ async function getAvgDowntime(startDate, eqType) {
 }
 
 module.exports = router;
-

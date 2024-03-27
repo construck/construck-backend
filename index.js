@@ -20,24 +20,20 @@ const jobTypes = require("./routes/jobTypes");
 const reasons = require("./routes/reasons");
 const logs = require("./routes/logs");
 const employees = require("./routes/employees");
-const equipmentTypes = require("./routes/equipmentTypes");
-const equipmentRequests = require("./routes/equipmentRequests");
 const avblty = require("./routes/assetAvailability");
 const sendEmail = require("./routes/sendEmailRoute");
-const maintenance = require("./routes/maintenances");
-const maintenanceLogs = require("./routes/maintenanceLogs");
-const item = require("./routes/items");
-const mechanics = require("./routes/mechanics");
-const mechanical = require("./routes/mechanicals");
-const download = require("./routes/download");
 const send = require("./utils/sendEmailNode");
 const fun = require("./utils/cron-functions");
-const dotenv = require("dotenv").config();
-const _ = require("lodash");
-const dispatchCronjobs = require("./cronjobs/works");
-const equipmentCronjobs = require("./cronjobs/equipments");
 
-const { NODE_ENV } = process.env;
+//Set up default mongoose connection
+// var mongoDB =
+//   "mongodb://dbAdmin:Adm1n%402023@localhost:27017/construck?authSource=admin";
+
+// var mongoDB =
+  // "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck-playground?retryWrites=true&w=majority";
+// "mongodb+srv://root:Beniyak1@cluster0.8ycbagi.mongodb.net/construck?retryWrites=true&w=majority";
+
+var mongoDB = "";
 
 mongoDB = process.env.CONS_MONGO_DB;
 
@@ -67,10 +63,6 @@ let auth = (req, res, next) => {
     .split(":");
   if (login && password && login === auth.login && password === auth.password) {
     return next();
-  } else {
-    if (NODE_ENV === "development") {
-      return next();
-    }
   }
   res.set("WWW-Authenticate", 'Basic realm="401"'); // change this
   res.status(401).send("Authentication required."); // custom message
@@ -82,33 +74,23 @@ app.get("/", (req, res) => {
 
 app.use("/assetAvailability", avblty);
 app.use("/downtimes", downtimes);
-app.use("/works", works.router);
+app.use("/works", works);
 app.use("/email", sendEmail.router);
 app.use("/employees", employees);
 app.use("/users", users);
 app.use("/equipments", auth, equipments);
 app.use("/customers", auth, customers);
 app.use("/vendors", auth, vendors);
-app.use("/projects", auth, projects.router);
+app.use("/projects", auth, projects);
 app.use("/activities", auth, activities);
 app.use("/reasons", reasons);
 app.use("/logs", auth, logs);
 app.use("/dispatches", auth, dispatches);
 app.use("/jobtypes", auth, jobTypes);
-app.use("/requests", auth, equipmentRequests);
-app.use("/api", maintenanceLogs);
-app.use("/api", maintenance);
-app.use("/api", auth, item);
-app.use("/api", auth, mechanics);
-app.use("/api", auth, mechanical);
-app.use("/equipmentTypes", auth, equipmentTypes);
-app.use("/download", download);
 
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
   console.log(`Listening on Port ${PORT}`);
-  cron.schedule("* 8 * * * *", () => {
+  cron.schedule("0 8 * * *", () => {
     fun.getWorksToExpireToday().then((res) => {});
   });
-  dispatchCronjobs.dispatchCronjobs();
-  equipmentCronjobs.equipmentCronjobs();
 });

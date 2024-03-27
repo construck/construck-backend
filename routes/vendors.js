@@ -3,7 +3,6 @@ const venData = require("../models/vendors");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const bcrypt = require("bcryptjs");
-const workData = require("../models/workData");
 
 router.get("/", async (req, res) => {
   try {
@@ -38,14 +37,6 @@ router.put("/:id", async (req, res) => {
   let { id } = req.params;
   try {
     let vendor = await venData.model.findByIdAndUpdate(id, req.body);
-
-    await workData.model.updateMany(
-      {
-        "equipment.eqOwner": vendor?.name,
-      },
-      { $set: { "equipment.eqOwner": req?.body?.name } }
-    );
-
     res.status(200).send(vendor);
   } catch (err) {
     res.send(err);

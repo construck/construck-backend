@@ -7,7 +7,6 @@ const assetAvblty = require("../models/assetAvailability");
 const userData = require("../models/users");
 const logData = require("../models/logs");
 const eqData = require("../models/equipments");
-const prjData = require("../models/projects");
 const moment = require("moment");
 const e = require("express");
 const { isNull, intersection } = require("lodash");
@@ -16,15 +15,9 @@ const send = require("../utils/sendEmailNode");
 const { sendEmail } = require("./sendEmailRoute");
 const logs = require("../models/logs");
 const { getDeviceToken } = require("../controllers.js/employees");
-const { getProject } = require("./projects");
-const customers = require("../models/customers");
 const MS_IN_A_DAY = 86400000;
 const HOURS_IN_A_DAY = 8;
 const ObjectId = require("mongoose").Types.ObjectId;
-const works = require("../controllers/works");
-
-
-const DURATION_LIMIT = 16;
 
 function isValidObjectId(id) {
   if (ObjectId.isValid(id)) {
@@ -191,7 +184,6 @@ router.get("/filtered/:page", async (req, res) => {
     userType,
     companyName,
     userProject,
-    userProjects,
   } = req.query;
   let { page } = req.params;
   let perPage = 15;
@@ -199,11 +191,6 @@ router.get("/filtered/:page", async (req, res) => {
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
 
-  let projects =
-    userType !== "vendor" ? userProjects && JSON.parse(userProjects) : [];
-  let prjs = projects?.map((p) => {
-    return p?.prjDescription;
-  });
   switch (userType) {
     case "vendor":
       if (!searchByPlateNumber && !searchByProject) {
@@ -467,7 +454,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $gte: moment(startDate),
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project.prjDescription": userProject,
             },
             {
               siteWork: false,
@@ -479,7 +466,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project.prjDescription": userProject,
             },
           ],
         };
@@ -496,7 +483,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: searchText.toUpperCase(),
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project.prjDescription": userProject,
             },
 
             {
@@ -512,7 +499,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: searchText.toUpperCase(),
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project.prjDescription": userProject,
             },
           ],
         };
@@ -529,7 +516,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: project,
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project.prjDescription": userProject,
             },
 
             {
@@ -545,7 +532,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: project,
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project.prjDescription": userProject,
             },
           ],
         };
@@ -565,7 +552,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: searchText.toUpperCase(),
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project.prjDescription": userProject,
             },
 
             {
@@ -584,7 +571,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: searchText.toUpperCase(),
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project.prjDescription": userProject,
             },
           ],
         };
@@ -601,7 +588,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $gte: moment(startDate),
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project.prjDescription": userProject,
             },
             {
               siteWork: false,
@@ -613,7 +600,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project.prjDescription": userProject,
             },
           ],
         };
@@ -630,7 +617,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: searchText.toUpperCase(),
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project.prjDescription": userProject,
             },
 
             {
@@ -646,7 +633,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: searchText.toUpperCase(),
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project.prjDescription": userProject,
             },
           ],
         };
@@ -663,7 +650,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: project,
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project.prjDescription": userProject,
             },
 
             {
@@ -679,7 +666,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: project,
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project.prjDescription": userProject,
             },
           ],
         };
@@ -699,7 +686,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: searchText.toUpperCase(),
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project.prjDescription": userProject,
             },
 
             {
@@ -718,7 +705,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: searchText.toUpperCase(),
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project.prjDescription": userProject,
             },
           ],
         };
@@ -852,9 +839,9 @@ router.get("/filtered/:page", async (req, res) => {
     let workList = await workData.model
       .find(query)
       .select(
-        `dispatch.targetTrips dispatch.drivers dispatch.astDriver dispatch.shift dispatch.date dispatch.otherJobType
-        project.prjDescription project.customer project._id
-        equipment._id equipment.plateNumber equipment.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
+        `dispatch.targetTrips dispatch.drivers dispatch.astDrivers  dispatch.shift dispatch.date dispatch.otherJobType
+        project.prjDescription project.customer
+        equipment.plateNumber equipment.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
         equipment.eqStatus equipment.millage equipment.rate equipment.supplieRate equipment.uom
         startTime endTime duration tripsDone totalRevenue totalExpenditure projectedRevenue status siteWork workStartDate workEndDate
         workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id 
@@ -862,10 +849,12 @@ router.get("/filtered/:page", async (req, res) => {
       )
       .populate("driver")
       .populate("createdBy", "firstName lastName")
-      .populate("workDone", "jobDescription _id")
+      .populate("workDone", "jobDescription")
       .limit(perPage)
       .skip(parseInt(page - 1) * perPage)
       .sort([["_id", "descending"]]);
+
+    // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
 
     res.status(200).send({ workList, dataCount });
   } catch (err) {
@@ -925,6 +914,7 @@ router.get("/v3/:vendorName", async (req, res) => {
 
 router.get("/v3/driver/:driverId", async (req, res) => {
   let { driverId } = req.params;
+  // console.log(isValidObjectId(driverId));
   try {
     let workList = await workData.model
       .find(
@@ -932,11 +922,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           $or: [
             {
               "equipment.eqOwner": driverId,
-              status: { $ne: "released" },
+              status: { $ne: "stopped" },
             },
             {
               driver: isValidObjectId(driverId) ? driverId : "123456789011",
-              status: { $ne: "released" },
+              status: { $ne: "stopped" },
             },
           ],
         },
@@ -989,51 +979,29 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         let datesPosted = dailyWorks
           .filter((d) => d.pending === false)
           .map((d) => {
-            return {
-              date: moment(d.date).startOf("day").format(),
-              duration: d.duration,
-              uom: d.uom,
-            };
-          });
-
-        let datesPostedDatesOnly = dailyWorks
-          .filter((d) => d.pending === false)
-          .map((d) => {
-            return moment(d.date).startOf("day").format();
+            return d.date;
           });
 
         let datesPendingPosted = dailyWorks
           .filter((d) => d.pending === true)
-          .map((d) => {
-            return moment(d.date).startOf("day").format();
-          });
 
-        let workStartDate = moment(w.workStartDate).startOf("day");
+          .map((d) => {
+            return d.date;
+          });
+        let workStartDate = moment(w.workStartDate);
         let workDurationDays = w.workDurationDays;
 
-        let datesArray = [];
-        var endDate = workStartDate.clone().add(workDurationDays, "days");
-        if (endDate.isAfter(moment())) endDate = moment().startOf("day");
-
-        while (workStartDate.isSameOrBefore(endDate)) {
-          datesArray.push(workStartDate.startOf("day").format());
-          workStartDate.add(1, "day");
+        let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
+        for (let i = 0; i < workDurationDays - 1; i++) {
+          datesToPost.push(workStartDate.add(1, "days").format("DD-MMM-YYYY"));
         }
 
-        // let datesToPost = [workStartDate];
-        // for (let i = 0; i < workDurationDays - 1; i++) {
-        //   newDate = workStartDate.add(1, 'day');
-        //   datesToPost.push(workStartDate.add(1, "days"));
-        // }
-
-        let dateNotPosted = datesArray.filter(
+        let dateNotPosted = datesToPost.filter(
           (d) =>
-            !_.includes(datesPostedDatesOnly, d) &&
-            !_.includes(datesPendingPosted, d)
+            !_.includes(datesPosted, d) &&
+            !_.includes(datesPendingPosted, d) &&
+            moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
         );
-
-        var uniqueDatesNotPosted = Array.from(new Set(dateNotPosted));
-        uniqueDatesNotPosted.map((d) => {});
 
         datesPosted.map((dP) => {
           siteWorkList.push({
@@ -1056,7 +1024,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               ? w.dispatch.targetTrips
               : "N/A",
             workStartDate: w.workStartDate,
-            dispatchDate: new Date(dP.date).toISOString(),
+            dispatchDate: new Date(dP).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
             startIndex: w.startIndex
               ? parseFloat(w.startIndex).toFixed(2)
@@ -1065,19 +1033,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             millage: parseFloat(
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
-            duration:
-              dP.uom == "hour"
-                ? _.round(dP.duration / (1000 * 60 * 60), 2) +
-                  " " +
-                  dP.uom +
-                  "s"
-                : dP.duration + " " + dP.uom + "s",
-            dispatch: w.dispatch,
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
 
-        uniqueDatesNotPosted.map((dNP) => {
+        dateNotPosted.map((dNP) => {
           siteWorkList.push({
             workDone: w.workDone
               ? w.workDone
@@ -1108,8 +1068,6 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             millage: parseFloat(
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
-            duration: 0 + " hours",
-            dispatch: w.dispatch,
           });
         });
 
@@ -1143,12 +1101,10 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             millage: parseFloat(
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
-            duration: 0 + " hours",
-            dispatch: w.dispatch,
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
-      } else if (!w.siteWork) {
+      } else {
         work = {
           workDone: w.workDone
             ? w.workDone
@@ -1176,12 +1132,6 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           millage: parseFloat(
             w.equipment.millage ? w.equipment.millage : 0
           ).toFixed(2),
-          duration:
-            w?.uom === "hour"
-              ? _.round(w.duration / (1000 * 60 * 60), 2) + " " + w.uom + "s"
-              : w.duration.toFixed(2) + " " + w.uom + "s",
-          tripsDone: w.tripsDone,
-          dispatch: w.dispatch,
           // millage: w.equipment.millage ? w.equipment.millage : 0,
         };
       }
@@ -1195,7 +1145,6 @@ router.get("/v3/driver/:driverId", async (req, res) => {
 
     res.status(200).send(orderedList.filter((d) => !isNull(d)));
   } catch (err) {
-    console.log(err);
     res.send(err);
   }
 });
@@ -1214,8 +1163,6 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
             workStartDate: { $lte: moment(endDate).add(23, "hours") },
             $or: [
               { status: "stopped" },
-              { status: "rejected" },
-              { status: "approved" },
               { status: "rejected" },
               { status: "on going", "dailyWork.pending": false },
             ],
@@ -1252,7 +1199,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
           let dailyWorks = w.dailyWork;
 
           let datesPosted = dailyWorks
-            .filter((d) => d.pending === false && d.date !== "Invalid date")
+            .filter((d) => d.pending === false && d.date!=='Invalid date')
             .map((d) => {
               return {
                 _id: w._id,
@@ -1287,12 +1234,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
                 ? w.driver?.firstName + " " + w.driver?.lastName
                 : w.equipment?.eqOwner,
               owner: w.equipment?.eqOwner,
-              totalRevenue:
-                w?.equipment?.eqDescription === "TIPPER TRUCK"
-                  ? // CHECK IBIBAZO BYA Panne
-                    // CHECK uom = day
-                    dP.duration * w?.equipment?.rate
-                  : parseFloat(dP.totalRevenue).toFixed(2),
+              totalRevenue: parseFloat(dP.totalRevenue).toFixed(2),
               totalExpenditure: parseFloat(dP.totalExpenditure).toFixed(2),
               duration:
                 dP.uom === "hour"
@@ -1319,7 +1261,6 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
               // millage: w.equipment.millage ? w.equipment.millage : 0,
             });
           });
-
 
           // dateNotPosted.map((dNP) => {
           //   siteWorkList.push({
@@ -1430,6 +1371,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
 
       res.status(200).send(orderedList.filter((d) => !isNull(d)));
     } catch (err) {
+      console.log(err)
       res.send(err);
     }
   } else {
@@ -1444,51 +1386,29 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
 
 router.get("/detailed/:canViewRevenues", async (req, res) => {
   let { canViewRevenues } = req.params;
-  let {
-    startDate,
-    endDate,
-    searchText,
-    project,
-    userType,
-    userProject,
-    userProjects,
-  } = req.query;
-
-  let query = {
-    $or: [
-      {
-        siteWork: true,
-        workEndDate: {
-          $gte: new Date(startDate),
-        },
-      },
-      {
-        siteWork: false,
-        workStartDate: {
-          $gte: new Date(startDate),
-          $lte: new Date(endDate),
-        },
-      },
-    ],
-  };
+  let { startDate, endDate, searchText, project } = req.query;
+  
+  let query = {};
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
 
   if (!searchByPlateNumber && !searchByProject) {
-    console.log('@@@11')
     query = {
       $or: [
         {
           siteWork: true,
           workEndDate: {
-            $gte: new Date(startDate),
+            $gte: moment(startDate),
           },
         },
         {
           siteWork: false,
           workStartDate: {
-            $gte: new Date(startDate),
-            $lte: new Date(endDate),
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
           },
         },
       ],
@@ -1499,7 +1419,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         {
           siteWork: true,
           workEndDate: {
-            $gte: new Date(startDate),
+            $gte: moment(startDate),
           },
 
           "equipment.plateNumber": {
@@ -1510,8 +1430,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         {
           siteWork: false,
           workStartDate: {
-            $gte: new Date(startDate),
-            $lte: new Date(endDate),
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
           },
           "equipment.plateNumber": {
             $regex: searchText.toUpperCase(),
@@ -1525,7 +1448,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         {
           siteWork: true,
           workEndDate: {
-            $gte: new Date(startDate),
+            $gte: moment(startDate),
           },
 
           "project.prjDescription": {
@@ -1536,8 +1459,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         {
           siteWork: false,
           workStartDate: {
-            $gte: new Date(startDate),
-            $lte: new Date(endDate),
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
           },
           "project.prjDescription": {
             $regex: project,
@@ -1551,7 +1477,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         {
           siteWork: true,
           workEndDate: {
-            $gte: new Date(startDate),
+            $gte: moment(startDate),
           },
 
           "project.prjDescription": {
@@ -1565,8 +1491,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         {
           siteWork: false,
           workStartDate: {
-            $gte: new Date(startDate),
-            $lte: new Date(endDate),
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
           },
           "project.prjDescription": {
             $regex: project,
@@ -1579,726 +1508,542 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
     };
   }
 
-  try {
-    let pipeline = [];
+   try {
+      let workList = await workData.model
+        .find(query, {
+          "project.createdOn": false,
+          "equipment.__v": false,
+          "equipment.createdOn": false,
+          "dispatch.project": false,
+          "dispatch.equipments": false,
+          "driver.password": false,
+          "driver.email": false,
+          "driver.createdOn": false,
+          "driver.__v": false,
+          "driver._id": false,
+        })
+        .populate("driver")
+        .populate("appovedBy")
+        .populate("createdBy")
+        .populate("workDone")
+        .sort([["_id", "descending"]]);
 
-    pipeline = [
-      {
-        $match: query,
-      },
-      {
-        $unwind: {
-          path: "$dispatch.astDriver",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $unwind: {
-          path: "$dispatch.astDriver",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $addFields: {
-          turnboy: {
-            $toObjectId: "$dispatch.astDriver",
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: "employees",
-          localField: "turnboy",
-          foreignField: "_id",
-          as: "turnboy",
-        },
-      },
-      {
-        $unwind: {
-          path: "$turnboy",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $group: {
-          _id: "$_id",
-          astDriver: {
-            $addToSet: "$turnboy",
-          },
-          doc: {
-            $first: "$$ROOT",
-          },
-        },
-      },
-      {
-        $replaceRoot: {
-          newRoot: {
-            $mergeObjects: [
-              "$doc",
-              {
-                turnBoy: "$astDriver",
-              },
-            ],
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: "employees",
-          localField: "driver",
-          foreignField: "_id",
-          as: "driver",
-        },
-      },
-      {
-        $unwind: {
-          path: "$driver",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "jobtypes",
-          localField: "workDone",
-          foreignField: "_id",
-          as: "workDone",
-        },
-      },
-      {
-        $unwind: {
-          path: "$workDone",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "createdBy",
-          foreignField: "_id",
-          as: "createdBy",
-        },
-      },
-      {
-        $unwind: {
-          path: "$createdBy",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "project.projectAdmin",
-          foreignField: "_id",
-          as: "projectAdmin",
-        },
-      },
-      {
-        $unwind: {
-          path: "$projectAdmin",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-    ];
+      let listToSend = workList;
 
-    if (userType === "customer-site-manager") {
-      pipeline.push({
-        $match: {
-          "project.prjDescription": userProject,
-        },
-      });
-    }
+      let siteWorkList = [];
 
-    if (userType === "customer-project-manager") {
-      let projects = JSON.parse(userProjects);
-      let prjs = projects?.map((p) => {
-        return p?.prjDescription;
-      });
-      pipeline.push({
-        $match: {
-          "project.prjDescription": { $in: prjs },
-        },
-      });
-    }
+      let l = listToSend.map((w, index) => {
+        let work = null;
 
-    let pipelineNoTurnBoys = [
-      {
-        $match: query,
-      },
-      {
-        $unwind: {
-          path: "$dispatch.astDriver",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $addFields: {
-          turnboy: {
-            $toObjectId: "$dispatch.astDriver",
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: "employees",
-          localField: "turnboy",
-          foreignField: "_id",
-          as: "turnboy",
-        },
-      },
-      {
-        $unwind: {
-          path: "$turnboy",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "employees",
-          localField: "driver",
-          foreignField: "_id",
-          as: "driver",
-        },
-      },
-      {
-        $unwind: {
-          path: "$driver",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "jobtypes",
-          localField: "workDone",
-          foreignField: "_id",
-          as: "workDone",
-        },
-      },
-      {
-        $unwind: {
-          path: "$workDone",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "createdBy",
-          foreignField: "_id",
-          as: "createdBy",
-        },
-      },
-      {
-        $unwind: {
-          path: "$createdBy",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "project.projectAdmin",
-          foreignField: "_id",
-          as: "projectAdmin",
-        },
-      },
-      {
-        $unwind: {
-          path: "$projectAdmin",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-    ];
-    let workList = await workData.model.aggregate(pipeline);
+        if (w.siteWork && w.status !== "stopped" && w.status !== 'recalled') {
+          let dailyWorks = w.dailyWork;
 
-    let listToSend = workList;
-
-    let siteWorkList = [];
-
-    let l = listToSend.map((w, index) => {
-      let work = null;
-
-      if (w.siteWork && w.status !== "stopped" && w.status !== "recalled") {
-        let dailyWorks = w.dailyWork;
-
-        let datesPosted = dailyWorks
-          .filter((d) => d.pending === false)
-          .map((d) => {
-            return {
-              date: d.date,
-              duration: d.duration,
-              actualRevenue: d.totalRevenue,
-              expenditure: d.totalExpenditure,
-              status: d.status,
-              rate: d.rate,
-              comment: d.comment,
-            };
-          });
-
-        let datePosted_Dates = dailyWorks
-          .filter((d) => d.pending === false)
-          .map((d) => {
-            return d.date;
-          });
-
-        let datesPendingPosted = dailyWorks
-          .filter((d) => d.pending === true)
-
-          .map((d) => {
-            return d.date;
-          });
-        let workStartDate = moment(w.workStartDate);
-        let workDurationDays = w.workDurationDays;
-
-        let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
-        for (let i = 0; i < workDurationDays - 1; i++) {
-          datesToPost.push(workStartDate.add(1, "days").format("DD-MMM-YYYY"));
-        }
-
-        let dateNotPosted = datesToPost.filter(
-          (d) =>
-            !_.includes(datePosted_Dates, d) &&
-            !_.includes(datesPendingPosted, d) &&
-            moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
-        );
-
-        datesPosted.map((dP) => {
-          if (
-            moment(Date.parse(dP.date)).isSameOrAfter(moment(startDate)) &&
-            moment(Date.parse(dP.date)).isSameOrBefore(
-              moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds")
-            )
-          ) {
-            siteWorkList.push({
-              "Dispatch date": moment(Date.parse(dP.date)).format("M/D/YYYY"),
-              "Posted On": moment(Date.parse(dP.date)).format("M/D/YYYY"),
-              "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
-              "Site work?": w.siteWork,
-              "Project Description": w.project?.prjDescription,
-              "Equipment Plate number": w.equipment.plateNumber,
-              "Equipment Type": w.equipment?.eqDescription,
-              "Unit of measurement": w.equipment?.uom,
-              "Duration (HRS)":
-                w.equipment?.uom === "hour"
-                  ? _.round(dP.duration / (60 * 60 * 1000), 2)
-                  : 0,
-              "Duration (DAYS)":
-                w.equipment?.uom === "day" ? _.round(dP.duration, 2) : 0,
-              "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-              "Other work description": w.dispatch?.otherJobType,
-              ...((canViewRevenues === "true" || canViewRevenues === true) && {
-                "Projected Revenue":
-                  w.equipment?.uom === "hour" ? dP?.rate * 5 : dP?.rate,
-                "Actual Revenue":
-                  w.equipment?.uom === "hour"
-                    ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
-                    : w?.equipment?.eqDescription === "TIPPER TRUCK" &&
-                      dP.comment === "Ibibazo bya panne"
-                    ? dP.duration * w?.equipment?.rate
-                    : (dP.duration > 0 ? 1 : 0) * dP.rate,
-                "Vendor payment":
-                  w.equipment?.uom === "hour"
-                    ? _.round(dP.duration / (60 * 60 * 1000), 2) *
-                      w?.equipment?.supplierRate
-                    : (dP.duration > 0 ? 1 : 0) * w?.equipment?.supplierRate,
-              }),
-
-              "Driver Names": w.driver
-                ? w?.driver?.firstName + " " + w?.driver?.lastName
-                : w.equipment?.eqOwner,
-              "Turn boy 1":
-                w?.turnBoy?.length >= 1
-                  ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
-                  : "",
-              "Turn boy 2":
-                w?.turnBoy?.length >= 2
-                  ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
-                  : "",
-              "Turn boy 3":
-                w?.turnBoy?.length >= 3
-                  ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
-                  : "",
-              "Turn boy 4":
-                w?.turnBoy?.length >= 4
-                  ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
-                  : "",
-              "Driver contacts": w.driver?.phone,
-              "Target trips": w.dispatch?.targetTrips
-                ? w.dispatch?.targetTrips
-                : 0,
-              "Trips done": w?.tripsDone ? w?.tripsDone : 0,
-              "Driver's/Operator's Comment": dP.comment
-                ? dP.comment + " - " + (dP.moreComment ? dP.moreComment : "")
-                : " ",
-              Customer: w.project?.customer,
-              Status: dP.status || "stopped",
-              "Project Admin":
-                (w.projectAdmin?.firstName || "") +
-                " " +
-                (w.projectAdmin?.lastName || ""),
-              "Start index": w?.startIndex || 0,
-              "End index": w?.endIndex || 0,
+          let datesPosted = dailyWorks
+            .filter((d) => d.pending === false)
+            .map((d) => {
+              return {
+                date: d.date,
+                duration: d.duration,
+                actualRevenue: d.totalRevenue,
+                expenditure: d.totalExpenditure,
+              };
             });
-          }
-        });
 
-        dateNotPosted.map((dNP) => {
+          let datePosted_Dates = dailyWorks
+            .filter((d) => d.pending === false)
+            .map((d) => {
+              return d.date;
+            });
+
+          let datesPendingPosted = dailyWorks
+            .filter((d) => d.pending === true)
+
+            .map((d) => {
+              return d.date;
+            });
+          let workStartDate = moment(w.workStartDate);
+          let workDurationDays = w.workDurationDays;
+
+          let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
+          for (let i = 0; i < workDurationDays - 1; i++) {
+            datesToPost.push(
+              workStartDate.add(1, "days").format("DD-MMM-YYYY")
+            );
+          }
+
+          let dateNotPosted = datesToPost.filter(
+            (d) =>
+              !_.includes(datePosted_Dates, d) &&
+              !_.includes(datesPendingPosted, d) &&
+              moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
+          );
+          // {
+          //     'Dispatch date': moment(Date.parse(w.dispatch?.date),
+          //     'Dispatch Shift': w.dispatch?.shift?.toLocaleUpperCase(),
+          //     'Site work': w.siteWork ? 'YES' : 'NO',
+          //     'Project Description': w.project.prjDescription,
+          //     'Equipment-PlateNumber': w.equipment?.plateNumber,
+          //     'Equipment Type': w.equipment?.eqDescription,
+          //     'Duration (HRS)':
+          //       w.equipment?.uom === 'hour' ? msToTime(w.duration) : 0,
+          //     'Duration (DAYS)':
+          //       w.equipment?.uom === 'day'
+          //         ? Math.round(w.duration * 100) / 100
+          //         : 0,
+          //     'Work done': w?.workDone?.jobDescription,
+          //     'Other work description': w.dispatch?.otherJobType,
+          // 'Driver Names': w.driver
+          //   ? w?.driver?.firstName + ' ' + w?.driver?.lastName
+          //   : w.equipment?.eqOwner,
+          //     'Driver contacts': w.driver?.phone,
+          //     'Target trips': w.dispatch?.targetTrips,
+          //     'Trips done': w?.tripsDone,
+          //     "Driver's/Operator's Comment": w.comment,
+          //     Customer: w.project?.customer,
+          //     Status: w.status,
+          //   }
+
+          datesPosted.map((dP) => {
+            if (
+              moment(Date.parse(dP.date)).isSameOrAfter(moment(startDate)) &&
+              moment(Date.parse(dP.date)).isSameOrBefore(
+                moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+              )
+            ) {
+              siteWorkList.push({
+                "Dispatch date": moment(Date.parse(dP.date)).format("M/D/YYYY"),
+                "Posted On": moment(Date.parse(dP.date)).format("M/D/YYYY"),
+                "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
+                "Site work?": w.siteWork,
+                "Project Description": w.project?.prjDescription,
+                "Equipment Plate number": w.equipment.plateNumber,
+                "Equipment Type": w.equipment?.eqDescription,
+                "Unit of measurement": w.equipment?.uom,
+                "Duration (HRS)":
+                  w.equipment?.uom === "hour"
+                    ? dP.duration / (60 * 60 * 1000)
+                    : 0,
+                "Duration (DAYS)": w.equipment?.uom === "day" ? dP.duration : 0,
+                "Work done": w?.workDone
+                  ? w?.workDone?.jobDescription
+                  : "Others",
+                "Other work description": w.dispatch?.otherJobType,
+                ...(canViewRevenues==='true' || canViewRevenues===true) && {
+                  "Projected Revenue":
+                    w.equipment?.uom === "hour"
+                      ? w.equipment?.rate * 5
+                      : w.equipment?.rate,
+                  "Actual Revenue": dP.actualRevenue,
+                  "Vendor payment": dP.expenditure,
+                },
+
+                "Driver Names": w.driver
+                  ? w?.driver?.firstName + " " + w?.driver?.lastName
+                  : w.equipment?.eqOwner,
+                "Driver contacts": w.driver?.phone,
+                "Target trips": w.dispatch?.targetTrips
+                  ? w.dispatch?.targetTrips
+                  : 0,
+                "Trips done": w?.tripsDone ? w?.tripsDone : 0,
+                "Driver's/Operator's Comment": dP.comment
+                  ? dP.comment + " - " + (dP.moreComment ? dP.moreComment : "")
+                  : " ",
+                Customer: w.project?.customer,
+                Status: "stopped",
+              });
+            }
+          });
+
+          dateNotPosted.map((dNP) => {
+            if (
+              moment(Date.parse(dNP)).isSameOrAfter(moment(startDate)) &&
+              moment(Date.parse(dNP)).isSameOrBefore(
+                moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+              )
+            ) {
+              siteWorkList.push({
+                "Dispatch date": moment(Date.parse(dNP)).format("M/D/YYYY"),
+                "Posted On": "",
+                "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
+                "Site work?": w.siteWork,
+                "Project Description": w.project.prjDescription,
+                "Equipment Plate number": w.equipment.plateNumber,
+                "Equipment Type": w.equipment?.eqDescription,
+                "Unit of measurement": w.equipment?.uom,
+                "Duration (HRS)": 0,
+                "Duration (DAYS)": 0,
+                "Work done": w?.workDone
+                  ? w?.workDone?.jobDescription
+                  : "Others",
+                "Other work description": w.dispatch?.otherJobType,
+                ...(canViewRevenues==='true' || canViewRevenues===true) && {"Projected Revenue":
+                w.equipment?.uom === "hour"
+                  ? w.equipment?.rate * 5
+                  : w.equipment?.rate,
+              "Actual Revenue": 0,
+              "Vendor payment": 0,},
+                
+                "Driver Names": w.driver
+                  ? w?.driver?.firstName + " " + w?.driver?.lastName
+                  : w.equipment?.eqOwner,
+                "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
+                "Target trips": w.dispatch?.targetTrips
+                  ? w.dispatch?.targetTrips
+                  : 0,
+                "Trips done": 0,
+                "Driver's/Operator's Comment": dNP.comment
+                  ? dNP.comment +
+                    " - " +
+                    (dNP.moreComment ? dNP.moreComment : "")
+                  : " ",
+                Customer: w.project?.customer,
+                Status: "created",
+              });
+            }
+          });
+
+          // console.log(siteWorkList);
+
+          datesPendingPosted.map((dPP) => {
+            if (
+              moment(Date.parse(dPP)).isSameOrAfter(moment(startDate)) &&
+              moment(Date.parse(dPP)).isSameOrBefore(
+                moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+              )
+            ) {
+              siteWorkList.push({
+                "Dispatch date": moment(Date.parse(dPP)).format("M/D/YYYY"),
+                "Posted On": "",
+                "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
+                "Site work?": w.siteWork,
+                "Project Description": w.project.prjDescription,
+                "Equipment Plate number": w.equipment.plateNumber,
+                "Equipment Type": w.equipment?.eqDescription,
+                "Unit of measurement": w.equipment?.uom,
+                "Duration (HRS)": 0,
+                "Duration (DAYS)": 0,
+                "Work done": w?.workDone
+                  ? w?.workDone?.jobDescription
+                  : "Others",
+                "Other work description": w.dispatch?.otherJobType,
+                ...(canViewRevenues==='true' || canViewRevenues===true) && {"Projected Revenue":
+                w.equipment?.uom === "hour"
+                  ? w.equipment?.rate * 5
+                  : w.equipment?.rate,
+              "Actual Revenue": 0,
+              "Vendor payment": 0,},
+                
+                "Driver Names": w.driver
+                  ? w?.driver?.firstName + " " + w?.driver?.lastName
+                  : w.equipment?.eqOwner,
+                "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
+                "Target trips": w.dispatch?.targetTrips
+                  ? w.dispatch?.targetTrips
+                  : 0,
+                "Trips done": 0,
+                "Driver's/Operator's Comment": dPP.comment
+                  ? dPP.comment +
+                    " - " +
+                    (dPP.moreComment ? dPP.moreComment : "")
+                  : " ",
+                Customer: w.project?.customer,
+                Status: "in progress",
+              });
+            }
+          });
+        } else if (w.siteWork === true && w.status === "stopped") {
+          let dailyWorks = w.dailyWork;
+
+          let datesPosted = dailyWorks
+            .filter((d) => d.pending === false)
+            .map((d) => {
+              return {
+                date: d.date,
+                duration: d.duration,
+                actualRevenue: d.totalRevenue,
+                expenditure: d.totalExpenditure,
+              };
+            });
+
+          let datePosted_Dates = dailyWorks
+            .filter((d) => d.pending === false)
+            .map((d) => {
+              return d.date;
+            });
+
+          let datesPendingPosted = dailyWorks
+            .filter((d) => d.pending === true)
+
+            .map((d) => {
+              return d.date;
+            });
+          let workStartDate = moment(w.workStartDate);
+          let workDurationDays = w.workDurationDays;
+
+          let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
+          for (let i = 0; i < workDurationDays - 1; i++) {
+            datesToPost.push(
+              workStartDate.add(1, "days").format("DD-MMM-YYYY")
+            );
+          }
+
+          let dateNotPosted = datesToPost.filter(
+            (d) =>
+              !_.includes(datePosted_Dates, d) &&
+              !_.includes(datesPendingPosted, d) &&
+              moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
+          );
+          // {
+          //     'Dispatch date': moment(Date.parse(w.dispatch?.date),
+          //     'Dispatch Shift': w.dispatch?.shift?.toLocaleUpperCase(),
+          //     'Site work': w.siteWork ? 'YES' : 'NO',
+          //     'Project Description': w.project.prjDescription,
+          //     'Equipment-PlateNumber': w.equipment?.plateNumber,
+          //     'Equipment Type': w.equipment?.eqDescription,
+          //     'Duration (HRS)':
+          //       w.equipment?.uom === 'hour' ? msToTime(w.duration) : 0,
+          //     'Duration (DAYS)':
+          //       w.equipment?.uom === 'day'
+          //         ? Math.round(w.duration * 100) / 100
+          //         : 0,
+          //     'Work done': w?.workDone?.jobDescription,
+          //     'Other work description': w.dispatch?.otherJobType,
+          // 'Driver Names': w.driver
+          //   ? w?.driver?.firstName + ' ' + w?.driver?.lastName
+          //   : w.equipment?.eqOwner,
+          //     'Driver contacts': w.driver?.phone,
+          //     'Target trips': w.dispatch?.targetTrips,
+          //     'Trips done': w?.tripsDone,
+          //     "Driver's/Operator's Comment": w.comment,
+          //     Customer: w.project?.customer,
+          //     Status: w.status,
+          //   }
+
+          datesPosted.map((dP) => {
+            if (
+              moment(Date.parse(dP.date)).isSameOrAfter(moment(startDate)) &&
+              moment(Date.parse(dP.date)).isSameOrBefore(
+                moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+              )
+            ) {
+              siteWorkList.push({
+                "Dispatch date": moment(Date.parse(dP.date)).format("M/D/YYYY"),
+                "Posted On": moment(Date.parse(dP.date)).format("M/D/YYYY"),
+                "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
+                "Site work?": w.siteWork,
+                "Project Description": w.project?.prjDescription,
+                "Equipment Plate number": w.equipment.plateNumber,
+                "Equipment Type": w.equipment?.eqDescription,
+                "Unit of measurement": w.equipment?.uom,
+                "Duration (HRS)":
+                  w.equipment?.uom === "hour"
+                    ? dP.duration / (60 * 60 * 1000)
+                    : 0,
+                "Duration (DAYS)": w.equipment?.uom === "day" ? dP.duration : 0,
+                "Work done": w?.workDone
+                  ? w?.workDone?.jobDescription
+                  : "Others",
+                "Other work description": w.dispatch?.otherJobType,
+                ...(canViewRevenues==='true' || canViewRevenues===true) && {"Projected Revenue":
+                w.equipment?.uom === "hour"
+                  ? w.equipment?.rate * 5
+                  : w.equipment?.rate,
+              "Actual Revenue": dP.actualRevenue,
+              "Vendor payment": dP.expenditure,},
+                
+                "Driver Names": w.driver
+                  ? w?.driver?.firstName + " " + w?.driver?.lastName
+                  : w.equipment?.eqOwner,
+                "Driver contacts": w.driver?.phone,
+                "Target trips": w.dispatch?.targetTrips
+                  ? w.dispatch?.targetTrips
+                  : 0,
+                "Trips done": w?.tripsDone ? w?.tripsDone : 0,
+                "Driver's/Operator's Comment": dP.comment
+                  ? dP.comment + " - " + (dP.moreComment ? dP.moreComment : "")
+                  : " ",
+                Customer: w.project?.customer,
+                Status: "stopped",
+              });
+            }
+          });
+
+          // dateNotPosted.map((dNP) => {
+          //   if (
+          //     moment(Date.parse(dNP)).isSameOrAfter(moment(startDate)) &&
+          //     moment(Date.parse(dNP)).isSameOrBefore(
+          //       moment(endDate)
+          //         .add(23, "hours")
+          //         .add(59, "minutes")
+          //         .add(59, "seconds")
+          //     )
+          //   ) {
+          //     siteWorkList.push({
+          //       "Dispatch date": moment(Date.parse(dNP)).format("M/D/YYYY"),
+          //       "Posted On": "",
+          //       "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
+          //       "Site work?": w.siteWork,
+          //       "Project Description": w.project.prjDescription,
+          //       "Equipment Plate number": w.equipment.plateNumber,
+          //       "Equipment Type": w.equipment?.eqDescription,
+          //       "Unit of measurement": w.equipment?.uom,
+          //       "Duration (HRS)": 0,
+          //       "Duration (DAYS)": 0,
+          //       "Work done": w?.workDone
+          //         ? w?.workDone?.jobDescription
+          //         : "Others",
+          //       "Other work description": w.dispatch?.otherJobType,
+          //       "Projected Revenue":
+          //         w.equipment?.uom === "hour"
+          //           ? w.equipment?.rate * 5
+          //           : w.equipment?.rate,
+          //       "Actual Revenue": 0,
+          //       "Vendor payment": 0,
+          //       "Driver Names": w.driver
+          //         ? w?.driver?.firstName + " " + w?.driver?.lastName
+          //         : w.equipment?.eqOwner,
+          //       "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
+          //       "Target trips": w.dispatch?.targetTrips
+          //         ? w.dispatch?.targetTrips
+          //         : 0,
+          //       "Trips done": 0,
+          //       "Driver's/Operator's Comment": dNP.comment
+          //         ? dNP.comment +
+          //           " - " +
+          //           (dNP.moreComment ? dNP.moreComment : "")
+          //         : " ",
+          //       Customer: w.project?.customer,
+          //       Status: "created",
+          //     });
+          //   }
+          // });
+
+          // console.log(siteWorkList);
+
+          // datesPendingPosted.map((dPP) => {
+          //   if (
+          //     moment(Date.parse(dPP)).isSameOrAfter(moment(startDate)) &&
+          //     moment(Date.parse(dPP)).isSameOrBefore(
+          //       moment(endDate)
+          //         .add(23, "hours")
+          //         .add(59, "minutes")
+          //         .add(59, "seconds")
+          //     )
+          //   ) {
+          //     siteWorkList.push({
+          //       "Dispatch date": moment(Date.parse(dPP)).format("M/D/YYYY"),
+          //       "Posted On": "",
+          //       "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
+          //       "Site work?": w.siteWork,
+          //       "Project Description": w.project.prjDescription,
+          //       "Equipment Plate number": w.equipment.plateNumber,
+          //       "Equipment Type": w.equipment?.eqDescription,
+          //       "Unit of measurement": w.equipment?.uom,
+          //       "Duration (HRS)": 0,
+          //       "Duration (DAYS)": 0,
+          //       "Work done": w?.workDone
+          //         ? w?.workDone?.jobDescription
+          //         : "Others",
+          //       "Other work description": w.dispatch?.otherJobType,
+          //       "Projected Revenue":
+          //         w.equipment?.uom === "hour"
+          //           ? w.equipment?.rate * 5
+          //           : w.equipment?.rate,
+          //       "Actual Revenue": 0,
+          //       "Vendor payment": 0,
+          //       "Driver Names": w.driver
+          //         ? w?.driver?.firstName + " " + w?.driver?.lastName
+          //         : w.equipment?.eqOwner,
+          //       "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
+          //       "Target trips": w.dispatch?.targetTrips
+          //         ? w.dispatch?.targetTrips
+          //         : 0,
+          //       "Trips done": 0,
+          //       "Driver's/Operator's Comment": dPP.comment
+          //         ? dPP.comment +
+          //           " - " +
+          //           (dPP.moreComment ? dPP.moreComment : "")
+          //         : " ",
+          //       Customer: w.project?.customer,
+          //       Status: "in progress",
+          //     });
+          //   }
+          // });
+        } else if (w.siteWork === false || (w.siteWork && w.status ==='recalled')) {
           if (
-            moment(Date.parse(dNP)).isSameOrAfter(moment(startDate)) &&
-            moment(Date.parse(dNP)).isSameOrBefore(
+            moment(Date.parse(w.dispatch.date)).isSameOrAfter(
+              moment(startDate)
+            ) &&
+            moment(Date.parse(w.dispatch.date)).isSameOrBefore(
               moment(endDate)
                 .add(23, "hours")
                 .add(59, "minutes")
                 .add(59, "seconds")
             )
           ) {
-            siteWorkList.push({
-              "Dispatch date": moment(Date.parse(dNP)).format("M/D/YYYY"),
-              "Posted On": "",
+            work = {
+              "Dispatch date": w.siteWork
+                ? moment().format("M/D/YYYY")
+                : moment(Date.parse(w.dispatch.date)).format("M/D/YYYY"),
+              "Posted On": moment(Date.parse(w.createdOn)).format("M/D/YYYY"),
               "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
               "Site work?": w.siteWork,
               "Project Description": w.project.prjDescription,
               "Equipment Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
               "Unit of measurement": w.equipment?.uom,
-              "Duration (HRS)": 0,
-              "Duration (DAYS)": 0,
-              "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-              "Other work description": w.dispatch?.otherJobType,
-              ...((canViewRevenues === "true" || canViewRevenues === true) && {
-                "Projected Revenue":
-                  w.equipment?.uom === "hour"
-                    ? w.equipment?.rate * 5
-                    : w.equipment?.rate,
-                "Actual Revenue": 0,
-                "Vendor payment": 0,
-              }),
-
-              "Driver Names": w.driver
-                ? w?.driver?.firstName + " " + w?.driver?.lastName
-                : w.equipment?.eqOwner,
-              "Turn boy 1":
-                w?.turnBoy?.length >= 1
-                  ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
-                  : "",
-              "Turn boy 2":
-                w?.turnBoy?.length >= 2
-                  ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
-                  : "",
-              "Turn boy 3":
-                w?.turnBoy?.length >= 3
-                  ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
-                  : "",
-              "Turn boy 4":
-                w?.turnBoy?.length >= 4
-                  ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
-                  : "",
-              "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
-              "Target trips": w.dispatch?.targetTrips
-                ? w.dispatch?.targetTrips
-                : 0,
-              "Trips done": 0,
-              "Driver's/Operator's Comment": dNP.comment
-                ? dNP.comment + " - " + (dNP.moreComment ? dNP.moreComment : "")
-                : " ",
-              Customer: w.project?.customer,
-              Status: "created",
-              "Project Admin":
-                (w.projectAdmin?.firstName || "") +
-                " " +
-                (w.projectAdmin?.lastName || ""),
-              "Start index": w?.startIndex || 0,
-              "End index": w?.endIndex || 0,
-            });
-          }
-        });
-        datesPendingPosted.map((dPP) => {
-          if (
-            moment(Date.parse(dPP)).isSameOrAfter(moment(startDate)) &&
-            moment(Date.parse(dPP)).isSameOrBefore(
-              moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds")
-            )
-          ) {
-            siteWorkList.push({
-              "Dispatch date": moment(Date.parse(dPP)).format("M/D/YYYY"),
-              "Posted On": "",
-              "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
-              "Site work?": w.siteWork,
-              "Project Description": w.project.prjDescription,
-              "Equipment Plate number": w.equipment.plateNumber,
-              "Equipment Type": w.equipment?.eqDescription,
-              "Unit of measurement": w.equipment?.uom,
-              "Duration (HRS)": 0,
-              "Duration (DAYS)": 0,
-              "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-              "Other work description": w.dispatch?.otherJobType,
-              ...((canViewRevenues === "true" || canViewRevenues === true) && {
-                "Projected Revenue":
-                  w.equipment?.uom === "hour"
-                    ? w.equipment?.rate * 5
-                    : w.equipment?.rate,
-                "Actual Revenue": 0,
-                "Vendor payment": 0,
-              }),
-
-              "Driver Names": w.driver
-                ? w?.driver?.firstName + " " + w?.driver?.lastName
-                : w.equipment?.eqOwner,
-              "Turn boy 1":
-                w?.turnBoy?.length >= 1
-                  ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
-                  : "",
-              "Turn boy 2":
-                w?.turnBoy?.length >= 2
-                  ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
-                  : "",
-              "Turn boy 3":
-                w?.turnBoy?.length >= 3
-                  ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
-                  : "",
-              "Turn boy 4":
-                w?.turnBoy?.length >= 4
-                  ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
-                  : "",
-              "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
-              "Target trips": w.dispatch?.targetTrips
-                ? w.dispatch?.targetTrips
-                : 0,
-              "Trips done": 0,
-              "Driver's/Operator's Comment": dPP.comment
-                ? dPP.comment + " - " + (dPP.moreComment ? dPP.moreComment : "")
-                : " ",
-              Customer: w.project?.customer,
-              Status: "in progress",
-              "Project Admin":
-                (w.projectAdmin?.firstName || "") +
-                " " +
-                (w.projectAdmin?.lastName || ""),
-              "Start index": w?.startIndex || 0,
-              "End index": w?.endIndex || 0,
-            });
-          }
-        });
-      } else if (w.siteWork === true && w.status === "stopped") {
-        let dailyWorks = w.dailyWork;
-
-        let datesPosted = dailyWorks
-          .filter((d) => d.pending === false)
-          .map((d) => {
-            return {
-              date: d.date,
-              duration: d.duration,
-              actualRevenue: d.totalRevenue,
-              expenditure: d.totalExpenditure,
-              rate: d.rate,
-              comment: d.comment,
-            };
-          });
-
-        let datePosted_Dates = dailyWorks
-          .filter((d) => d.pending === false)
-          .map((d) => {
-            return d.date;
-          });
-
-        let datesPendingPosted = dailyWorks
-          .filter((d) => d.pending === true)
-
-          .map((d) => {
-            return d.date;
-          });
-        let workStartDate = moment(w.workStartDate);
-        let workDurationDays = w.workDurationDays;
-
-        let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
-        for (let i = 0; i < workDurationDays - 1; i++) {
-          datesToPost.push(workStartDate.add(1, "days").format("DD-MMM-YYYY"));
-        }
-
-        let dateNotPosted = datesToPost.filter(
-          (d) =>
-            !_.includes(datePosted_Dates, d) &&
-            !_.includes(datesPendingPosted, d) &&
-            moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
-        );
-        datesPosted.map((dP) => {
-          if (
-            moment(Date.parse(dP.date)).isSameOrAfter(moment(startDate)) &&
-            moment(Date.parse(dP.date)).isSameOrBefore(
-              moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds")
-            )
-          ) {
-            siteWorkList.push({
-              "Dispatch date": moment(Date.parse(dP.date)).format("M/D/YYYY"),
-              "Posted On": moment(Date.parse(dP.date)).format("M/D/YYYY"),
-              "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
-              "Site work?": w.siteWork,
-              "Project Description": w.project?.prjDescription,
-              "Equipment Plate number": w.equipment.plateNumber,
-              "Equipment Type": w.equipment?.eqDescription,
-              "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)":
-                w.equipment?.uom === "hour"
-                  ? _.round(dP.duration / (60 * 60 * 1000), 2)
-                  : 0,
-              "Duration (DAYS)":
-                w.equipment?.uom === "day" ? _.round(dP.duration, 2) : 0,
+                w.equipment?.uom === "hour" ? w.duration / (60 * 60 * 1000) : 0,
+              "Duration (DAYS)": w.equipment?.uom === "day" ? w.duration : 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
               "Other work description": w.dispatch?.otherJobType,
-              ...((canViewRevenues === "true" || canViewRevenues === true) && {
+              ...(canViewRevenues==='true' || canViewRevenues===true) && {
                 "Projected Revenue":
-                  w.equipment?.uom === "hour" ? dP.rate * 5 : dP.rate,
-                "Actual Revenue":
-                  w.equipment?.uom === "hour"
-                    ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
-                    : w?.equipment?.eqDescription === "TIPPER TRUCK" &&
-                      dP.comment === "Ibibazo bya panne"
-                    ? dP.duration * w?.equipment?.rate
-                    : (dP.duration > 0 ? 1 : 0) * dP.rate,
-                "Vendor payment":
-                  w.equipment?.uom === "hour"
-                    ? _.round(dP.duration / (60 * 60 * 1000), 2) *
-                      w?.equipment?.supplierRate
-                    : (dP.duration > 0 ? 1 : 0) * w?.equipment?.supplierRate,
-              }),
-
-              "Driver Names": w.driver
-                ? w?.driver?.firstName + " " + w?.driver?.lastName
-                : w.equipment?.eqOwner,
-              "Turn boy 1":
-                w?.turnBoy?.length >= 1
-                  ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
-                  : "",
-              "Turn boy 2":
-                w?.turnBoy?.length >= 2
-                  ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
-                  : "",
-              "Turn boy 3":
-                w?.turnBoy?.length >= 3
-                  ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
-                  : "",
-              "Turn boy 4":
-                w?.turnBoy?.length >= 4
-                  ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
-                  : "",
-              "Driver contacts": w.driver?.phone,
-              "Target trips": w.dispatch?.targetTrips
-                ? w.dispatch?.targetTrips
-                : 0,
-              "Trips done": w?.tripsDone ? w?.tripsDone : 0,
-              "Driver's/Operator's Comment": dP.comment
-                ? dP.comment + " - " + (dP.moreComment ? dP.moreComment : "")
-                : " ",
-              Customer: w.project?.customer,
-              Status: "stopped",
-              "Project Admin":
-                (w.projectAdmin?.firstName || "") +
-                " " +
-                (w.projectAdmin?.lastName || ""),
-              "Start index": w?.startIndex || 0,
-              "End index": w?.endIndex || 0,
-            });
-          }
-        });
-      } else if (
-        w.siteWork === false ||
-        (w.siteWork && w.status === "recalled")
-      ) {
-        if (
-          moment(Date.parse(w.dispatch.date)).isSameOrAfter(
-            moment(startDate)
-          ) &&
-          moment(Date.parse(w.dispatch.date)).isSameOrBefore(
-            moment(endDate)
-              .add(23, "hours")
-              .add(59, "minutes")
-              .add(59, "seconds")
-          )
-        ) {
-          work = {
-            "Dispatch date": w.siteWork
-              ? moment().format("M/D/YYYY")
-              : moment(Date.parse(w.dispatch.date)).format("M/D/YYYY"),
-            "Posted On": moment(Date.parse(w.createdOn)).format("M/D/YYYY"),
-            "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
-            "Site work?": w.siteWork,
-            "Project Description": w.project.prjDescription,
-            "Equipment Plate number": w.equipment.plateNumber,
-            "Equipment Type": w.equipment?.eqDescription,
-            "Unit of measurement": w.equipment?.uom,
-            "Duration (HRS)":
-              w.equipment?.uom === "hour"
-                ? _.round(w.duration / (60 * 60 * 1000), 2)
-                : 0,
-            "Duration (DAYS)":
-              w.equipment?.uom === "day" ? _.round(w.duration, 2) : 0,
-            "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-            "Other work description": w.dispatch?.otherJobType,
-            ...((canViewRevenues === "true" || canViewRevenues === true) && {
-              "Projected Revenue":
                 w.equipment?.uom === "hour"
                   ? w.equipment?.rate * 5
                   : w.equipment?.rate,
               "Actual Revenue": w.totalRevenue,
               "Vendor payment": w.totalExpenditure,
-            }),
-
-            "Driver Names": w.driver
-              ? w?.driver?.firstName + " " + w?.driver?.lastName
-              : w.equipment?.eqOwner,
-            "Turn boy 1":
-              w?.turnBoy?.length >= 1
-                ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
-                : "",
-            "Turn boy 2":
-              w?.turnBoy?.length >= 2
-                ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
-                : "",
-            "Turn boy 3":
-              w?.turnBoy?.length >= 3
-                ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
-                : "",
-            "Turn boy 4":
-              w?.turnBoy?.length >= 4
-                ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
-                : "",
-            "Driver contacts": w.driver?.phone,
-            "Target trips": w.dispatch?.targetTrips,
-            "Trips done": w?.tripsDone,
-            "Driver's/Operator's Comment": w.comment
-              ? w.comment
-              : "" + " - " + (w.moreComment ? w.moreComment : ""),
-            Customer: w.project?.customer,
-            Status: w.status,
-            "Project Admin":
-              (w.projectAdmin?.firstName || "") +
-              " " +
-              (w.projectAdmin?.lastName || ""),
-            "Start index": w?.startIndex || 0,
-            "End index": w?.endIndex || 0,
-          };
+              },
+              
+              "Driver Names": w.driver
+                ? w?.driver?.firstName + " " + w?.driver?.lastName
+                : w.equipment?.eqOwner,
+              "Driver contacts": w.driver?.phone,
+              "Target trips": w.dispatch?.targetTrips,
+              "Trips done": w?.tripsDone,
+              "Driver's/Operator's Comment": w.comment
+                ? w.comment
+                : "" + " - " + (w.moreComment ? w.moreComment : ""),
+              Customer: w.project?.customer,
+              Status: w.status,
+            };
+          }
         }
-      }
 
-      return work;
-    });
-    let finalList = l.concat(siteWorkList);
+        return work;
+      });
 
-    let orderedList = _.orderBy(finalList, "Dispatch date", "desc");
+      let finalList = l.concat(siteWorkList);
 
-    res.status(200).send(orderedList.filter((w) => w !== null));
-  } catch (err) {
-    console.log(err);
-    res.send(err);
-  }
+      let orderedList = _.orderBy(finalList, "Dispatch date", "desc");
+
+      res.status(200).send(orderedList.filter((w) => w !== null));
+    } catch (err) {
+      res.send(err);
+    }
 });
 
 router.get("/:id", async (req, res) => {
@@ -2364,7 +2109,11 @@ router.get("/monthlyRevenuePerProject/:projectName", async (req, res) => {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
           },
         },
       },
@@ -2753,8 +2502,6 @@ router.post("/mobileData", async (req, res) => {
 router.post("/getAnalytics", async (req, res) => {
   let { startDate, endDate, status, customer, project, equipment, owner } =
     req.body;
-
-  console.log(req.body);
   let total = 0;
   let totalRevenue = 0;
   let projectedRevenue = 0;
@@ -2803,41 +2550,27 @@ router.post("/getAnalytics", async (req, res) => {
 
       let list = [];
 
-      if (customer?.length >= 1) {
-        customer.map((c) => {
-          let l = workList.filter((w) => {
-            let nameLowerCase = w?.project?.customer?.toLowerCase();
-            return nameLowerCase.includes(c?.toLowerCase());
-          });
-
-          list.push(...l);
+      if (customer) {
+        list = workList.filter((w) => {
+          let nameLowerCase = w?.project?.customer?.toLowerCase();
+          return nameLowerCase.includes(customer?.toLowerCase());
         });
       } else {
         list = workList;
       }
 
-      if (project?.length >= 1) {
-        let pList = [];
-        project.map((p) => {
-          let l = list.filter((w) => {
-            let descLowerCase = w?.project?.prjDescription;
-            return descLowerCase.includes(p);
-          });
-          pList.push(...l);
+      if (project) {
+        list = list.filter((w) => {
+          let descLowerCase = w?.project?.prjDescription?.toLowerCase();
+          return descLowerCase.includes(project.toLowerCase());
         });
-        list = pList;
       }
 
-      if (equipment?.length >= 1) {
-        let eList = [];
-        equipment.map((e) => {
-          let l = list.filter((w) => {
-            let plateLowerCase = w?.equipment?.plateNumber?.toLowerCase();
-            return plateLowerCase.includes(e.toLowerCase());
-          });
-          eList.push(...l);
+      if (equipment) {
+        list = list.filter((w) => {
+          let plateLowerCase = w?.equipment?.plateNumber?.toLowerCase();
+          return plateLowerCase.includes(equipment.toLowerCase());
         });
-        list = eList;
       }
 
       if (owner) {
@@ -3120,35 +2853,26 @@ router.post("/getAnalytics", async (req, res) => {
 
     let listDays = [];
 
-    if (customer >= 1) {
-      customer.map((c) => {
-        let l = workListByDay.filter((w) => {
-          let nameLowerCase = w?.project?.customer?.toLowerCase();
-          return nameLowerCase.includes(c?.toLowerCase());
-        });
-        listDays.push(...l);
+    if (customer) {
+      listDays = workListByDay.filter((w) => {
+        let nameLowerCase = w?.project?.customer?.toLowerCase();
+        return nameLowerCase.includes(customer?.toLowerCase());
       });
     } else {
       listDays = workListByDay;
     }
 
-    if (project?.length >= 1) {
-      project.map((p) => {
-        let l = listDays.filter((w) => {
-          let descLowerCase = w?.project?.prjDescription?.toLowerCase();
-          return descLowerCase.includes(p.toLowerCase());
-        });
-        listDays.push(...l);
+    if (project) {
+      listDays = listDays.filter((w) => {
+        let descLowerCase = w?.project?.prjDescription?.toLowerCase();
+        return descLowerCase.includes(project.toLowerCase());
       });
     }
 
-    if (equipment?.length >= 1) {
-      equipment.map((e) => {
-        let l = listDays.filter((w) => {
-          let plateLowerCase = w?.equipment?.plateNumber?.toLowerCase();
-          return plateLowerCase.includes(e.toLowerCase());
-        });
-        listDays.push(...l);
+    if (equipment) {
+      listDays = listDays.filter((w) => {
+        let plateLowerCase = w?.equipment?.plateNumber?.toLowerCase();
+        return plateLowerCase.includes(equipment.toLowerCase());
       });
     }
 
@@ -3180,11 +2904,7 @@ router.post("/getAnalytics", async (req, res) => {
     // } else {
     //   listDispaches = dispatches;
     // }
-    console.log({
-      totalRevenue: totalRevenue ? _.round(totalRevenue, 0).toFixed(2) : "0.00",
-      projectedRevenue: projectedRevenue ? projectedRevenue.toFixed(2) : "0.00",
-      totalDays: totalDays ? _.round(totalDays, 1).toFixed(1) : "0.0",
-    });
+    console.log(totalRevenue, projectedRevenue, totalDays);
     res.status(200).send({
       totalRevenue: totalRevenue ? _.round(totalRevenue, 0).toFixed(2) : "0.00",
       projectedRevenue: projectedRevenue ? projectedRevenue.toFixed(2) : "0.00",
@@ -3196,81 +2916,9 @@ router.post("/getAnalytics", async (req, res) => {
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    console.log({
-      err,
-      key,
-    });
     res.send({
       error,
       key,
-    });
-  }
-});
-
-router.put("/:id", async (req, res) => {
-  let { id } = req.params;
-  let projectId = req.body?.project?._id;
-  let customerName = req.body?.project?.customer;
-  let equipmentOwner = req.body?.equipment?.eqOwner;
-  let driver = req.body?.driver;
-
-  console.log(req.body);
-
-  let updateObj = {};
-  if (equipmentOwner.toLowerCase() === "construck") {
-    updateObj = req.body;
-  } else {
-    delete req.body.driver;
-    updateObj = req.body;
-  }
-  delete updateObj.driver;
-  try {
-    let currentWork = await workData.model.updateOne(
-      { _id: new mongoose.Types.ObjectId(id) },
-      updateObj
-    );
-    // currentWork.driver = new mongoose.Types.ObjectId(currentWork.driver)
-
-    // await workData.model.updateMany(
-    //   {
-    //     "project._id": projectId,
-    //   },
-    //   {
-    //     $set: {
-    //       "project.projectAdmin": new mongoose.Types.ObjectId(projectAdmin),
-    //     },
-    //   }
-    // );
-
-    // employee.assignedToSiteWork = req.body?.siteWork;
-    //   employee.assignedDate = moment(req.body?.dispatch?.date);
-    //   employee.assignedShift = req.body?.dispatch?.shift;
-
-    await employeeData.model.findOneAndUpdate(
-      { _id: updatedWork?.driver },
-      {
-        status: "active",
-        assignedToSiteWork: null,
-        assignedDate: null,
-        assignedShift: null,
-      }
-    );
-
-    await employeeData.model.findOneAndUpdate(
-      { _id: driver },
-      {
-        status: "dispatched",
-        assignedToSiteWork: req.body?.siteWork,
-        assignedDate: moment(req.body?.dispatch?.date),
-        assignedShift: req.body?.dispatch?.shift,
-      }
-    );
-
-    res.send({ message: "done" });
-  } catch (err) {
-    console.log(err);
-    return res.send({
-      error: true,
     });
   }
 });
@@ -3299,7 +2947,6 @@ router.put("/approve/:id", async (req, res) => {
     work.approvedRevenue = work.totalRevenue;
     work.approvedDuration = work.duration;
     work.approvedExpenditure = work.totalExpenditure;
-    work.rejectedReason = "";
 
     let savedRecord = await work.save();
 
@@ -3355,8 +3002,6 @@ router.put("/approveDailyWork/:id", async (req, res) => {
       {
         $set: {
           "dailyWork.$.status": "approved",
-          "dailyWork.$.rejectedReason": "",
-          rejectedReason: "",
           approvedRevenue: _approvedRevenue + parseFloat(approvedRevenue),
           approvedDuration: _approvedDuration + parseFloat(approvedDuration),
           approvedExpenditure:
@@ -3421,7 +3066,7 @@ router.put("/validateDailyWork/:id", async (req, res) => {
   //log saving
   let log = {
     action: "DISPATCH VALIDATED",
-    doneBy: approvedBy,
+    doneBy: req.body.validatedBy,
     request: req.body,
     payload: workRec,
   };
@@ -3468,7 +3113,7 @@ router.put("/validateWork/:id", async (req, res) => {
   //log saving
   let log = {
     action: "DISPATCH VALIDATED",
-    doneBy: approvedBy,
+    doneBy: req.body.validatedBy,
     request: req.body,
     payload: workRec,
   };
@@ -3530,7 +3175,7 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
     //log saving
     let log = {
       action: "DISPATCH REJECTED",
-      doneBy: rejectedBy,
+      doneBy: req.body.rejectedBy,
       request: req.body,
       payload: workRec,
     };
@@ -3539,8 +3184,8 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
 
     res.send(work);
 
-    let receipts = await getProjectAdminEmail(workRec.project.prjDescription);
-    // let receipts = ["bhigiro@cvl.co.rw"];
+    // let receipts = await getReceiverEmailList(["admin"]);
+    let receipts = ["bhigiro@cvl.co.rw"];
 
     if (receipts.length > 0) {
       await sendEmail(
@@ -3566,6 +3211,7 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
   let { month, year } = req.query;
   let { projectName } = req.params;
   try {
+    let monthDigit = month;
     if (month < 10) month = "0" + month;
     const startOfMonth = moment()
       .startOf("month")
@@ -3576,7 +3222,6 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
         `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
       );
 
-    console.log(startOfMonth, endOfMonth);
     let q1 = await workData.model.updateMany(
       {
         siteWork: false,
@@ -3605,10 +3250,7 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
       {
         arrayFilters: [
           {
-            $or: [
-              { "elemX.date": { $gte: startOfMonth } },
-              { "elemX.date": { $lte: endOfMonth } },
-            ],
+            "elemX.date": new RegExp(`${monthHelper(month)}-${year}`),
             "elemX.status": "validated",
           },
         ],
@@ -3617,7 +3259,6 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
 
     res.send({ q2 });
   } catch (err) {
-    console.log(err);
     err;
     res.send(err);
   }
@@ -3818,8 +3459,9 @@ router.put("/reject/:id", async (req, res) => {
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
 
-    let receipts = await getProjectAdminEmail(work.project.prjDescription);
-    // let receipts = ["bhigiro@cvl.co.rw"];
+    // let receipts = await getReceiverEmailList(["admin"]);
+
+    let receipts = ["bhigiro@cvl.co.rw"];
 
     if (receipts.length > 0) {
       await sendEmail(
@@ -3838,7 +3480,7 @@ router.put("/reject/:id", async (req, res) => {
     }
     res.status(201).send(savedRecord);
   } catch (err) {
-    console.log(err);
+    err;
     res.send("Error occured!!");
   }
 });
@@ -3869,8 +3511,8 @@ router.put("/start/:id", async (req, res) => {
       work.status === "created" ||
       (work.status === "on going" &&
         work.siteWork &&
-        moment(postingDate).isSameOrAfter(moment(work.workStartDate), "day") &&
-        moment(postingDate).isSameOrBefore(moment(work.workEndDate), "day"))
+        moment(postingDate).isSameOrAfter(moment(work.workStartDate)) &&
+        moment(postingDate).isSameOrBefore(moment(work.workEndDate)))
     ) {
       let eqId = work?.equipment?._id;
 
@@ -3958,13 +3600,11 @@ router.put("/start/:id", async (req, res) => {
 
 router.put("/stop/:id", async (req, res) => {
   let { id } = req.params;
-
   let { endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy } =
     req.body;
-
   let duration = Math.abs(req.body.duration);
+  if (duration > 12) duration = 12;
 
-  if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
   let dd = postingDate?.split(".")[0];
   let mm = postingDate?.split(".")[1];
   let yyyy = postingDate?.split(".")[2];
@@ -3983,13 +3623,13 @@ router.put("/stop/:id", async (req, res) => {
 
     //You can only stop jobs in progress
     if (
-      work?.status === "in progress" ||
-      (work?.siteWork &&
-        moment(postingDate).isSameOrAfter(moment(work?.workStartDate), "day") &&
-        moment(postingDate).isSameOrBefore(moment(work?.workEndDate), "day"))
+      work.status === "in progress" ||
+      (work.siteWork &&
+        moment(postingDate).isSameOrAfter(moment(work.workStartDate)) &&
+        moment(postingDate).isSameOrBefore(moment(work.workEndDate)))
     ) {
       let equipment = await eqData.model.findById(work?.equipment?._id);
-      let workEnded = false;
+      let workEnded = equipment.eqStatus === "standby" ? true : false;
 
       //get jobs being done by the same equipment
       let eqBusyWorks = await workData.model.find({
@@ -4001,7 +3641,6 @@ router.put("/stop/:id", async (req, res) => {
       if (work?.dailyWork?.length >= work.workDurationDays) {
         equipment.eqStatus = eqBusyWorks.length >= 1 ? "dispatched" : "standby";
         equipment.assignedToSiteWork = false;
-        workEnded = true;
       }
 
       let employee = await employeeData.model.findById(work?.driver);
@@ -4018,7 +3657,10 @@ router.put("/stop/:id", async (req, res) => {
         let currentDuration = Math.abs(work.duration);
         let currentTotalExpenditure = work.totalExpenditure;
 
-        // work.status = workEnded ? "stopped" : "on going";
+        work.status =
+          workEnded || work?.dailyWork?.length >= work.workDurationDays
+            ? "stopped"
+            : "on going";
 
         let _duration = Math.abs(work.endTime - work.startTime);
 
@@ -4042,7 +3684,7 @@ router.put("/stop/:id", async (req, res) => {
         // if rate is per hour and we have target trips to be done
         if (uom === "hour") {
           dailyWork.projectedRevenue = rate * 5;
-          if (comment === "Should never happen") {
+          if (comment !== "Ibibazo bya panne") {
             dailyWork.duration = duration > 0 ? duration * 3600000 : 0;
             revenue = (rate * dailyWork.duration) / 3600000;
             expenditure = (supplierRate * dailyWork.duration) / 3600000;
@@ -4057,8 +3699,7 @@ router.put("/stop/:id", async (req, res) => {
         if (uom === "day") {
           // work.duration = duration;
           // revenue = rate * duration;
-          if (comment === "Should neve happen") {
-            //reason that does not exist
+          if (comment !== "Ibibazo bya panne") {
             dailyWork.duration = duration / HOURS_IN_A_DAY;
             revenue = rate * (duration >= 1 ? 1 : 0);
             expenditure = supplierRate * (duration >= 1 ? 1 : 0);
@@ -4069,15 +3710,11 @@ router.put("/stop/:id", async (req, res) => {
             let durationRation =
               duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
             dailyWork.duration = duration / HOURS_IN_A_DAY;
-            revenue =
-              equipment?.eqDescription === "TIPPER TRUCK" &&
-              comment === "Ibibazo bya panne"
-                ? duration >= 5 ? rate : rate * _.round(duration / HOURS_IN_A_DAY, 2)
-                : rate;
-            expenditure =
-              supplierRate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
+            revenue = rate * (duration >= 1 ? 1 : 0);
+            expenditure = supplierRate;
           }
         }
+
         dailyWork.rate = rate;
         dailyWork.uom = uom;
         dailyWork.date = moment(postingDate).isValid()
@@ -4099,6 +3736,7 @@ router.put("/stop/:id", async (req, res) => {
         });
 
         dailyWorks[indexToUpdate] = dailyWork;
+
         work.startIndex =
           endIndex || startIndex !== 0
             ? parseInt(endIndex)
@@ -4110,7 +3748,7 @@ router.put("/stop/:id", async (req, res) => {
         work.totalExpenditure = currentTotalExpenditure + expenditure;
         work.equipment = equipment;
         work.moreComment = moreComment;
-        work.status = workEnded ? "stopped" : "on going";
+
         await equipment.save();
         if (employee) await employee.save();
         let savedRecord = await work.save();
@@ -4174,17 +3812,15 @@ router.put("/stop/:id", async (req, res) => {
 
         // if rate is per hour and we have target trips to be done
         if (uom === "hour") {
-          if (comment === "Should never happen") {
+          if (comment !== "Ibibazo bya panne") {
             work.duration = duration > 0 ? duration * 3600000 : 0;
             revenue = (rate * work.duration) / 3600000;
             expenditure = (supplierRate * work.duration) / 3600000;
           } else {
             work.duration = duration > 0 ? duration * 3600000 : 0;
-            revenue = (rate * work.duration) / 3600000;
+            revenue = (tripsRatio * (rate * work.duration)) / 3600000;
             expenditure =
-              tripsRatio > 0
-                ? (tripsRatio * (supplierRate * work.duration)) / 3600000
-                : (supplierRate * work.duration) / 3600000;
+              (tripsRatio * (supplierRate * work.duration)) / 3600000;
           }
         }
 
@@ -4192,20 +3828,16 @@ router.put("/stop/:id", async (req, res) => {
         if (uom === "day") {
           // work.duration = duration;
           // revenue = rate * duration;
-          if (comment == "Should never happen") {
+          if (comment !== "Ibibazo bya panne") {
             work.duration = duration / HOURS_IN_A_DAY;
             revenue = rate * (duration >= 1 ? 1 : 0);
             expenditure = supplierRate * (duration >= 1 ? 1 : 0);
           } else {
+            work.duration = duration / HOURS_IN_A_DAY;
             let tripRatio = tripsDone / targetTrips;
-            work.duration = tripRatio;
-            if (
-              tripsDone &&
-              targetTrips &&
-              equipment?.eqDescription === "TIPPER TRUCK"
-            ) {
-              if (tripRatio >= 1) {
-                revenue = rate * tripRatio;
+            if (tripsDone && targetTrips) {
+              if (tripRatio > 1) {
+                revenue = rate;
                 expenditure = supplierRate;
                 // revenue = rate;
               } else {
@@ -4213,19 +3845,14 @@ router.put("/stop/:id", async (req, res) => {
                 expenditure = supplierRate * tripRatio;
               }
             }
-            if (
-              !targetTrips ||
-              targetTrips == "0" ||
-              equipment?.eqDescription !== "TIPPER TRUCK"
-            ) {
+            if (!targetTrips || targetTrips == "0") {
               {
                 let targetDuration = 5;
                 let durationRation =
                   duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
                 work.duration = duration / HOURS_IN_A_DAY;
-                revenue = rate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
-                expenditure =
-                  supplierRate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
+                revenue = rate;
+                expenditure = supplierRate;
               }
             }
           }
@@ -4296,16 +3923,9 @@ router.put("/stop/:id", async (req, res) => {
         res.status(201).send(savedRecord);
       }
     } else {
-      return;
       res.status(200).send(work);
     }
-  } catch (err) {
-    console.log(err);
-  }
-});
-
-router.put("/update-stopped-work/:id", async (req, res) => {
-  await stopWork(req, res);
+  } catch (err) {}
 });
 
 router.put("/end/:id", async (req, res) => {
@@ -4485,15 +4105,15 @@ router.put("/amend/:id", async (req, res) => {
 
     // if rate is per hour and we have target trips to be done
     if (uom === "hour") {
-      // if (comment !== "Ibibazo bya panne") {
+      if (comment !== "Ibibazo bya panne") {
         work.duration = duration > 0 ? duration * 3600000 : 0;
         revenue = (rate * work.duration) / 3600000;
         expenditure = (supplierRate * work.duration) / 3600000;
-      // } else {
-      //   work.duration = duration > 0 ? duration * 3600000 : 0;
-      //   revenue = (tripsRatio * (rate * work.duration)) / 3600000;
-      //   expenditure = (tripsRatio * (supplierRate * work.duration)) / 3600000;
-      // }
+      } else {
+        work.duration = duration > 0 ? duration * 3600000 : 0;
+        revenue = (tripsRatio * (rate * work.duration)) / 3600000;
+        expenditure = (tripsRatio * (supplierRate * work.duration)) / 3600000;
+      }
     }
 
     //if rate is per day
@@ -4566,9 +4186,14 @@ router.put("/swamend/:id", async (req, res) => {
   } = req.body;
 
   let duration = Math.abs(req.body.duration);
-  if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
-  postingDate = moment(postingDate, "DD-MMM-YYYY").format("YYYY-MM-DD");
+  if (duration > 12) duration = 12;
 
+  let dd = postingDate?.split(".")[0];
+  let mm = postingDate?.split(".")[1];
+  let yyyy = postingDate?.split(".")[2];
+  if (dd?.length < 2) dd = "0" + dd;
+  if (mm?.length < 2) mm = "0" + mm;
+  if (dd && mm && yyyy) postingDate = `${yyyy}-${mm}-${dd}`;
   try {
     let work = await workData.model.findOne({
       _id: id,
@@ -4607,6 +4232,8 @@ router.put("/swamend/:id", async (req, res) => {
 
     //if rate is per day
     if (uom === "day") {
+      // work.duration = duration;
+      // revenue = rate * duration;
       if (comment !== "Ibibazo bya panne") {
         dailyWork.duration = duration / HOURS_IN_A_DAY;
         revenue = rate * (duration >= 1 ? 1 : 0);
@@ -4616,14 +4243,10 @@ router.put("/swamend/:id", async (req, res) => {
 
         let targetDuration = 5;
         let durationRation =
-          duration >= 5 ? 1 : _.round(duration / HOURS_IN_A_DAY, 2);
+          duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
         dailyWork.duration = duration / HOURS_IN_A_DAY;
+        revenue = rate * (duration >= 1 ? 1 : 0);
         expenditure = supplierRate;
-        if (equipment?.eqDescription === "TIPPER TRUCK") {
-          revenue = rate * durationRation;
-        } else {
-          revenue = rate;
-        }
       }
     }
 
@@ -4669,12 +4292,7 @@ router.put("/swamend/:id", async (req, res) => {
     await logTobeSaved.save();
 
     res.status(201).send(savedRecord);
-  } catch (err) {
-    console.log("##", err);
-    return res.status(503).send({
-      error: err,
-    });
-  }
+  } catch (err) {}
 });
 
 router.put("/swreverse/:id", async (req, res) => {
@@ -4848,13 +4466,6 @@ router.put("/driverassistants/", async (req, res) => {
   } catch (err) {}
 });
 
-router.post("/reports/generate", (req, res) => {
-  works.captureDispatchDailyReport(req.query.date);
-});
-router.get("/reports/:date", (req, res) => {
-  works.getDispatchDailyReport(req, res);
-});
-
 async function getEmployees(listIds) {
   let list = [];
   for (let i = 0; i < listIds.length; i++) {
@@ -4885,59 +4496,6 @@ async function getReceiverEmailList(userType) {
       return $.email;
     });
   } catch (err) {}
-}
-
-async function getProjectAdminEmail(project) {
-  try {
-    let pipeline = [
-      {
-        $unwind: {
-          path: "$projects",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $match: {
-          "projects.prjDescription": project,
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "projects.projectAdmin",
-          foreignField: "_id",
-          as: "projectAdmin",
-        },
-      },
-      {
-        $unwind: {
-          path: "$projectAdmin",
-          preserveNullAndEmptyArrays: false,
-        },
-      },
-      {
-        $addFields: {
-          projectAdminEmail: "$projectAdmin.email",
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          projectAdminEmail: 1,
-        },
-      },
-    ];
-
-    let emails = await customers.model.aggregate(pipeline);
-
-    let _emails = emails.map((e) => {
-      return e.projectAdminEmail;
-    });
-
-    return _emails;
-  } catch (err) {
-    console.log(err);
-  }
 }
 
 async function getValidatedRevenuesByProject(prjDescription) {
@@ -4977,7 +4535,11 @@ async function getValidatedRevenuesByProject(prjDescription) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
           },
         },
       },
@@ -4995,7 +4557,6 @@ async function getValidatedRevenuesByProject(prjDescription) {
         },
       },
     },
-
     {
       $group: {
         _id: {
@@ -5012,19 +4573,6 @@ async function getValidatedRevenuesByProject(prjDescription) {
       },
     },
     {
-      $match: {
-        $or: [
-          {
-            "_id.month": { $gt: 4 },
-            "_id.year": { $gte: 2023 },
-          },
-          {
-            "_id.year": { $gt: 2023 },
-          },
-        ],
-      },
-    },
-    {
       $sort: {
         "_id.year": 1,
       },
@@ -5035,7 +4583,7 @@ async function getValidatedRevenuesByProject(prjDescription) {
       },
     },
     {
-      $limit: 5,
+      $limit: 4,
     },
   ];
 
@@ -5059,10 +4607,8 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
   let pipeline = [
     {
       $match: {
-        "project.prjDescription": "SEBEYA DAM",
-        status: {
-          $nin: ["recalled", "created"],
-        },
+        "project.prjDescription": prjDescription,
+        status: { $nin: ["recalled", "created"] },
       },
     },
     {
@@ -5072,29 +4618,15 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
         preserveNullAndEmptyArrays: true,
       },
     },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: false,
-    //         },
-    //         siteWork: true,
-    //       },
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: true,
-    //           $eq: "",
-    //         },
-    //         siteWork: true,
-    //       },
-    //       {
-    //         status: "stopped",
-    //         siteWork: false,
-    //       },
-    //     ],
-    //   },
-    // }
+    {
+      $match: {
+        $or: [
+          { "dailyWork.status": { $exists: false }, siteWork: true },
+          { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
+          { status: "stopped", siteWork: false },
+        ],
+      },
+    },
     {
       $addFields: {
         transactionDate: {
@@ -5103,7 +4635,11 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
           },
         },
       },
@@ -5137,25 +4673,6 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
       },
     },
     {
-      $match: {
-        $or: [
-          {
-            "_id.month": {
-              $gt: 4,
-            },
-            "_id.year": {
-              $gte: 2023,
-            },
-          },
-          {
-            "_id.year": {
-              $gt: 2023,
-            },
-          },
-        ],
-      },
-    },
-    {
       $sort: {
         "_id.year": 1,
       },
@@ -5165,22 +4682,20 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
         "_id.month": 1,
       },
     },
-    // {
-    //   $limit: 5,
-    // }
+    {
+      $limit: 4,
+    },
   ];
 
   try {
     let nonValidatedJobs = await workData.model.aggregate(pipeline);
-    let list = nonValidatedJobs
-      .filter(($) => $?._id.month)
-      .map(($) => {
-        return {
-          monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
-          totalRevenue: $?.totalRevenue.toLocaleString(),
-          id: $?._id,
-        };
-      });
+    let list = nonValidatedJobs.map(($) => {
+      return {
+        monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
+        totalRevenue: $?.totalRevenue.toLocaleString(),
+        id: $?._id,
+      };
+    });
     return list;
   } catch (err) {
     err;
@@ -5224,7 +4739,11 @@ async function getDailyValidatedRevenues(prjDescription, month, year) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
           },
         },
       },
@@ -5257,9 +4776,7 @@ async function getDailyValidatedRevenues(prjDescription, month, year) {
     {
       $group: {
         _id: {
-          date: {
-            $dateToString: { format: "%Y-%m-%d", date: "$transactionDate" },
-          },
+          date: "$transactionDate",
         },
         totalRevenue: {
           $sum: "$newTotalRevenue",
@@ -5302,23 +4819,23 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
         preserveNullAndEmptyArrays: true,
       },
     },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: false,
-    //         },
-    //         siteWork: true,
-    //       },
-    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
-    //       {
-    //         status: "stopped",
-    //         siteWork: false,
-    //       },
-    //     ],
-    //   },
-    // },
+    {
+      $match: {
+        $or: [
+          {
+            "dailyWork.status": {
+              $exists: false,
+            },
+            siteWork: true,
+          },
+          { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
+          {
+            status: "stopped",
+            siteWork: false,
+          },
+        ],
+      },
+    },
     {
       $addFields: {
         transactionDate: {
@@ -5327,7 +4844,11 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
           },
         },
       },
@@ -5360,9 +4881,7 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
     {
       $group: {
         _id: {
-          date: {
-            $dateToString: { format: "%Y-%m-%d", date: "$transactionDate" },
-          },
+          date: "$transactionDate",
         },
         totalRevenue: {
           $sum: "$newTotalRevenue",
@@ -5427,7 +4946,11 @@ async function getValidatedListByProjectAndMonth(prjDescription, month, year) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
           },
         },
         newTotalRevenue: {
@@ -5509,23 +5032,23 @@ async function getNonValidatedListByProjectAndMonth(
         preserveNullAndEmptyArrays: true,
       },
     },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: false,
-    //         },
-    //         siteWork: true,
-    //       },
-    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
-    //       {
-    //         status: "stopped",
-    //         siteWork: false,
-    //       },
-    //     ],
-    //   },
-    // },
+    {
+      $match: {
+        $or: [
+          {
+            "dailyWork.status": {
+              $exists: false,
+            },
+            siteWork: true,
+          },
+          { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
+          {
+            status: "stopped",
+            siteWork: false,
+          },
+        ],
+      },
+    },
     {
       $addFields: {
         transactionDate: {
@@ -5534,7 +5057,11 @@ async function getNonValidatedListByProjectAndMonth(
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
           },
         },
         newTotalRevenue: {
@@ -5630,7 +5157,11 @@ async function getValidatedListByDay(prjDescription, transactionDate) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
           },
         },
       },
@@ -5693,23 +5224,23 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
         preserveNullAndEmptyArrays: true,
       },
     },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: false,
-    //         },
-    //         siteWork: true,
-    //       },
-    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
-    //       {
-    //         status: "stopped",
-    //         siteWork: false,
-    //       },
-    //     ],
-    //   },
-    // },
+    {
+      $match: {
+        $or: [
+          {
+            "dailyWork.status": {
+              $exists: false,
+            },
+            siteWork: true,
+          },
+          { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
+          {
+            status: "stopped",
+            siteWork: false,
+          },
+        ],
+      },
+    },
     {
       $addFields: {
         transactionDate: {
@@ -5718,7 +5249,11 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
           },
         },
       },
@@ -5745,11 +5280,6 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
     {
       $match: {
         transactionDate: new Date(transactionDate),
-      },
-    },
-    {
-      $sort: {
-        "equipment.eqDescription": 1,
       },
     },
   ];
@@ -5827,651 +5357,4 @@ function monthHelper(mon) {
   }
 }
 
-async function updateCustomerRecord(oldCustomerName, newCustomerName) {
-  try {
-    return await workData.model.updateMany(
-      {
-        "project.customer": oldCustomerName,
-      },
-      { $set: { "project.customer": newCustomerName } }
-    );
-  } catch (err) {}
-}
-
-async function getListOfEquipmentOnDuty(startDate, endDate, shift, siteWork) {
-  let pipeline_siteWork = [
-    {
-      $addFields: {
-        workDate: {
-          $dateToString: {
-            format: "%Y-%m-%d",
-            date: "$workStartDate",
-          },
-        },
-        workEndingDate: {
-          $dateToString: {
-            format: "%Y-%m-%d",
-            date: "$workEndDate",
-          },
-        },
-      },
-    },
-    {
-      $addFields: {
-        workDate2: {
-          $dateFromString: {
-            dateString: "$workDate",
-          },
-        },
-        workEndDate2: {
-          $dateFromString: {
-            dateString: "$workEndingDate",
-          },
-        },
-      },
-    },
-    {
-      $match: {
-        $and: [
-          {
-            status: {
-              $in: ["in progress", "on going", "created"],
-            },
-          },
-          {
-            "dispatch.shift": {
-              $eq: shift,
-            },
-          },
-          {
-            $or: [
-              {
-                $or: [
-                  {
-                    $and: [
-                      {
-                        siteWork: true,
-                      },
-                      {
-                        workDate2: {
-                          $gte: moment(startDate)
-                            .utcOffset(0)
-                            .set({
-                              hour: 0,
-                              minute: 0,
-                              second: 0,
-                              millisecond: 0,
-                            })
-                            .toDate(),
-                        },
-                      },
-                      {
-                        workEndDate2: {
-                          $lte: moment(endDate)
-                            .utcOffset(0)
-                            .set({
-                              hour: 0,
-                              minute: 0,
-                              second: 0,
-                              millisecond: 0,
-                            })
-                            .toDate(),
-                        },
-                      },
-                    ],
-                  },
-                  {
-                    $and: [
-                      {
-                        siteWork: true,
-                      },
-                      {
-                        workDate2: {
-                          $gte: moment(startDate)
-                            .utcOffset(0)
-                            .set({
-                              hour: 0,
-                              minute: 0,
-                              second: 0,
-                              millisecond: 0,
-                            })
-                            .toDate(),
-                        },
-                      },
-                      {
-                        workDate2: {
-                          $lte: moment(endDate)
-                            .utcOffset(0)
-                            .set({
-                              hour: 0,
-                              minute: 0,
-                              second: 0,
-                              millisecond: 0,
-                            })
-                            .toDate(),
-                        },
-                      },
-                      {
-                        workEndDate2: {
-                          $gte: moment(endDate)
-                            .utcOffset(0)
-                            .set({
-                              hour: 0,
-                              minute: 0,
-                              second: 0,
-                              millisecond: 0,
-                            })
-                            .toDate(),
-                        },
-                      },
-                    ],
-                  },
-                  {
-                    $and: [
-                      {
-                        siteWork: true,
-                      },
-                      {
-                        workDate2: {
-                          $lte: moment(startDate)
-                            .utcOffset(0)
-                            .set({
-                              hour: 0,
-                              minute: 0,
-                              second: 0,
-                              millisecond: 0,
-                            })
-                            .toDate(),
-                        },
-                      },
-                      {
-                        workDate2: {
-                          $lte: moment(endDate)
-                            .utcOffset(0)
-                            .set({
-                              hour: 0,
-                              minute: 0,
-                              second: 0,
-                              millisecond: 0,
-                            })
-                            .toDate(),
-                        },
-                      },
-                      {
-                        workEndDate2: {
-                          $gte: moment(endDate)
-                            .utcOffset(0)
-                            .set({
-                              hour: 0,
-                              minute: 0,
-                              second: 0,
-                              millisecond: 0,
-                            })
-                            .toDate(),
-                        },
-                      },
-                    ],
-                  },
-                ],
-              },
-              {
-                $and: [
-                  { siteWork: false },
-                  {
-                    workDate2: {
-                      $eq: moment(startDate)
-                        .utcOffset(0)
-                        .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-                        .toDate(),
-                    },
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    },
-    {
-      $project: {
-        "equipment.plateNumber": 1,
-      },
-    },
-    {
-      $group: {
-        _id: "$equipment.plateNumber",
-        fieldN: {
-          $count: {},
-        },
-      },
-    },
-    {
-      $project: {
-        _id: 1,
-      },
-    },
-  ];
-
-  let pipeline_NormalWork = [
-    {
-      $match: {
-        status: {
-          $in: ["in progress", "on going", "created"],
-        },
-
-        "dispatch.shift": {
-          $eq: shift,
-        },
-
-        $or: [
-          // {
-          //   $and:[
-          //     {
-          //       workDate2: {
-          //         $eq: moment(startDate)
-          //           .utcOffset(0)
-          //           .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-          //           .toDate(),
-          //       },
-          //     },
-          //     {
-          //       workEndDate: {
-          //         $eq: moment(startDate)
-          //           .utcOffset(0)
-          //           .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-          //           .toDate(),
-          //       },
-          //     },
-          //   ]
-          // },
-          {
-            $and: [
-              {
-                workStartDate: {
-                  $gte: moment(startDate)
-                    .utcOffset(0)
-                    .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-                    .toDate(),
-                },
-              },
-              {
-                workEndDate: {
-                  $lte: moment(startDate)
-                    .utcOffset(0)
-                    .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-                    .toDate(),
-                },
-              },
-            ],
-          },
-        ],
-      },
-    },
-    {
-      $project: {
-        "equipment.plateNumber": 1,
-      },
-    },
-    {
-      $group: {
-        _id: "$equipment.plateNumber",
-        fieldN: {
-          $count: {},
-        },
-      },
-    },
-    {
-      $project: {
-        _id: 1,
-      },
-    },
-  ];
-
-  let pipeline_oneDayWork = [
-    {
-      $addFields: {
-        workDate: {
-          $dateToString: {
-            format: "%Y-%m-%d",
-            date: "$workStartDate",
-          },
-        },
-      },
-    },
-    {
-      $addFields: {
-        workDate2: {
-          $dateFromString: {
-            dateString: "$workDate",
-          },
-        },
-      },
-    },
-    {
-      $match: {
-        status: {
-          $in: ["in progress", "on going", "created"],
-        },
-        workDate2: {
-          $eq: moment(startDate)
-            .utcOffset(0)
-            .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-            .toDate(),
-        },
-        "dispatch.shift": {
-          $eq: shift,
-        },
-      },
-    },
-    {
-      $project: {
-        "equipment.plateNumber": 1,
-      },
-    },
-    {
-      $group: {
-        _id: "$equipment.plateNumber",
-        fieldN: {
-          $count: {},
-        },
-      },
-    },
-    {
-      $project: {
-        _id: 1,
-      },
-    },
-  ];
-
-  return workData.model.aggregate(pipeline_siteWork);
-}
-
-async function stopWork(
-  id,
-  endIndex,
-  tripsDone,
-  comment,
-  moreComment,
-  postingDate,
-  stoppedBy,
-  duration
-) {
-  // let dd = postingDate?.split(".")[0];
-  // let mm = postingDate?.split(".")[1];
-  // let yyyy = postingDate?.split(".")[2];
-  // if (dd?.length < 2) dd = "0" + dd;
-  // if (mm?.length < 2) mm = "0" + mm;
-  // if (dd && mm && yyyy) postingDate = `${yyyy}-${mm}-${dd}`;
-  try {
-    let work = await workData.model
-      .findById(id)
-      .populate("project")
-      .populate("equipment")
-      .populate("driver")
-      .populate("appovedBy")
-      .populate("dispatch")
-      .populate("workDone");
-
-    duration = _.round(duration, 2);
-
-    //You can only stop jobs in progress
-
-    let equipment = await eqData.model.findById(work?.equipment?._id);
-    let workEnded = false;
-
-    duration = equipment?.uom == "hour" ? duration / 3600000 : duration;
-
-    if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
-
-    console.log(work.siteWork);
-
-    if (work.siteWork) {
-      let dailyWorks = [...work.dailyWork];
-      let indexToUpdate = -1;
-      let initDuration = 0;
-      let savedRecord;
-
-      let worksAfterEffectiveDate = dailyWorks?.filter((d) =>
-        moment(d?.date).isSameOrAfter(moment(postingDate))
-      );
-
-      worksAfterEffectiveDate.map(async (dailyWork) => {
-        let currentTotalRevenue = work.totalRevenue;
-        let currentDuration = work.duration;
-        let currentTotalExpenditure = work.totalExpenditure;
-        duration =
-          equipment?.uom == "hour"
-            ? dailyWork?.duration / 3600000
-            : dailyWork?.duration;
-        // work.status = workEnded ? "stopped" : "on going";
-        if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
-
-        let _duration = Math.abs(work.endTime - work.startTime);
-
-        let startIndex = work.startIndex ? work.startIndex : 0;
-        dailyWork.endIndex = endIndex
-          ? parseInt(endIndex)
-          : parseInt(startIndex);
-        dailyWork.startIndex = parseInt(startIndex);
-
-        let uom = equipment?.uom;
-        let rate = equipment?.rate;
-        let supplierRate = equipment?.supplierRate;
-        let revenue = 0;
-        let expenditure = 0;
-
-        // if rate is per hour and we have target trips to be done
-        if (uom === "hour") {
-          dailyWork.projectedRevenue = rate * 5;
-          if (comment === "Should never happen") {
-            dailyWork.duration = duration > 0 ? duration * 3600000 : 0;
-            revenue = (rate * dailyWork.duration) / 3600000;
-            expenditure = (supplierRate * dailyWork.duration) / 3600000;
-          } else {
-            dailyWork.duration = duration > 0 ? duration * 3600000 : 0;
-            revenue = (rate * dailyWork.duration) / 3600000;
-            expenditure = (supplierRate * dailyWork.duration) / 3600000;
-          }
-        }
-
-        //if rate is per day
-        if (uom === "day") {
-          // work.duration = duration;
-          // revenue = rate * duration;
-          if (comment === "Should neve happen") {
-            //reason that does not exist
-            dailyWork.duration = duration;
-            revenue = rate * (duration >= 1 ? 1 : 0);
-            expenditure = supplierRate * (duration >= 1 ? 1 : 0);
-          } else {
-            dailyWork.duration = duration;
-
-            let targetDuration = 5;
-            let durationRation =
-              duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
-            dailyWork.duration = duration;
-            revenue = rate * (duration >= 1 ? 1 : 0);
-            expenditure = supplierRate;
-          }
-        }
-
-        dailyWork.rate = rate;
-        dailyWork.uom = uom;
-        dailyWork.totalRevenue = revenue ? revenue : 0;
-        dailyWork.totalExpenditure = expenditure ? expenditure : 0;
-
-        dailyWork.comment = comment;
-        dailyWork.moreComment = moreComment;
-        // dailyWork.pending = false;
-
-        indexToUpdate = dailyWorks.find((d, i) => {
-          if (moment(d.date).isSameOrAfter(moment(postingDate))) {
-            return i;
-          }
-        });
-
-        console.log(indexToUpdate);
-
-        dailyWorks[indexToUpdate] = dailyWork;
-        work.startIndex =
-          endIndex || startIndex !== 0
-            ? parseInt(endIndex)
-            : parseInt(startIndex);
-        work.dailyWork = dailyWorks;
-        work.duration = dailyWork.duration + currentDuration;
-        work.totalRevenue = currentTotalRevenue + revenue;
-        work.totalExpenditure = currentTotalExpenditure + expenditure;
-        work.moreComment = moreComment;
-        work.equipment = equipment;
-
-        //log saving
-        let log = {
-          action: "DISPATCH STOPPED",
-          doneBy: stoppedBy,
-          request: {
-            endIndex,
-            tripsDone,
-            comment,
-            moreComment,
-            postingDate,
-            stoppedBy,
-            duration,
-          },
-          payload: work,
-        };
-        let logTobeSaved = new logData.model(log);
-        await logTobeSaved.save();
-      });
-
-      savedRecord = await work.save();
-
-      return savedRecord;
-      // let dailyWork = {};
-    } else {
-      let startIndex = work.startIndex ? work.startIndex : 0;
-      let equipment = await eqData.model.findById(work?.equipment?._id);
-
-      work.endTime = Date.now();
-      let _duration = Math.abs(work.endTime - work.startTime);
-
-      work.endIndex =
-        endIndex || startIndex !== 0
-          ? parseInt(endIndex)
-          : parseInt(startIndex);
-      work.startIndex = parseInt(startIndex);
-      work.tripsDone = parseInt(tripsDone);
-      let uom = equipment?.uom;
-
-      let rate = equipment?.rate;
-      let supplierRate = equipment?.supplierRate;
-      let targetTrips = parseInt(work?.dispatch?.targetTrips); //TODO
-
-      let tripsRatio = tripsDone / (targetTrips ? targetTrips : 1);
-      let revenue = 0;
-      let expenditure = 0;
-
-      // if rate is per hour and we have target trips to be done
-      if (uom === "hour") {
-        if (comment === "Should never happen") {
-          work.duration = duration > 0 ? duration * 3600000 : 0;
-          revenue = (rate * work.duration) / 3600000;
-          expenditure = (supplierRate * work.duration) / 3600000;
-        } else {
-          work.duration = duration > 0 ? duration * 3600000 : 0;
-          revenue =
-            tripsRatio > 0
-              ? (tripsRatio * (rate * work.duration)) / 3600000
-              : (rate * work.duration) / 3600000;
-          expenditure =
-            tripsRatio > 0
-              ? (tripsRatio * (supplierRate * work.duration)) / 3600000
-              : (supplierRate * work.duration) / 3600000;
-        }
-      }
-
-      //if rate is per day
-      if (uom === "day") {
-        // work.duration = duration;
-        // revenue = rate * duration;
-        if (comment == "Should never happen") {
-          work.duration = duration / HOURS_IN_A_DAY;
-          revenue = rate * (duration >= 1 ? 1 : 0);
-          expenditure = supplierRate * (duration >= 1 ? 1 : 0);
-        } else {
-          let tripRatio = tripsDone / targetTrips;
-          work.duration = tripRatio;
-          if (
-            tripsDone &&
-            targetTrips &&
-            equipment?.eqDescription === "TIPPER TRUCK"
-          ) {
-            if (tripRatio >= 1) {
-              revenue = rate * tripRatio;
-              expenditure = supplierRate;
-              // revenue = rate;
-            } else {
-              revenue = rate * tripRatio;
-              expenditure = supplierRate * tripRatio;
-            }
-          }
-          if (
-            !targetTrips ||
-            targetTrips == "0" ||
-            equipment?.eqDescription !== "TIPPER TRUCK"
-          ) {
-            {
-              let targetDuration = 5;
-              let durationRation =
-                duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
-              work.duration = duration / HOURS_IN_A_DAY;
-              revenue = rate;
-              expenditure = supplierRate;
-            }
-          }
-        }
-      }
-
-      work.rate = rate;
-      work.uom = uom;
-      work.totalRevenue = revenue ? revenue : 0;
-      work.totalExpenditure = expenditure ? expenditure : 0;
-      work.comment = comment;
-      work.moreComment = moreComment;
-      equipment._id = new ObjectId(equipment?._id);
-      work.equipment = equipment;
-
-      let savedRecord = await work.save();
-
-      // await equipment.save();
-
-      //log saving
-      let log = {
-        action: "DISPATCH STOPPED",
-        doneBy: stoppedBy,
-        request: {
-          endIndex,
-          tripsDone,
-          comment,
-          moreComment,
-          postingDate,
-          stoppedBy,
-          duration,
-        },
-        payload: work,
-      };
-      let logTobeSaved = new logData.model(log);
-      await logTobeSaved.save();
-
-      return savedRecord;
-    }
-  } catch (err) {
-    console.log(err);
-  }
-}
-
-module.exports = {
-  router,
-  updateCustomerRecord,
-  getListOfEquipmentOnDuty,
-  stopWork,
-};
+module.exports = router;

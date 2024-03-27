@@ -5,9 +5,6 @@ const ProjectSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  projectAdmin: {
-    type: mongoose.SchemaTypes.ObjectId,
-  },
   customer: {
     type: String,
   },

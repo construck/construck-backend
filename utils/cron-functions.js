@@ -22,11 +22,7 @@ async function getDispatchOfficers() {
 }
 
 async function getWorksToExpireToday() {
-  const { NODE_END } = process.env;
-  let list =
-    NODE_END === "development"
-      ? null
-      : await getDispatchOfficers();
+  let list = await getDispatchOfficers();
   let emailList = list?.map(($) => {
     return $.email;
   });
@@ -119,7 +115,7 @@ async function getWorksToExpireToday() {
     if (worksToExpireToday.length > 0)
       send(
         "appinfo@construck.rw",
-        emailList,
+        emailList, //TO CHANGE
         "Jobs to expire today.",
         "",
         mjml2html(emailBody, {
@@ -128,12 +124,10 @@ async function getWorksToExpireToday() {
       )
         .then(() => console.log("Sent"))
         .catch((err) => {
-          console.log("err", err);
-          return err;
+          (err);
         });
   } catch (err) {
-    console.log("????", err);
-    err;
+    (err);
   }
 }
 
