@@ -6,6 +6,7 @@ const userData = require("../models/users");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const { getDeviceToken } = require("../controllers.js/employees");
+const { fetchProjects } = require("./projects");
 
 router.get("/", async (req, res) => {
   try {
@@ -27,7 +28,7 @@ router.get("/:id", async (req, res) => {
 });
 
 router.get("/token/:id", async (req, res) => {
-  let {id} = req.params;
+  let { id } = req.params;
   let result = await getDeviceToken(id);
   if (result.error) {
   } else {
@@ -92,7 +93,9 @@ router.post("/", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   let { phone, password } = req.body;
-  let defaultPassword = "password";
+  let projects = await fetchProjects();
+  let defaultPassword = "12345";
+
   try {
     let employee = await employeeData.model.findOne({ phone: phone });
     let vendor = await venData.model.findOne({ phone: phone });
@@ -139,7 +142,8 @@ router.post("/login", async (req, res) => {
               firstName: employee.firstName,
               lastName: employee.lastName,
               userId: employee._id,
-              assignedProject: "na",
+              assignedProject: projects[0].prjDescription,
+              assignedProjects: projects,
             },
             message: "Allowed",
             vendor: false,
@@ -170,7 +174,8 @@ router.post("/login", async (req, res) => {
               firstName: employee.firstName,
               lastName: employee.lastName,
               userId: employee._id,
-              assignedProject: "na",
+              assignedProject: projects[0].prjDescription,
+              assignedProjects: projects,
             },
             message: "Allowed",
             vendor: false,
@@ -204,16 +209,25 @@ router.post("/login", async (req, res) => {
     if (userType === "consUser") {
       allowed = await bcrypt.compare(password, user.password);
       if (user.status !== "inactive") {
-        // employee.message = "Allowed";
+        let _projects = user.assignedProjects?.map((p) => {
+          let _p = { ...p };
+          _p.id = p?._id;
+          _p.description = p?.prjDescription;
+          return _p;
+        });
         res.status(200).send({
           employee: {
             _id: user._id,
             firstName: user.firstName,
             lastName: user.lastName,
             userId: user._id,
-            assignedProject: user.assignedProject?.prjDescription
-              ? user.assignedProject?.prjDescription
-              : "na",
+            assignedProject:
+              user.assignedProjects?.length > 0
+                ? user.assignedProjects[0]?.prjDescription
+                : projects[0]['description'],
+            assignedProjects: user.userType.includes("customer") && _projects?.length>0
+              ? _projects
+              : projects,
           },
           message: "Allowed",
           vendor: false,
@@ -335,7 +349,7 @@ router.put("/token/:id", async (req, res) => {
 });
 
 router.put("/resetPassword/:id", async (req, res) => {
-  let newPassword = "password";
+  let newPassword = "12345";
   let { id } = req.params;
 
   try {
@@ -374,6 +388,5 @@ router.put("/:id", async (req, res) => {
     res.send(err);
   }
 });
-
 
 module.exports = router;

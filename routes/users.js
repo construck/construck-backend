@@ -35,7 +35,8 @@ router.post("/", async (req, res) => {
     userType,
     company,
     status,
-    assignedProject,
+    assignedProjects,
+    permissions,
   } = req.body;
 
   try {
@@ -50,7 +51,8 @@ router.post("/", async (req, res) => {
       userType,
       company,
       status,
-      assignedProject,
+      assignedProjects,
+      permissions,
     });
 
     let userCreated = await userToCreate.save();
@@ -76,6 +78,8 @@ router.post("/login", async (req, res) => {
       .populate("company");
 
     let vendor = await venData.model.findOne({ phone: email });
+
+    console.log(vendor);
 
     if (user?.length === 0 || !user) {
       if (vendor?.length === 0 || !vendor) {
@@ -193,7 +197,8 @@ router.put("/:id", async (req, res) => {
     phone,
     userType,
     company,
-    assignedProject,
+    assignedProjects,
+    permissions,
   } = req.body;
 
   try {
@@ -204,9 +209,11 @@ router.put("/:id", async (req, res) => {
       phone,
       userType,
       company,
-      assignedProject,
+      assignedProjects,
+      permissions,
     });
 
+    
     res.status(200).send(user);
   } catch (err) {
     res.send(err);
@@ -214,7 +221,7 @@ router.put("/:id", async (req, res) => {
 });
 
 router.put("/resetPassword/:id", async (req, res) => {
-  let newPassword = "password";
+  let newPassword = "12345";
   let { id } = req.params;
 
   try {
