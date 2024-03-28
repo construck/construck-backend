@@ -3712,7 +3712,7 @@ router.put("/recall/:id", async (req, res) => {
 
     if (worksInProgress.length <= 1) {
       let equipment = await eqData.model.findById(work?.equipment?._id);
-      equipment.eqStatus = "standby";
+      equipment.eqStatus = equipment?.eqStatus !== "workshop" && "standby";
       equipment.assignedDate = null;
       equipment.assignedShift = "";
       equipment.assignedToSiteWork = false;
@@ -3720,7 +3720,7 @@ router.put("/recall/:id", async (req, res) => {
       if (equipment) await equipment.save();
     } else {
       let equipment = await eqData.model.findById(work?.equipment?._id);
-      equipment.eqStatus = "standby";
+      equipment.eqStatus = equipment?.eqStatus !== "workshop" && "standby";
       equipment.assignedDate = worksInProgress[0].equipment.assignedDate;
       equipment.assignedShift = worksInProgress[0].equipment.assignedShift;
       equipment.assignedToSiteWork =
@@ -4001,7 +4001,10 @@ router.put("/stop/:id", async (req, res) => {
       });
 
       if (work?.dailyWork?.length >= work.workDurationDays) {
-        equipment.eqStatus = eqBusyWorks.length >= 1 ? "dispatched" : "standby";
+        equipment.eqStatus =
+          equipment?.eqStatus !== "workshop" && eqBusyWorks.length >= 1
+            ? "dispatched"
+            : "standby";
         equipment.assignedToSiteWork = false;
         workEnded = true;
       }
@@ -4144,7 +4147,10 @@ router.put("/stop/:id", async (req, res) => {
         );
         let startIndex = work.startIndex ? work.startIndex : 0;
         let equipment = await eqData.model.findById(work?.equipment?._id);
-        equipment.eqStatus = eqBusyWorks.length >= 1 ? "dispatched" : "standby";
+        equipment.eqStatus =
+          eqBusyWorks.length >= 1 && equipment?.eqStatus !== "workshop"
+            ? "dispatched"
+            : "standby";
         equipment.assignedDate =
           eqBusyWorks.length >= 1 ? equipment.assignedDate : null;
         equipment.assignedShift =
