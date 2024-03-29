@@ -27,6 +27,7 @@ async function getWorksToExpireToday() {
     NODE_END === "development"
       ? null
       : await getDispatchOfficers();
+  console.log('@@emaillist', list)
   let emailList = list?.map(($) => {
     return $.email;
   });
@@ -89,7 +90,7 @@ async function getWorksToExpireToday() {
                       <mj-text  align="center"
                           color="#000000"
                           font-size="20px"
-                      >Jobs to expires TODAY.</mj-text>
+                      >Jobs to expire TODAY.</mj-text>
               </mj-column>
               </mj-section>
               
@@ -119,7 +120,7 @@ async function getWorksToExpireToday() {
     if (worksToExpireToday.length > 0)
       send(
         "appinfo@construck.rw",
-        emailList,
+        "gkagarama@construck.rw", //emailList, I added my email so that i can observe how emails are sent, i will revert to email list of dispatch officers on tuesday
         "Jobs to expire today.",
         "",
         mjml2html(emailBody, {

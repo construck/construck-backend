@@ -100,7 +100,12 @@ const maintenanceLogsSchema = new mongoose.Schema({
     }
 });
 
-const MaintenanceLogs = mongoose.model('MaintenanceLogs', maintenanceLogsSchema);
+module.exports = {
+    model: mongoose.model("maintenancelogs", maintenanceLogsSchema),
+    schema: maintenanceLogsSchema,
+  };
 
-exports.MaintenanceLogs = MaintenanceLogs;
-exports.maintenanceLogsSchema = maintenanceLogsSchema;
+// const MaintenanceLogs = mongoose.model('MaintenanceLogs', maintenanceLogsSchema);
+
+// exports.MaintenanceLogs = MaintenanceLogs;
+// exports.maintenanceLogsSchema = maintenanceLogsSchema;
