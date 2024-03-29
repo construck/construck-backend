@@ -1,5 +1,8 @@
 const router = require("express").Router();
 const workData = require("../models/workData");
+const Maintenance = require("../models/maintenance");
+const MaintenanceLogs = require("../models/maintenanceLog");
+const Equipment = require("../models/equipments");
 const _ = require("lodash");
 const moment = require("moment");
 const { default: mongoose } = require("mongoose");

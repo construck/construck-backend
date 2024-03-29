@@ -37,9 +37,9 @@ const _ = require("lodash");
 const dispatchCronjobs = require("./cronjobs/works");
 const equipmentCronjobs = require("./cronjobs/equipments");
 
-const { NODE_ENV } = process.env;
+const { NODE_ENV, CONS_MONGO_DB } = process.env;
 
-mongoDB = process.env.CONS_MONGO_DB;
+mongoDB = CONS_MONGO_DB;
 
 mongoose.connect(mongoDB, { useNewUrlParser: true });
 //Get the default connection
@@ -106,7 +106,8 @@ app.use("/download", download);
 
 app.listen(PORT, async () => {
   console.log(`Listening on Port ${PORT}`);
-  cron.schedule("* 8 * * * *", () => {
+  cron.schedule("0 9 * * *", () => {
+    // cron jobs will be running every day at 9:00AM
     fun.getWorksToExpireToday().then((res) => {});
   });
   dispatchCronjobs.dispatchCronjobs();
