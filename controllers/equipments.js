@@ -21,11 +21,18 @@ const getStatus = (status) => {
 };
 // Equipment Controller will hosted here
 async function captureEquipmentUtilization(req, res) {
-  let date = moment()
-    .startOf("day")
-    .set("hour", 0)
-    .set("minute", 0)
-    .format("YYYY-MM-DD");
+  const { NODE_ENV } = process.env;
+  let date;
+  if (NODE_ENV === "development") {
+    date = req.query.date;
+  } else {
+    date = moment()
+      .startOf("day")
+      .set("hour", 0)
+      .set("minute", 0)
+      .format("YYYY-MM-DD");
+  }
+
   try {
     // 1. CHECK IF THERE IS DATA FOR SELECTED DATE
     const snapshotExist = await EquipmentUtilization.model.find({
@@ -59,7 +66,9 @@ async function captureEquipmentUtilization(req, res) {
       const table = await helper.generateEquipmentTable(data, utilization);
 
       await mailer.equipmentReport(date, table);
-      console.log(`Cronjob: Equipment utilization captured successfully: ${date}`);
+      console.log(
+        `Cronjob: Equipment utilization captured successfully: ${date}`
+      );
     } else {
       console.log("Equipment utilization on the selected date exists already");
     }

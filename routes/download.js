@@ -69,7 +69,6 @@ router.get("/dispatches", async (req, res) => {
     responseSiteWorks.map((r) => {
       r.dailyWork &&
         r.dailyWork.map((d) => {
-          console.log("###", d);
           dailyWorkData.push({
             id: r._id,
             "Dispatch date": moment(Date.parse(d.date)).format("YYYY-MM-DD"),
@@ -173,7 +172,6 @@ router.get("/dispatches", async (req, res) => {
     });
 
     const combined = [...dailyWorkData, ...others];
-    // console.log("###", combined.length);
     return res.status(200).send(combined);
   } catch (err) {
     console.log("err: ", err);
