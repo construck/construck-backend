@@ -100,7 +100,7 @@ router.post("/login", async (req, res) => {
 
     if (userAllowed) {
       if (user.status === "active") {
-        // user.message = "Allowed";
+        delete user.password;
         res.status(200).send({ user, message: "Allowed" });
       } else {
         res.status(401).send({
@@ -213,7 +213,6 @@ router.put("/:id", async (req, res) => {
       permissions,
     });
 
-    
     res.status(200).send(user);
   } catch (err) {
     res.send(err);

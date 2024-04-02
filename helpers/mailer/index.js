@@ -34,13 +34,6 @@ async function send(from, to, subject, messageType, password, workPayload) {
       }
     }
   );
-  //   transporter.sendMail({
-  //     from: process.env.CTK_SENDER_EMAIL,
-  //     to: process.env.EMAIL_DISPATCH_REPORT_RECEIVER,
-  //     subject: "Hello Testing EMail",
-  //     text: "Hello",
-  //     html: "<div>Hello</div>",
-  //   });
   console.log("Email sending...");
 }
 send().catch(console.error);

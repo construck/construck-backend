@@ -1195,7 +1195,6 @@ router.get("/v3/driver/:driverId", async (req, res) => {
 
     res.status(200).send(orderedList.filter((d) => !isNull(d)));
   } catch (err) {
-    console.log(err);
     res.send(err);
   }
 });
@@ -1203,7 +1202,6 @@ router.get("/v3/driver/:driverId", async (req, res) => {
 router.get("/v3/toreverse/:plateNumber", async (req, res) => {
   let { plateNumber } = req.params;
   let { startDate, endDate } = req.query;
-  // console.log(isValidObjectId(driverId));
   if (plateNumber && startDate && endDate) {
     try {
       let workList = await workData.model
@@ -1264,7 +1262,6 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
                 status: d.status ? d.status : "stopped",
               };
             });
-          // console.log(datesPosted);
 
           let datesPendingPosted = dailyWorks
             .filter((d) => d.pending === true)
@@ -1318,7 +1315,6 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
               ).toFixed(2),
               // millage: w.equipment.millage ? w.equipment.millage : 0,
             });
-            console.log("@@dp", dP);
           });
 
 
@@ -1476,7 +1472,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
   let searchByProject = project && project.length >= 1;
 
   if (!searchByPlateNumber && !searchByProject) {
-    console.log('@@@11')
     query = {
       $or: [
         {
@@ -1946,7 +1941,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         });
 
         dateNotPosted.map((dNP) => {
-          console.log("@@@dPP2", dNP);
           if (
             moment(Date.parse(dNP)).isSameOrAfter(moment(startDate)) &&
             moment(Date.parse(dNP)).isSameOrBefore(
@@ -2298,7 +2292,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     res.status(200).send(orderedList.filter((w) => w !== null));
   } catch (err) {
-    console.log(err);
     res.send(err);
   }
 });
@@ -2756,7 +2749,6 @@ router.post("/getAnalytics", async (req, res) => {
   let { startDate, endDate, status, customer, project, equipment, owner } =
     req.body;
 
-  console.log(req.body);
   let total = 0;
   let totalRevenue = 0;
   let projectedRevenue = 0;

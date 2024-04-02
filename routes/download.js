@@ -62,14 +62,11 @@ router.get("/dispatches", async (req, res) => {
       // },
     };
     const responseSiteWorks = await workData.model.find(querySiteWorks);
-    // console.log('responseSiteWorks: ', responseSiteWorks.length);
     const responseOthers = await workData.model.find(queryOthers);
-    console.log("responseOthers: ", responseOthers.length);
     let dailyWorkData = [];
     responseSiteWorks.map((r) => {
       r.dailyWork &&
         r.dailyWork.map((d) => {
-          console.log("###", d);
           dailyWorkData.push({
             id: r._id,
             "Dispatch date": moment(Date.parse(d.date)).format("YYYY-MM-DD"),
@@ -173,7 +170,6 @@ router.get("/dispatches", async (req, res) => {
     });
 
     const combined = [...dailyWorkData, ...others];
-    // console.log("###", combined.length);
     return res.status(200).send(combined);
   } catch (err) {
     console.log("err: ", err);

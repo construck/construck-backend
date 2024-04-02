@@ -49,10 +49,7 @@ async function captureDispatchDailyReport(date) {
 
   let fullDate = moment(date, "YYYY-MM-DD", "UTC");
   fullDate = fullDate.format("YYYY-MM-DDTHH:mm:ss.SSS") + "Z";
-  console.log(
-    "Cron job has started",
-    date
-  );
+  console.log("Cron job has started", date);
   try {
     // 1. GET ALL PROJECTS
     let customers = await Customer.model.find();
@@ -98,8 +95,6 @@ async function captureDispatchDailyReport(date) {
       "project._id": 1,
       "dispatch.shift": 1,
     });
-
-    let allSiteWorks = [];
 
     let report = await Promise.all(
       projects.map(async (project, index) => {
@@ -240,8 +235,6 @@ async function getDispatchDailyReport(req, res) {
     "project._id": 1,
     "dispatch.shift": 1,
   });
-
-  let allSiteWorks = [];
 
   let report = await Promise.all(
     projects.map(async (project, index) => {

@@ -266,7 +266,6 @@ router.get("/approvedRevenue/:prjDescription", async (req, res) => {
 
     let worksCursor = await workData.model.aggregate(aggr);
 
-    console.log(worksCursor);
     res.send(worksCursor);
   } catch (err) {
     res.send(err);

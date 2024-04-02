@@ -576,7 +576,6 @@ router.put("/:id", async (req, res) => {
       ],
     });
 
-    console.log("Update:", toUpdate.length, effectiveDate);
 
     toUpdate?.forEach(async (work) => {
       await stopWork(
