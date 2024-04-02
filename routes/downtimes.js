@@ -87,7 +87,6 @@ router.post("/getAnalytics", async (req, res) => {
   let avgFromWorkshop = 0;
   let avgInWorkshop = 0;
 
-  //   console.log(startDate);
   try {
     let downtimes = await downTimeData.model.find({
       $or: [

@@ -96,8 +96,6 @@ async function captureDispatchDailyReport(date) {
       "dispatch.shift": 1,
     });
 
-    let allSiteWorks = [];
-
     let report = await Promise.all(
       projects.map(async (project, index) => {
         const projectId = new mongoose.Types.ObjectId(project._id);
@@ -237,8 +235,6 @@ async function getDispatchDailyReport(req, res) {
     "project._id": 1,
     "dispatch.shift": 1,
   });
-  console.log("@@@@", works);
-  let allSiteWorks = [];
 
   let report = await Promise.all(
     projects.map(async (project, index) => {

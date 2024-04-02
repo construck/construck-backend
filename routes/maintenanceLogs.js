@@ -1,17 +1,17 @@
-const { MaintenanceLogs } = require('../models/maintenanceLog');
+const MaintenanceLogs  = require('../models/maintenanceLog');
 const moment = require('moment');
 const express = require('express');
 const router = express.Router();
 
 router.get('/maintenance/repair', async(req, res) => {
-    const jobCards = await MaintenanceLogs.find();
+    const jobCards = await MaintenanceLogs.model.find();
     if(!jobCards) return res.status(404).json({message: 'No JobCards Available'});
 
     res.status(200).send(jobCards);
 })
 
 router.get('/maintenance/logs', async(req, res) => {
-    const jobCards = await MaintenanceLogs.find().sort({jobCard_Id: -1});
+    const jobCards = await MaintenanceLogs.model.find().sort({jobCard_Id: -1});
     if(!jobCards) return res.status(404).json({message: 'No JobCards Available'});
 
     res.status(200).send(jobCards);
@@ -27,7 +27,7 @@ router.post('/maintenance/logs', async (req, res) => {
         status
     } = req.body.payload;
 
-    const jobCards = await MaintenanceLogs.find();
+    const jobCards = await MaintenanceLogs.model.find();
     
     // Checking if it's still in the repair mode
     const stillInRepair = jobCards.find((item) => {
@@ -101,7 +101,7 @@ router.put('/maintenance/logs/:id', async (req, res) => {
         receivedParts
     } = req.body.payload;
 
-    const jobCard = await MaintenanceLogs.findOneAndUpdate({jobCard_Id: req.params.id}, {
+    const jobCard = await MaintenanceLogs.model.findOneAndUpdate({jobCard_Id: req.params.id}, {
         jobCard_Id: jobCard_id,
         entryDate,
         driver,

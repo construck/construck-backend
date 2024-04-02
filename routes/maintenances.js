@@ -1,10 +1,10 @@
-const { Maintenance } = require("../models/maintenance");
+const Maintenance  = require("../models/maintenance");
 const moment = require("moment");
 const express = require("express");
 const router = express.Router();
 
 router.get("/maintenance/repair", async (req, res) => {
-  const jobCards = await Maintenance.find();
+  const jobCards = await Maintenance.model.find();
 
   if (!jobCards)
     return res.status(404).json({ message: "No JobCards Available" });
@@ -154,26 +154,26 @@ router.get("/maintenance", async (req, res) => {
     }),
   };
 
-  const dataCount = await Maintenance.find(query).count({});
-  const openDataCount = await Maintenance.find(openDataQuery).count({});
-  const requisitionDataCount = await Maintenance.find(
+  const dataCount = await Maintenance.model.find(query).count({});
+  const openDataCount = await Maintenance.model.find(openDataQuery).count({});
+  const requisitionDataCount = await Maintenance.model.find(
     requisitionDataQuery
   ).count({});
-  const entryDataCount = await Maintenance.find(entryDataQuery).count({});
-  const diagnosisDataCount = await Maintenance.find(diagnosisDataQuery).count(
+  const entryDataCount = await Maintenance.model.find(entryDataQuery).count({});
+  const diagnosisDataCount = await Maintenance.model.find(diagnosisDataQuery).count(
     {}
   );
-  const repairDataCount = await Maintenance.find(repairDataQuery).count({});
-  const testingDataCount = await Maintenance.find(testingDataQuery).count({});
-  const closedDataCount = await Maintenance.find(closedDataQuery).count({});
+  const repairDataCount = await Maintenance.model.find(repairDataQuery).count({});
+  const testingDataCount = await Maintenance.model.find(testingDataQuery).count({});
+  const closedDataCount = await Maintenance.model.find(closedDataQuery).count({});
 
   const jobCards =
     status !== "all" && download !== "1"
-      ? await Maintenance.find(query)
+      ? await Maintenance.model.find(query)
           .sort({ jobCard_Id: -1 })
           .limit(limit)
           .skip(parseInt(page - 1) * limit)
-      : await Maintenance.find(query).sort({ jobCard_Id: -1 });
+      : await Maintenance.model.find(query).sort({ jobCard_Id: -1 });
   if (!jobCards)
     return res.status(404).json({ message: "No JobCards Available" });
 
@@ -194,7 +194,7 @@ router.post("/maintenance", async (req, res) => {
   const { entryDate, driver, carPlate, mileages, location, status } =
     req.body.payload;
 
-  const jobCards = await Maintenance.find();
+  const jobCards = await Maintenance.model.find();
 
   // Checking if it's still in the repair mode
   const stillInRepair = jobCards.find((item) => {
@@ -277,7 +277,7 @@ router.put("/maintenance/:id", async (req, res) => {
     receivedParts,
   } = req.body.payload;
 
-  const jobCard = await Maintenance.findByIdAndUpdate(
+  const jobCard = await Maintenance.model.findByIdAndUpdate(
     req.params.id,
     {
       jobCard_Id: jobCard_id,

@@ -62,9 +62,7 @@ router.get("/dispatches", async (req, res) => {
       // },
     };
     const responseSiteWorks = await workData.model.find(querySiteWorks);
-    // console.log('responseSiteWorks: ', responseSiteWorks.length);
     const responseOthers = await workData.model.find(queryOthers);
-    console.log("responseOthers: ", responseOthers.length);
     let dailyWorkData = [];
     responseSiteWorks.map((r) => {
       r.dailyWork &&
