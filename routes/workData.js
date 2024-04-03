@@ -23,7 +23,6 @@ const HOURS_IN_A_DAY = 8;
 const ObjectId = require("mongoose").Types.ObjectId;
 const works = require("../controllers/works");
 
-
 const DURATION_LIMIT = 16;
 
 function isValidObjectId(id) {
@@ -1317,7 +1316,6 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
             });
           });
 
-
           // dateNotPosted.map((dNP) => {
           //   siteWorkList.push({
           //     workDone: w.workDone
@@ -2556,10 +2554,33 @@ router.get(
 
 router.post("/", async (req, res) => {
   try {
+    // if dispatch exits: same plate number, same shift, same date
+    const isExist = await workData.model.find({
+      "equipment.plateNumber": req?.body?.equipment?.plateNumber,
+      "dispatch.shift": req.body?.dispatch?.shift,
+      status: { $nin: ["recalled", "stopped"] },
+      workStartDate: {
+        $gte: moment(req.body.workStartDate).startOf("day").toDate(),
+        $lt: moment(req.body.workStartDate).endOf("day").toDate(),
+      },
+    });
+    if (isExist.length > 0) {
+      return res.status(400).json({
+        message:
+          "We can not create a dispatch when there is one or more dispatches with same equipment, same shift and same date. ",
+      });
+    }
+    // start creating a dispatch
     let workToCreate = new workData.model(req.body);
 
     let equipment = await eqData.model.findById(workToCreate?.equipment?._id);
-    equipment.eqStatus = "dispatched";
+
+    let eqStatus = "standby";
+    moment(req.body.workStartDate).isSame(moment(), "day")
+      ? (eqStatus = "dispatched")
+      : null;
+
+    equipment.eqStatus = eqStatus;
     equipment.assignedToSiteWork = req.body?.siteWork;
     equipment.assignedDate = moment(req.body?.workStartDate).format(
       "YYYY-MM-DD"
@@ -3208,8 +3229,6 @@ router.put("/:id", async (req, res) => {
   let equipmentOwner = req.body?.equipment?.eqOwner;
   let driver = req.body?.driver;
 
-  console.log(req.body);
-
   let updateObj = {};
   if (equipmentOwner.toLowerCase() === "construck") {
     updateObj = req.body;
@@ -3219,12 +3238,49 @@ router.put("/:id", async (req, res) => {
   }
   delete updateObj.driver;
   try {
+    // console.log('equip',new mongoose.Types.ObjectId(req?.body?.equipment?._id))
+    // return;
     let currentWork = await workData.model.updateOne(
       { _id: new mongoose.Types.ObjectId(id) },
       updateObj
     );
-    // currentWork.driver = new mongoose.Types.ObjectId(currentWork.driver)
+    // IF DISPATCH IS SCHEDULE THE CURRENT DATE, CHANGE EQUIP STATUS TO DISPATCHED
+    let todayDate = moment()
+      .startOf("day")
+      .set("hour", 0)
+      .set("minute", 0)
+      .format("YYYY-MM-DD");
 
+    const isBetween = moment(todayDate).isBetween(
+      moment(req.body.workStartDate),
+      moment(req.body.workEndDate),
+      "day",
+      "[]"
+    );
+    // const dispatches = await workData.model.find({
+
+    //   workStartDate: {
+    //     $gte: moment(req.body.workStartDate).startOf("day").toDate(),
+    //   },
+    //   workEndDate: {
+    //     $lte: moment(req.body.workEndDate).endOf("day").toDate(),
+    //   },
+    //   status: { $in: ["created", "on going", "in progress"] },
+    // });
+
+    if (isBetween) {
+      console.log("updating... equip:");
+      await eqData.model.findOneAndUpdate(
+        { _id: new mongoose.Types.ObjectId(req?.body?.equipment?._id) },
+        {
+          eqStatus: "dispatched",
+        }
+      );
+    }
+    // currentWork.driver = new mongoose.Types.ObjectId(currentWork.driver)
+    {
+      returnNewDocument: true;
+    }
     // await workData.model.updateMany(
     //   {
     //     "project._id": projectId,
@@ -3241,7 +3297,7 @@ router.put("/:id", async (req, res) => {
     //   employee.assignedShift = req.body?.dispatch?.shift;
 
     await employeeData.model.findOneAndUpdate(
-      { _id: updatedWork?.driver },
+      { _id: currentWork?.driver },
       {
         status: "active",
         assignedToSiteWork: null,
@@ -4488,9 +4544,9 @@ router.put("/amend/:id", async (req, res) => {
     // if rate is per hour and we have target trips to be done
     if (uom === "hour") {
       // if (comment !== "Ibibazo bya panne") {
-        work.duration = duration > 0 ? duration * 3600000 : 0;
-        revenue = (rate * work.duration) / 3600000;
-        expenditure = (supplierRate * work.duration) / 3600000;
+      work.duration = duration > 0 ? duration * 3600000 : 0;
+      revenue = (rate * work.duration) / 3600000;
+      expenditure = (supplierRate * work.duration) / 3600000;
       // } else {
       //   work.duration = duration > 0 ? duration * 3600000 : 0;
       //   revenue = (tripsRatio * (rate * work.duration)) / 3600000;
