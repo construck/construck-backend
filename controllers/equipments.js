@@ -1,6 +1,7 @@
 const _ = require("lodash");
 const moment = require("moment");
 const EquipmentType = require("./../models/equipmentTypes");
+const Work = require("../models/workData");
 const Equipment = require("../models/equipments");
 const EquipmentUtilization = require("../models/equipmentUtilization");
 const mongoose = require("mongoose");
@@ -145,7 +146,43 @@ async function downloadEquipmentUtilizationByDates(req, res) {
   }
 }
 
+// CHANGE EQUIPMENT STATUS IF THERE IS DISPATCH SCHEDULED ON TODAY
+async function changeEquipmentStatus(req, res) {
+  let date = moment()
+    .startOf("day")
+    .set("hour", 0)
+    .set("minute", 0)
+    .format("YYYY-MM-DD");
+
+  console.log("Cron job has started: updating equipment status for:", date);
+  // CHECK IF THERE ARE DISPATCHES SCHEDULED FOR TODAY
+  const dispatches = await Work.model.find({
+    workStartDate: {
+      $gte: moment(date).startOf("day").toDate(),
+      $lt: moment(date).endOf("day").toDate(),
+    },
+    status: { $in: ["created", "on going", "in progress"] },
+  });
+  if (dispatches.length > 0) {
+    dispatches.map(async (work) => {
+      // find its equip, if standby, make it dispatched
+      const equip = await Equipment.model.findOneAndUpdate(
+        {
+          _id: work?.equipment?._id,
+        },
+        {
+          $set: {
+            eqStatus: "dispatched",
+          },
+        }
+      );
+      // }
+    });
+  }
+  return;
+}
 module.exports = {
+  changeEquipmentStatus,
   captureEquipmentUtilization,
   getEquipmentUtilizationByDate,
   downloadEquipmentUtilizationByDates,

@@ -112,4 +112,5 @@ app.listen(PORT, async () => {
   });
   dispatchCronjobs.dispatchCronjobs();
   equipmentCronjobs.equipmentCronjobs();
+  equipmentCronjobs.equipmentStatus();
 });
