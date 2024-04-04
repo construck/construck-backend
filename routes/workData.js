@@ -22,6 +22,7 @@ const MS_IN_A_DAY = 86400000;
 const HOURS_IN_A_DAY = 8;
 const ObjectId = require("mongoose").Types.ObjectId;
 const works = require("../controllers/works");
+const helper = require("./../helpers/checkExistDispatch");
 
 const DURATION_LIMIT = 16;
 
@@ -2553,33 +2554,39 @@ router.get(
 );
 
 router.post("/", async (req, res) => {
-  try {
-    // if dispatch exits: same plate number, same shift, same date
-    const isExist = await workData.model.find({
-      "equipment.plateNumber": req?.body?.equipment?.plateNumber,
-      "dispatch.shift": req.body?.dispatch?.shift,
-      status: { $nin: ["recalled", "stopped"] },
-      workStartDate: {
-        $gte: moment(req.body.workStartDate).startOf("day").toDate(),
-        $lt: moment(req.body.workStartDate).endOf("day").toDate(),
-      },
+  const isExist = await helper.checkExistDispatch(req.body);
+  if (isExist.length > 0) {
+    let message = [];
+    isExist.map((e) => {
+      if (e.siteWork) {
+        message.push(
+          `Site work from ${moment(e.workStartDate).format(
+            "MMM DD, YYYY"
+          )} to ${moment(e.workEndDate).format("MMM DD, YYYY")}`
+        );
+      } else {
+        message.push(
+          `Single dispatch on ${moment(e.workStartDate).format("MMM DD, YYYY")}`
+        );
+      }
     });
-    if (isExist.length > 0) {
-      return res.status(400).json({
-        message:
-          "We can not create a dispatch when there is one or more dispatches with same equipment, same shift and same date. ",
-      });
-    }
+    return res.status(409).send({
+      error: `We can not create a dispatch when there is one or more dispatches with same equipment, shift and date: Please check the following dates: ${message.toString()}`,
+    });
+  }
+  try {
     // start creating a dispatch
     let workToCreate = new workData.model(req.body);
-
-    let equipment = await eqData.model.findById(workToCreate?.equipment?._id);
-
-    let eqStatus = "standby";
-    moment(req.body.workStartDate).isSame(moment(), "day")
-      ? (eqStatus = "dispatched")
-      : null;
-
+    // IF EQUIPMENT IS STANDBY OR DISPATCHED, PROCEED
+    let equipment = await eqData.model.findOne({
+      _id: workToCreate?.equipment?._id,
+      eqStatus: { $in: ["standby", "dispatched"] },
+    });
+    if (!equipment) {
+      return res.status(404).send({
+        error: `Equipment is not available to be dispatched, contact adminstrator`,
+      });
+    }
     equipment.eqStatus = eqStatus;
     equipment.assignedToSiteWork = req.body?.siteWork;
     equipment.assignedDate = moment(req.body?.workStartDate).format(
@@ -2779,39 +2786,24 @@ router.post("/getAnalytics", async (req, res) => {
     0
   );
   try {
-    let workList = await workData.model
-      .find({
-        // status:
-        //   status === "final"
-        //     ? { $in: ["approved", "stopped"] }
-        //     : {
-        //         $in: [
-        //           "created",
-        //           "in progress",
-        //           "rejected",
-        //           "stopped",
-        //           "on going",
-        //         ],
-        //       },
-      })
-      .or([
-        {
-          siteWork: true,
-          workEndDate: {
-            $gte: moment(startDate),
-          },
+    let workList = await workData.model.find({}).or([
+      {
+        siteWork: true,
+        workEndDate: {
+          $gte: moment(startDate),
         },
-        {
-          siteWork: false,
-          workStartDate: {
-            $gte: moment(startDate),
-            $lte: moment(endDate)
-              .add(23, "hours")
-              .add(59, "minutes")
-              .add(59, "seconds"),
-          },
+      },
+      {
+        siteWork: false,
+        workStartDate: {
+          $gte: moment(startDate),
+          $lte: moment(endDate)
+            .add(23, "hours")
+            .add(59, "minutes")
+            .add(59, "seconds"),
         },
-      ]);
+      },
+    ]);
 
     if (workList && workList.length > 0) {
       total = 0;
@@ -3182,24 +3174,6 @@ router.post("/getAnalytics", async (req, res) => {
       totalDays = totalDays + w.duration;
     });
 
-    // let dispatches = await workData.model.find({
-    //   createdOn: { $gte: startDate, $lte: endDate },
-    // });
-
-    // let listDispaches = [];
-    // if (customer) {
-    //   listDispaches = dispatches.filter((w) => {
-    //     let nameLowerCase = w?.project?.customer?.toLowerCase();
-    //     return nameLowerCase.includes(customer?.toLowerCase());
-    //   });
-    // } else {
-    //   listDispaches = dispatches;
-    // }
-    console.log({
-      totalRevenue: totalRevenue ? _.round(totalRevenue, 0).toFixed(2) : "0.00",
-      projectedRevenue: projectedRevenue ? projectedRevenue.toFixed(2) : "0.00",
-      totalDays: totalDays ? _.round(totalDays, 1).toFixed(1) : "0.0",
-    });
     res.status(200).send({
       totalRevenue: totalRevenue ? _.round(totalRevenue, 0).toFixed(2) : "0.00",
       projectedRevenue: projectedRevenue ? projectedRevenue.toFixed(2) : "0.00",

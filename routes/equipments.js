@@ -44,6 +44,44 @@ router.get("/", async (req, res) => {
     });
   } catch (err) {}
 });
+router.get("/enter-workshop", async (req, res) => {
+  console.log('@@enter-workshop')
+  try {
+    const equipments = await eqData.model
+      .find({
+        eqStatus: {
+          $nin: ["workshop", "disposed"]
+        }
+      })
+      .populate("vendor")
+      .populate("equipmentType");
+    res.status(200).send({
+      equipments,
+      nrecords: equipments.length,
+      available: equipments.filter((w) => {
+        return (
+          (w.eqStatus === "standby" || w.eqStatus === "dispatched") &&
+          w.eqOwner === "Construck"
+        );
+      }).length,
+      workshop: equipments.filter((w) => {
+        return w.eqStatus === "workshop" && w.eqOwner === "Construck";
+      }).length,
+      dispatched: equipments.filter((w) => {
+        return w.eqStatus === "dispatched" && w.eqOwner === "Construck";
+      }).length,
+      standby: equipments.filter((w) => {
+        return w.eqStatus === "standby" && w.eqOwner === "Construck";
+      }).length,
+      disposed: equipments.filter((w) => {
+        return w.eqStatus === "disposed" && w.eqOwner === "Construck";
+      }).length,
+      ct: equipments.filter((w) => {
+        return w.eqStatus === "ct" && w.eqOwner === "Construck";
+      }).length,
+    });
+  } catch (err) {}
+});
 
 router.get("/types", async (req, res) => {
   try {
@@ -162,10 +200,12 @@ router.get("/:date/:shift", async (req, res) => {
     let listEquipOnDuty = equipmentOnDuty?.map((e) => {
       return e._id;
     });
-
+    console.log("@@@init...");
     let availableEquipment = await eqData.model.find({
       plateNumber: { $nin: listEquipOnDuty },
+      eqStatus: {$nin: ["workshop", "disposed"]}
     });
+    console.log("@@@init...",availableEquipment);
 
     res.status(200).send(availableEquipment);
   } catch (err) {
@@ -575,7 +615,6 @@ router.put("/:id", async (req, res) => {
         { "dailyWork.date": { $gte: moment(effectiveDate) } },
       ],
     });
-
 
     toUpdate?.forEach(async (work) => {
       await stopWork(
