@@ -54,9 +54,9 @@ async function equipmentReport(date, utilization) {
   <table width="600" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="border-collapse: collapse">
     <tr style="padding: 20px 20px 0 0px">
       <div style="text-align:left">
-        Hello,<br />
+      Greetings,<br />
         <p>
-          Daily equipment utilization report as of date: <b><u>${date}</u></b>,
+          Please see below the equipment availability report for <b><u>${moment(date).format("MMM DD, YYYY")}</u></b>
         <br />
         </p>
       </div>
@@ -80,8 +80,8 @@ async function equipmentReport(date, utilization) {
   send(
     "appinfo@construck.rw",
     to,
-    `Equipment utilization report - ${moment(date).format("MM DD, YYYY")}`,
-    "Daily equipment utilization",
+    `Equipment availability report - ${moment(date).format("MM DD, YYYY")}`,
+    "Daily availability utilization",
     await template.layout(htmlTable)
   )
     .then(() => console.log("Sent"))
