@@ -146,8 +146,6 @@ async function updateJobCard(req, res) {
 
   if (!jobCard)
     return res.status(404).send("The Job Card with the given ID was not found");
-  // console.log('@@jobCard', jobCard)
-  //     return;
   // update equipment status
   if (supervisorApproval) {
     await Equipment.model.updateOne(

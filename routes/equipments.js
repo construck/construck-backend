@@ -45,7 +45,6 @@ router.get("/", async (req, res) => {
   } catch (err) {}
 });
 router.get("/enter-workshop", async (req, res) => {
-  console.log('@@enter-workshop')
   try {
     const equipments = await eqData.model
       .find({
@@ -200,12 +199,10 @@ router.get("/:date/:shift", async (req, res) => {
     let listEquipOnDuty = equipmentOnDuty?.map((e) => {
       return e._id;
     });
-    console.log("@@@init...");
     let availableEquipment = await eqData.model.find({
       plateNumber: { $nin: listEquipOnDuty },
       eqStatus: {$nin: ["workshop", "disposed"]}
     });
-    console.log("@@@init...",availableEquipment);
 
     res.status(200).send(availableEquipment);
   } catch (err) {

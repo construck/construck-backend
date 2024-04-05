@@ -2574,6 +2574,7 @@ router.post("/", async (req, res) => {
       error: `We can not create a dispatch when there is one or more dispatches with same equipment, shift and date: Please check the following dates: ${message.toString()}`,
     });
   }
+  // return;
   try {
     // start creating a dispatch
     let workToCreate = new workData.model(req.body);
@@ -2582,12 +2583,14 @@ router.post("/", async (req, res) => {
       _id: workToCreate?.equipment?._id,
       eqStatus: { $in: ["standby", "dispatched"] },
     });
-    if (!equipment) {
+    if (_.isEmpty(equipment)) {
       return res.status(404).send({
-        error: `Equipment is not available to be dispatched, contact adminstrator`,
+        error: `Equipment is not available to be dispatched, contact administrator`,
       });
     }
-    equipment.eqStatus = eqStatus;
+    if (moment(req.body.workStartDate).isSame(moment(), "day")) {
+      equipment.eqStatus = "dispatched";
+    }
     equipment.assignedToSiteWork = req.body?.siteWork;
     equipment.assignedDate = moment(req.body?.workStartDate).format(
       "YYYY-MM-DD"
@@ -2598,6 +2601,10 @@ router.post("/", async (req, res) => {
     equipment.assignedShift = req.body?.dispatch?.shift;
     let driver = req.body?.driver === "NA" ? null : req.body?.driver;
 
+    // console.log('@@equipment', equipment)
+    // console.log('@@workToCreate', workToCreate)
+    // console.log('@@employeeData', employeeData)
+    // return;
     let employee = await employeeData.model.findById(driver);
     if (employee) {
       employee.status = "dispatched";
@@ -2679,6 +2686,7 @@ router.post("/", async (req, res) => {
 
     res.status(201).send(workCreated);
   } catch (err) {
+    console.log("err", err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
