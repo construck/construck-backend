@@ -11,7 +11,7 @@ export default async function sendEmail(
 ) {
   let link = process.env.CTK_APP_URL
     ? process.env.CTK_APP_URL
-    : "https://playground-construck.vercel.app/";
+    : "https://shabika.construck.rw/";
   if (messageType === "accountCreated") {
     templates.accountCreated = `<mjml>
                     <mj-body>

@@ -24,22 +24,22 @@ async function equipmentReport(date, utilization) {
       <tr style="text-align: left;border-bottom:1px solid #CDCDCD;padding:5px;" bgcolor="${
         currentIndex < 5 ? "#FFF4EB" : ""
       }">
-        <td style="border: 1px solid #BABABA;padding: 10px;text-align:left"> ${
+        <td style="border: 1px solid #BABABA;padding: 6px 10px;text-align:left"> ${
           currentIndex + 1
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:left"> ${
+        <td style="	border: 1px solid #BABABA;padding: 6px 10px;text-align:left"> ${
           item.type
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">${
+        <td style="	border: 1px solid #BABABA;padding: 6px 10px;text-align:right">${
           item.available + item.workshop
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">${
+        <td style="	border: 1px solid #BABABA;padding: 6px 10px;text-align:right">${
           item.available !== 0 ? item.available : "-"
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">
+        <td style="	border: 1px solid #BABABA;padding: 6px 10px;text-align:right">
         ${getPercentAvailable(item)}
         </td>
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">${
+        <td style="	border: 1px solid #BABABA;padding: 6px 10px;text-align:right">${
           item.workshop !== 0 ? item.workshop : "-"
         }</td>
         <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">
@@ -56,7 +56,7 @@ async function equipmentReport(date, utilization) {
       <div style="text-align:left">
       Greetings,<br />
         <p>
-          Please see below the equipment availability report for <b><u>${moment(date).format("MMM DD, YYYY")}</u></b>
+          Please see below the equipment availability report for <b><u>${moment(date).format("MMMM DD, YYYY")}</u></b>
         <br />
         </p>
       </div>
@@ -80,7 +80,7 @@ async function equipmentReport(date, utilization) {
   send(
     "appinfo@construck.rw",
     to,
-    `Equipment availability report - ${moment(date).format("MM DD, YYYY")}`,
+    `Equipment availability report - ${moment(date).format("MMMM DD, YYYY")}`,
     "Daily availability utilization",
     await template.layout(htmlTable)
   )

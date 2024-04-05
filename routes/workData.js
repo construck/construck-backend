@@ -4336,7 +4336,6 @@ router.put("/stop/:id", async (req, res) => {
         res.status(201).send(savedRecord);
       }
     } else {
-      return;
       res.status(200).send(work);
     }
   } catch (err) {
@@ -4893,6 +4892,9 @@ router.post("/reports/generate", (req, res) => {
 });
 router.get("/reports/:date", (req, res) => {
   works.getDispatchDailyReport(req, res);
+});
+router.post("/force-stop-dispatches", (req, res) => {
+  works.forceStopDispatches(req, res);
 });
 
 async function getEmployees(listIds) {

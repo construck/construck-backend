@@ -27,17 +27,19 @@ async function captureEquipmentUtilization(req, res) {
     date = req?.query?.date;
   } else {
     date = moment()
-    .startOf("day")
-    .set("hour", 0)
-    .set("minute", 0)
-    .format("YYYY-MM-DD");
+      .startOf("day")
+      .set("hour", 0)
+      .set("minute", 0)
+      .format("YYYY-MM-DD");
   }
 
   try {
+    console.log("date", date);
     // 1. CHECK IF THERE IS DATA FOR SELECTED DATE
     const snapshotExist = await EquipmentUtilization.model.find({
       date,
     });
+    console.log("snapshotExist", snapshotExist);
     let types = [];
     let equipments = [];
     if (snapshotExist?.length === 0) {
@@ -74,7 +76,7 @@ async function captureEquipmentUtilization(req, res) {
     }
   } catch (err) {
     console.log("Cronjob: Cannot capture equipment report:", err);
-  } 
+  }
 }
 
 // GET EQUIPMENT UTILIZATION BY A SPECIFIC DATE
@@ -103,11 +105,15 @@ async function getEquipmentUtilizationByDate(req, res) {
     });
 
     const data = await EquipmentType.model.find();
-    const table = await helper.generateEquipmentTable(data, utilization, eqtypes);
+    const table = await helper.generateEquipmentTable(
+      data,
+      utilization,
+      eqtypes
+    );
 
     return res.status(200).send({ count: table.length, response: table });
   }
- 
+
   // types = JSON.parse(`${types}`);
   date = moment(date, "YYYY-MM-DD", "UTC");
   date = date.format("YYYY-MM-DDTHH:mm:ss.SSS") + "Z";

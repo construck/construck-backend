@@ -2,7 +2,6 @@ const dotenv = require("dotenv").config();
 const nodemailer = require("nodemailer");
 
 const { CTK_SENDER_EMAIL, CTK_SENDER_PASSWORD } = process.env;
-console.log("Cred", CTK_SENDER_EMAIL, CTK_SENDER_PASSWORD);
 
 // create transporter object with smtp server details
 const transporter = nodemailer.createTransport({

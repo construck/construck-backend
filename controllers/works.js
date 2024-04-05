@@ -174,7 +174,7 @@ async function captureDispatchDailyReport(date) {
         );
       });
       // SAVE DISPATCH REPORT ONE BY ONE
-      // await DispatchReport.model.insertMany(report);
+      await DispatchReport.model.insertMany(report);
       // SEND EMAIL
       await mailer.dispatchReport(date, report);
       // return;
@@ -318,7 +318,50 @@ async function getDispatchDailyReport(req, res) {
     return res.status(200).send({ count: report.length, report });
   }
 }
+
+// FORCE STOP DISPATCHES, SHOULD BE DELETED AFTER ITS USE
+async function forceStopDispatches(req, res) {
+  return;
+  const ids = [
+    // new mongoose.Types.ObjectId("660d5c95f4269bdbd030addb"),
+  ];
+  let date = moment().format("YYYY-MM-DD");
+
+  console.log("START CLEANING DISPATCHES:", date);
+  // CHECK IF THERE ARE DISPATCHES SCHEDULED FOR TODAY
+  const dispatches = await Work.model.find({
+    _id: { $in: ids },
+  });
+  dispatches.map(async (dispatch) => {
+    let workDurationDays = dispatch.workDurationDays;
+    workDurationDays =
+      moment(date).diff(moment(dispatch.workStartDate), "days") + 1;
+    console.log(
+      "id",
+      workDurationDays,
+      dispatch.workStartDate,
+      dispatch.workEndDate,
+      moment().format("YYYY-MM-DD")
+    );
+    await Work.model.updateOne(
+      {
+        _id: dispatch._id,
+      },
+      {
+        $set: {
+          workEndDate: moment().format("YYYY-MM-DD"),
+          workDurationDays: workDurationDays,
+        },
+      }
+    );
+  });
+  res.status(200).send({
+    count: dispatches.length,
+    dispatches,
+  });
+}
 module.exports = {
   captureDispatchDailyReport,
   getDispatchDailyReport,
+  forceStopDispatches,
 };

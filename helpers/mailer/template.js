@@ -7,15 +7,6 @@ async function layout(content) {
       letter-spacing: -1%;
       color: #1e2120;
       ">
-        <div style="width:100%;margin:10px 0">
-          <img src="https://playground-construck.vercel.app/_next/static/media/logo.9638e378.svg"
-              alt="Construck"
-              style="height: auto;
-              display: block;
-              margin: 0 auto;
-              width: 160px;
-          "/>
-        </div>
         <div>
           ${content}
         </div>
@@ -23,7 +14,7 @@ async function layout(content) {
         <tr>
           <td style="padding: 20px 0">
               <div style="padding: 0; margin-top: 10px; text-align:center;font-size: 12px">
-                  &copy; 2024 <b>Construck</b> <br />
+                  &copy; 2024 <b style="color=#FBD487">ConsTruck</b> <br />
               </div>
           </td>
         </tr>
