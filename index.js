@@ -1,12 +1,12 @@
 const express = require("express");
-var cors = require("cors");
+const cors = require("cors");
+const morgan = require('morgan')
 const app = express();
 const bodyParser = require("body-parser");
 const cron = require("node-cron");
-
 const PORT = process.env.PORT ? process.env.PORT : 9000;
 
-var mongoose = require("mongoose");
+const mongoose = require("mongoose");
 const equipments = require("./routes/equipments");
 const downtimes = require("./routes/downtimes");
 const users = require("./routes/users");
@@ -50,6 +50,7 @@ db.on("error", console.error.bind(console, "MongoDB connection error:"));
 
 db.once("open", () => console.log("connected to db"));
 
+app.use(morgan('tiny'))
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));

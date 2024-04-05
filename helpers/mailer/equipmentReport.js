@@ -1,7 +1,6 @@
 const _ = require("lodash");
 const moment = require("moment");
 const send = require("./../../utils/sendEmailNode");
-// const mjml2html = require("mjml");
 const template = require("./template");
 
 const getPercentWorkshop = (row) => {
@@ -25,6 +24,9 @@ async function equipmentReport(date, utilization) {
       <tr style="text-align: left;border-bottom:1px solid #CDCDCD;padding:5px;" bgcolor="${
         currentIndex < 5 ? "#FFF4EB" : ""
       }">
+        <td style="border: 1px solid #BABABA;padding: 10px;text-align:left"> ${
+          currentIndex + 1
+        }</td>
         <td style="	border: 1px solid #BABABA;padding: 10px;text-align:left"> ${
           item.type
         }</td>
@@ -61,6 +63,7 @@ async function equipmentReport(date, utilization) {
       <div style="margin-bottom: 32px">
         <table border="0" cellspacing="0" cellpadding="0" style="width:100%;border-collapse: collapse">
           <tr style="padding:5px;text-align: left;border-bottom:1px solid #CDCDCD">
+            <td style="background-color: #FBD487;color:#504438;width:12px;padding: 10px;font-size:12px;text-align:left;font-weight:normal">#</td>
             <td style="background-color: #FBD487;color:#504438;width:160px;padding: 10px;font-size:12px;text-align:left;font-weight:normal">Equipment type</td>
             <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">Total</td>
             <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">Available</td>

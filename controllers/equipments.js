@@ -22,16 +22,15 @@ const getStatus = (status) => {
 };
 // Equipment Controller will hosted here
 async function captureEquipmentUtilization(req, res) {
-  const { NODE_ENV } = process.env;
   let date;
-  if (NODE_ENV === "development") {
-    date = req.query.date;
+  if (req?.query?.date) {
+    date = req?.query?.date;
   } else {
     date = moment()
-      .startOf("day")
-      .set("hour", 0)
-      .set("minute", 0)
-      .format("YYYY-MM-DD");
+    .startOf("day")
+    .set("hour", 0)
+    .set("minute", 0)
+    .format("YYYY-MM-DD");
   }
 
   try {
@@ -75,7 +74,7 @@ async function captureEquipmentUtilization(req, res) {
     }
   } catch (err) {
     console.log("Cronjob: Cannot capture equipment report:", err);
-  }
+  } 
 }
 
 // GET EQUIPMENT UTILIZATION BY A SPECIFIC DATE
@@ -83,6 +82,32 @@ async function getEquipmentUtilizationByDate(req, res) {
   let { date } = req.params;
   let { eqtypes } = req.query;
   eqtypes = !_.isEmpty(eqtypes) ? eqtypes.split(",") : [];
+  if (date === moment().format("YYYY-MM-DD")) {
+    const equipments = await Equipment.model.find({
+      eqOwner: "Construck",
+      eqStatus: { $ne: "disposed" },
+    });
+
+    const utilization = equipments.map((equipment) => {
+      let data = {
+        equipment: new mongoose.Types.ObjectId(equipment._id),
+        type: equipment.eqtype,
+        plateNumber: equipment.plateNumber,
+        assetClass: equipment.assetClass,
+        equipmentCategory: equipment.eqDescription,
+        owner: "Construck",
+        status: getStatus(equipment.eqStatus),
+        date,
+      };
+      return data;
+    });
+
+    const data = await EquipmentType.model.find();
+    const table = await helper.generateEquipmentTable(data, utilization, eqtypes);
+
+    return res.status(200).send({ count: table.length, response: table });
+  }
+ 
   // types = JSON.parse(`${types}`);
   date = moment(date, "YYYY-MM-DD", "UTC");
   date = date.format("YYYY-MM-DDTHH:mm:ss.SSS") + "Z";
