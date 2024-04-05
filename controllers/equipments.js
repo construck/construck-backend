@@ -31,6 +31,7 @@ async function captureEquipmentUtilization(req, res) {
       .set("hour", 0)
       .set("minute", 0)
       .format("YYYY-MM-DD");
+<<<<<<< HEAD
   } else {
     date = req?.query?.date;
     if (_.isEmpty(date)) {
@@ -40,12 +41,16 @@ async function captureEquipmentUtilization(req, res) {
       });
       return;
     }
+=======
+>>>>>>> 73cb110 (cleanse equipment data and fix email issue)
   }
   try {
+    console.log("date", date);
     // 1. CHECK IF THERE IS DATA FOR SELECTED DATE
     const snapshotExist = await EquipmentUtilization.model.find({
       date,
     });
+    console.log("snapshotExist", snapshotExist);
     let types = [];
     let equipments = [];
     if (snapshotExist?.length === 0) {
@@ -96,6 +101,7 @@ async function captureEquipmentUtilization(req, res) {
         });
       }
     }
+<<<<<<< HEAD
   } catch (error) {
     if (NODE_ENV === "production") {
       console.log("Cronjob: Cannot capture equipment report:", error);
@@ -105,6 +111,10 @@ async function captureEquipmentUtilization(req, res) {
         error,
       });
     }
+=======
+  } catch (err) {
+    console.log("Cronjob: Cannot capture equipment report:", err);
+>>>>>>> 73cb110 (cleanse equipment data and fix email issue)
   }
 }
 
