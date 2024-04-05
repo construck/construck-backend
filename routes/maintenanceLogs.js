@@ -41,7 +41,7 @@ router.post('/maintenance/logs', async (req, res) => {
     if((mileages && mileages.length > 0) && lowMileages) return res.status(400).json({message: 'Mileages input are low to the previous'})
 
     // Saving the Job Card
-    const jobCard = new MaintenanceLogs({
+    const jobCard = new MaintenanceLogs.model({
         jobCard_Id: 
             ((jobCards.length + 1) < 10 
             ? `000${jobCards.length + 1}` 
