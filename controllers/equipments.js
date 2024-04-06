@@ -7,6 +7,7 @@ const EquipmentUtilization = require("../models/equipmentUtilization");
 const mongoose = require("mongoose");
 const mailer = require("./../helpers/mailer/equipmentReport");
 const helper = require("./../helpers/generateEquipmentTable");
+const Maintenance = require("../models/maintenance");
 
 const getStatus = (status) => {
   switch (status) {
@@ -39,7 +40,6 @@ async function captureEquipmentUtilization(req, res) {
     const snapshotExist = await EquipmentUtilization.model.find({
       date,
     });
-    console.log("snapshotExist", snapshotExist);
     let types = [];
     let equipments = [];
     if (snapshotExist?.length === 0) {
@@ -63,7 +63,7 @@ async function captureEquipmentUtilization(req, res) {
         return data;
       });
       // SAVE DATA IN DATABASE
-      await EquipmentUtilization.model.insertMany(utilization);
+      // await EquipmentUtilization.model.insertMany(utilization);
       const data = await EquipmentType.model.find();
       const table = await helper.generateEquipmentTable(data, utilization);
 
@@ -187,26 +187,64 @@ async function changeEquipmentStatus(req, res) {
 
   console.log("Cron job has started: updating equipment status for:", date);
   // CHECK IF THERE ARE DISPATCHES SCHEDULED FOR TODAY
-  const dispatches = await Work.model.find({
-    workStartDate: {
-      $gte: moment(date).startOf("day").toDate(),
-      $lt: moment(date).endOf("day").toDate(),
-    },
-    status: { $in: ["created", "on going", "in progress"] },
+  const query = {
+    $or: [
+      {
+        siteWork: false,
+        status: { $in: ["in progress"] },
+        workStartDate: date,
+      },
+      {
+        siteWork: true,
+        status: { $in: ["created", "on going", "in progress"] },
+        workStartDate: {
+          $lte: date,
+        },
+        workEndDate: {
+          $gte: date,
+        },
+      },
+    ],
+  };
+
+  // CHECK DISPATCHES SCHEDULED FOR TODAY
+  let dispatches = {};
+  dispatches = await Work.model.find(query, {
+    _id: 0,
+    "equipment.plateNumber": 1,
   });
+  // FILTER PLATE NUMBERS ONLY
+  dispatches = dispatches
+    .map((d) => d?.equipment?.plateNumber)
+    .filter((p) => p);
+  // CHECK EQUIPMENTS THAT ARE NOT IN MAINTENANCE
+  const jobcards = await Maintenance.model.find(
+    {
+      "plate.text": {
+        $in: ["RAC 128 Y"],
+      },
+      jobCard_status: "opened"
+    },
+    {
+      "plate.text": 1,
+      status: 1,
+    }
+  );
+  res.status(200).send(jobcards);
+  return;
   if (dispatches.length > 0) {
     dispatches.map(async (work) => {
       // find its equip, if standby, make it dispatched
-      const equip = await Equipment.model.findOneAndUpdate(
-        {
-          _id: work?.equipment?._id,
-        },
-        {
-          $set: {
-            eqStatus: "dispatched",
-          },
-        }
-      );
+      // const equip = await Equipment.model.findOneAndUpdate(
+      //   {
+      //     _id: work?.equipment?._id,
+      //   },
+      //   {
+      //     $set: {
+      //       eqStatus: "dispatched",
+      //     },
+      //   }
+      // );
       // }
     });
   }

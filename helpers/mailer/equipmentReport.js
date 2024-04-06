@@ -22,24 +22,24 @@ async function equipmentReport(date, utilization) {
       acc +
       `
       <tr style="text-align: left;border-bottom:1px solid #CDCDCD;padding:5px;" bgcolor="${
-        currentIndex < 5 ? "#FFF4EB" : ""
+        currentIndex < 5 ? "#FFF4EB" : currentIndex >= 5 && currentIndex < 10 ? "#EBF0FF" :""
       }">
-        <td style="border: 1px solid #BABABA;padding: 6px 10px;text-align:left"> ${
+        <td style="border: 1px solid #BABABA;padding: 4px 10px;text-align:left"> ${
           currentIndex + 1
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 6px 10px;text-align:left"> ${
+        <td style="	border: 1px solid #BABABA;padding: 4px 10px;text-align:left"> ${
           item.type
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 6px 10px;text-align:right">${
+        <td style="	border: 1px solid #BABABA;padding: 4px 10px;text-align:right">${
           item.available + item.workshop
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 6px 10px;text-align:right">${
+        <td style="	border: 1px solid #BABABA;padding: 4px 10px;text-align:right">${
           item.available !== 0 ? item.available : "-"
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 6px 10px;text-align:right">
+        <td style="	border: 1px solid #BABABA;padding: 4px 10px;text-align:right">
         ${getPercentAvailable(item)}
         </td>
-        <td style="	border: 1px solid #BABABA;padding: 6px 10px;text-align:right">${
+        <td style="	border: 1px solid #BABABA;padding: 4px 10px;text-align:right">${
           item.workshop !== 0 ? item.workshop : "-"
         }</td>
         <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">
@@ -63,13 +63,13 @@ async function equipmentReport(date, utilization) {
       <div style="margin-bottom: 32px">
         <table border="0" cellspacing="0" cellpadding="0" style="width:100%;border-collapse: collapse">
           <tr style="padding:5px;text-align: left;border-bottom:1px solid #CDCDCD">
-            <td style="background-color: #FBD487;color:#504438;width:12px;padding: 10px;font-size:12px;text-align:left;font-weight:normal">#</td>
-            <td style="background-color: #FBD487;color:#504438;width:160px;padding: 10px;font-size:12px;text-align:left;font-weight:normal">Equipment type</td>
-            <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">Total</td>
-            <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">Available</td>
-            <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">%</td>
-            <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">Workshop</td>
-            <td style="background-color: #FBD487;color:#504438;width: 60px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">%</td>
+            <td style="background-color: #FBD487;color:#504438;width:12px;padding:4px 10px;font-size:12px;text-align:left;font-weight:normal">#</td>
+            <td style="background-color: #FBD487;color:#504438;width:160px;padding:4px 10px;font-size:12px;text-align:left;font-weight:normal">Equipment type</td>
+            <td style="background-color: #FBD487;color:#504438;width: 50px;padding:4px 10px;font-size:12px;text-align:right;font-weight:normal">Total</td>
+            <td style="background-color: #FBD487;color:#504438;width: 50px;padding:4px 10px;font-size:12px;text-align:right;font-weight:normal">Available</td>
+            <td style="background-color: #FBD487;color:#504438;width: 50px;padding:4px 10px;font-size:12px;text-align:right;font-weight:normal">%</td>
+            <td style="background-color: #FBD487;color:#504438;width: 50px;padding:4px 10px;font-size:12px;text-align:right;font-weight:normal">Workshop</td>
+            <td style="background-color: #FBD487;color:#504438;width: 60px;padding:4px 10px;font-size:12px;text-align:right;font-weight:normal">%</td>
           </tr>
             ${tableBody}
         </table>
