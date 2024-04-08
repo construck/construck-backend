@@ -27,7 +27,7 @@ async function equipmentStatus(req, res) {
       );
     },
     {
-      scheduled: false,
+      scheduled: true,
       timezone: "Africa/Kigali",
     }
   );

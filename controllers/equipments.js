@@ -208,6 +208,7 @@ async function downloadEquipmentUtilizationByDates(req, res) {
 
 // CHANGE EQUIPMENT STATUS IF THERE IS DISPATCH SCHEDULED ON TODAY
 async function changeEquipmentStatus(req, res) {
+  const { NODE_ENV } = process.env;
   let date = moment()
     .startOf("day")
     .set("hour", 0)
@@ -237,47 +238,50 @@ async function changeEquipmentStatus(req, res) {
   };
 
   // CHECK DISPATCHES SCHEDULED FOR TODAY
-  let dispatches = {};
+  let dispatches = [];
   dispatches = await Work.model.find(query, {
     _id: 0,
     "equipment.plateNumber": 1,
+    workStartDate: 1,
+    workEndDate: 1,
   });
   // FILTER PLATE NUMBERS ONLY
-  dispatches = dispatches
-    .map((d) => d?.equipment?.plateNumber)
-    .filter((p) => p);
-  // CHECK EQUIPMENTS THAT ARE NOT IN MAINTENANCE
-  const jobcards = await Maintenance.model.find(
-    {
-      "plate.text": {
-        $in: ["RAC 128 Y"],
-      },
-      jobCard_status: "opened",
-    },
-    {
-      "plate.text": 1,
-      status: 1,
-    }
+  let plates = [];
+  await Promise.all(
+    dispatches.map(async (d, index) => {
+      const card = await Maintenance.model.findOne(
+        {
+          "plate.text": d?.equipment?.plateNumber,
+          jobCard_status: "opened",
+        },
+        {
+          "plate.text": 1,
+          status: 1,
+        }
+      );
+      if (_.isNull(card)) {
+        // IF THERE IS NO OPEN JOB CARD FOUND: GET EQUIPS TO BE UPDATED"
+        plates.push(d?.equipment?.plateNumber);
+      }
+    })
   );
-  res.status(200).send(jobcards);
-  return;
-  if (dispatches.length > 0) {
-    dispatches.map(async (work) => {
-      // find its equip, if standby, make it dispatched
-      // const equip = await Equipment.model.findOneAndUpdate(
-      //   {
-      //     _id: work?.equipment?._id,
-      //   },
-      //   {
-      //     $set: {
-      //       eqStatus: "dispatched",
-      //     },
-      //   }
-      // );
-      // }
-    });
+  if (plates.length > 0) {
+    const equip = await Equipment.model.updateMany(
+      {
+        plateNumber: plates,
+      },
+      {
+        $set: {
+          eqStatus: "dispatched",
+        },
+      }
+    );
   }
-  return;
+  if (NODE_ENV === "production") {
+    console.log("Equipment status automatically updated to 'dispatched'");
+  } else {
+    return res.status(200).send(plates);
+  }
 }
 module.exports = {
   changeEquipmentStatus,
