@@ -314,7 +314,6 @@ async function changeEquipmentStatus(req, res) {
     console.log("Equipment status automatically updated to 'dispatched'");
   } else {
     return res.status(200).send(plates);
-    controllers / equipments.js;
   }
 }
 module.exports = {
