@@ -42,7 +42,6 @@ async function captureEquipmentUtilization(req, res) {
     }
   }
   try {
-    console.log("date", date);
     // 1. CHECK IF THERE IS DATA FOR SELECTED DATE
     const snapshotExist = await EquipmentUtilization.model.find({
       date,
@@ -70,7 +69,7 @@ async function captureEquipmentUtilization(req, res) {
         return data;
       });
       // SAVE DATA IN DATABASE
-      // await EquipmentUtilization.model.insertMany(utilization);
+      await EquipmentUtilization.model.insertMany(utilization);
       const data = await EquipmentType.model.find();
       const table = await helper.generateEquipmentTable(data, utilization);
 
@@ -315,6 +314,7 @@ async function changeEquipmentStatus(req, res) {
     console.log("Equipment status automatically updated to 'dispatched'");
   } else {
     return res.status(200).send(plates);
+    controllers / equipments.js;
   }
 }
 module.exports = {
