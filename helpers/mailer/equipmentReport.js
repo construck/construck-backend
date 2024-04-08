@@ -15,7 +15,7 @@ const getPercentAvailable = (row) => {
 };
 
 async function equipmentReport(date, utilization) {
-  const { EMAIL_EQUIPMENT_REPORT_RECEIVER } = process.env;
+  const { EMAIL_EQUIPMENT_REPORT_RECEIVER, } = process.env;
   let to = EMAIL_EQUIPMENT_REPORT_RECEIVER;
   const tableBody = utilization.reduce((acc, item, currentIndex) => {
     return (

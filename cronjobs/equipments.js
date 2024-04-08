@@ -5,7 +5,7 @@ const helper = require("../helpers/cronJob");
 // All cronjobs related to equipments
 async function equipmentCronjobs(req, res) {
   cron.schedule(
-    "0 18 * * *", // Run every day at 6:00 PM
+    "0 18 * * *", // Run every day at 18:00
     async () => {
       await EquipmentController.captureEquipmentUtilization(req, res);
       await helper.cronJobLogger("Equipment", "Equipment availability report");

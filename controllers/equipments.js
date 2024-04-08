@@ -23,19 +23,25 @@ const getStatus = (status) => {
 };
 // Equipment Controller will hosted here
 async function captureEquipmentUtilization(req, res) {
+  const { NODE_ENV } = process.env;
   let date;
-  if (req?.query?.date) {
-    date = req?.query?.date;
-  } else {
+  if (NODE_ENV === "production") {
     date = moment()
       .startOf("day")
       .set("hour", 0)
       .set("minute", 0)
       .format("YYYY-MM-DD");
+  } else {
+    date = req?.query?.date;
+    if (_.isEmpty(date)) {
+      res.status(503).send({
+        error:
+          "This automation is designed to be run in production otherwise specify the date in the query string",
+      });
+      return;
+    }
   }
-
   try {
-    console.log("date", date);
     // 1. CHECK IF THERE IS DATA FOR SELECTED DATE
     const snapshotExist = await EquipmentUtilization.model.find({
       date,
@@ -63,19 +69,42 @@ async function captureEquipmentUtilization(req, res) {
         return data;
       });
       // SAVE DATA IN DATABASE
-      // await EquipmentUtilization.model.insertMany(utilization);
+      await EquipmentUtilization.model.insertMany(utilization);
       const data = await EquipmentType.model.find();
       const table = await helper.generateEquipmentTable(data, utilization);
 
       await mailer.equipmentReport(date, table);
-      console.log(
-        `Cronjob: Equipment utilization captured successfully: ${date}`
-      );
+      if (NODE_ENV === "production") {
+        console.log(
+          `Cronjob: Equipment utilization captured successfully: ${date}`
+        );
+      } else {
+        return res.status(200).send({
+          error: `Cronjob: Equipment utilization captured successfully: ${date}`,
+        });
+      }
+      return table;
     } else {
-      console.log("Equipment utilization on the selected date exists already");
+      if (NODE_ENV === "production") {
+        console.log(
+          "Equipment utilization on the selected date exists already"
+        );
+        return;
+      } else {
+        return res.status(409).send({
+          error: "Equipment utilization on the selected date exists already",
+        });
+      }
     }
-  } catch (err) {
-    console.log("Cronjob: Cannot capture equipment report:", err);
+  } catch (error) {
+    if (NODE_ENV === "production") {
+      console.log("Cronjob: Cannot capture equipment report:", error);
+    } else {
+      return res.status(503).send({
+        message: "Cronjob: Cannot capture equipment report",
+        error,
+      });
+    }
   }
 }
 
@@ -223,7 +252,7 @@ async function changeEquipmentStatus(req, res) {
       "plate.text": {
         $in: ["RAC 128 Y"],
       },
-      jobCard_status: "opened"
+      jobCard_status: "opened",
     },
     {
       "plate.text": 1,
