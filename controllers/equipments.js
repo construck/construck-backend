@@ -173,9 +173,10 @@ async function downloadEquipmentUtilizationByDates(req, res) {
   eqtypes = !_.isEmpty(eqtypes) ? eqtypes.split(",") : [];
   startdate = new Date(startdate);
   enddate = new Date(enddate);
-  startdate.setHours(0, 0, 0, 0);
+  startdate.setHours(2, 0, 0, 0);
   enddate.setHours(23, 59, 59, 0);
 
+  // return;
   // return;
   try {
     let response;

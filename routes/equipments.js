@@ -49,7 +49,7 @@ router.get("/enter-workshop", async (req, res) => {
     const equipments = await eqData.model
       .find({
         eqStatus: {
-          $nin: ["workshop", "disposed"]
+          $nin: ["disposed"]
         }
       })
       .populate("vendor")
