@@ -176,17 +176,41 @@ async function downloadEquipmentUtilizationByDates(req, res) {
   startdate.setHours(2, 0, 0, 0);
   enddate.setHours(23, 59, 59, 0);
 
+  console.log("@@@", startdate, enddate);
   try {
     let query;
     if (_.isEmpty(eqtypes)) {
-      query = {
-        date: { $gte: startdate, $lte: enddate },
-      };
+      if (
+        moment(startdate).format("YYYY-MM-DD") ===
+        moment(enddate).format("YYYY-MM-DD")
+      ) {
+        console.log('1')
+        query = {
+          date: startdate,
+        };
+      } else {
+        console.log('2')
+        query = {
+          date: { $gte: startdate, $lte: enddate },
+        };
+      }
     } else {
-      query = {
-        date: { $gte: startdate, $lte: enddate },
-        equipmentCategory: { $in: eqtypes },
-      };
+      if (
+        moment(startdate).format("YYYY-MM-DD") ===
+        moment(enddate).format("YYYY-MM-DD")
+      ) {
+        console.log('3')
+        query = {
+          date: { $gte: startdate, $lte: enddate },
+          equipmentCategory: { $in: eqtypes },
+        };
+      } else {
+        console.log('4')
+        query = {
+          date: startdate,
+          equipmentCategory: { $in: eqtypes },
+        };
+      }
     }
     let response;
     response = await EquipmentUtilization.model
