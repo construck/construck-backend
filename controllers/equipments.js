@@ -169,11 +169,12 @@ async function getEquipmentUtilizationByDate(req, res) {
 // GET AVERAGE EQUIPMENT UTILIZATION BY DATE RANGE
 async function downloadEquipmentUtilizationByDates(req, res) {
   let { startdate, enddate } = req.params;
+  const start = moment(startdate).format("YYYY-MM-DDTHH:mm:ss.SSS") + "Z";
   let { eqtypes } = req.query;
   eqtypes = !_.isEmpty(eqtypes) ? eqtypes.split(",") : [];
   startdate = new Date(startdate);
   enddate = new Date(enddate);
-  startdate.setHours(2, 0, 0, 0);
+  startdate.setHours(0, 0, 0, 0);
   enddate.setHours(23, 59, 59, 0);
 
   console.log("@@@", startdate, enddate);
@@ -184,12 +185,12 @@ async function downloadEquipmentUtilizationByDates(req, res) {
         moment(startdate).format("YYYY-MM-DD") ===
         moment(enddate).format("YYYY-MM-DD")
       ) {
-        console.log('1')
+        console.log("1");
         query = {
-          date: startdate,
+          date: { $eq: start },
         };
       } else {
-        console.log('2')
+        console.log("2");
         query = {
           date: { $gte: startdate, $lte: enddate },
         };
@@ -199,13 +200,13 @@ async function downloadEquipmentUtilizationByDates(req, res) {
         moment(startdate).format("YYYY-MM-DD") ===
         moment(enddate).format("YYYY-MM-DD")
       ) {
-        console.log('3')
+        console.log("3");
         query = {
           date: { $gte: startdate, $lte: enddate },
           equipmentCategory: { $in: eqtypes },
         };
       } else {
-        console.log('4')
+        console.log("4");
         query = {
           date: startdate,
           equipmentCategory: { $in: eqtypes },
@@ -231,6 +232,7 @@ async function downloadEquipmentUtilizationByDates(req, res) {
     });
     return res.status(200).send(response);
   } catch (error) {
+    console.log("error", error);
     return res.status(503).send({
       error: "Something went wrong, try again",
     });
