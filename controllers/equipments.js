@@ -177,8 +177,6 @@ async function downloadEquipmentUtilizationByDates(req, res) {
   startdate.setHours(2, 0, 0, 0);
   enddate.setHours(23, 59, 59, 0);
 
-  // return;
-  // return;
   try {
     let query;
     if (_.isEmpty(eqtypes)) {
