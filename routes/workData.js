@@ -2297,6 +2297,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
+  // console.log('id', id)
+  // return;
   try {
     let work = await workData.model
       .findById(id)
@@ -4895,6 +4897,9 @@ router.get("/reports/:date", (req, res) => {
 });
 router.post("/force-stop-dispatches", (req, res) => {
   works.forceStopDispatches(req, res);
+});
+router.get("/details/:id", (req, res) => {
+  works.getSingleDispatch(req, res);
 });
 
 async function getEmployees(listIds) {

@@ -360,8 +360,22 @@ async function forceStopDispatches(req, res) {
     dispatches,
   });
 }
+async function getSingleDispatch(req, res) {
+  let { id } = req.params;
+  try {
+    let work = await Work.model
+      .findById(id)
+      .populate("equipment")
+      .populate("dispatch")
+
+    res.status(200).send(work);
+  } catch (err) {
+    res.send(err);
+  }
+}
 module.exports = {
   captureDispatchDailyReport,
   getDispatchDailyReport,
   forceStopDispatches,
+  getSingleDispatch,
 };
