@@ -176,15 +176,21 @@ async function downloadEquipmentUtilizationByDates(req, res) {
   startdate.setHours(2, 0, 0, 0);
   enddate.setHours(23, 59, 59, 0);
 
-  // return;
-  // return;
   try {
-    let response;
-    response = await EquipmentUtilization.model
-      .find({
+    let query;
+    if (_.isEmpty(eqtypes)) {
+      query = {
+        date: { $gte: startdate, $lte: enddate },
+      };
+    } else {
+      query = {
         date: { $gte: startdate, $lte: enddate },
         equipmentCategory: { $in: eqtypes },
-      })
+      };
+    }
+    let response;
+    response = await EquipmentUtilization.model
+      .find(query)
       .populate("type", { createdAt: 0, updatedAt: 0 });
     // Convert to data for Excel
     response = response.map((r) => {
