@@ -6,6 +6,8 @@ const Customer = require("./../models/customers");
 const DispatchReport = require("./../models/dispatchReports");
 const mongoose = require("mongoose");
 const mailer = require("./../helpers/mailer/dispatchReport");
+// const helpers = require("../helpers/generateRevenues");
+const helpers = require("../helpers/generate/revenues");
 
 const isWorkNotPosted = (work, date) => {
   let start = moment(work?.workStartDate).format("YYYY-MM-DD");
@@ -366,11 +368,66 @@ async function getSingleDispatch(req, res) {
     let work = await Work.model
       .findById(id)
       .populate("equipment")
-      .populate("dispatch")
+      .populate("dispatch");
 
     res.status(200).send(work);
   } catch (err) {
     res.send(err);
+  }
+}
+
+async function postWorkForSitework(req, res) {
+  let { id } = req.params;
+  let data = req.body;
+  try {
+    // check if dispatch exists
+    let dispatch = await Work.model.findById(id);
+    if (_.isEmpty(dispatch) && dispatch.siteWork) {
+      res.status(503).send({
+        error: "Dispatch is not found or it's not a site work",
+      });
+      return;
+    } else {
+      let dailyWorks = data?.map((d) => {
+        let data = {};
+        data = { ...data, ...d };
+        const { totalRevenue, totalExpenditure } = helpers.generateRevenues(
+          dispatch,
+          d.duration,
+          d.comment
+        );
+        console.log("@after generate", d.duration, d.comment);
+        data.totalRevenue = totalRevenue;
+        data.totalExpenditure = totalExpenditure;
+        return data;
+      });
+      // calculate total revenue, and update it too
+      //
+      // console.log("dailyWorks", dailyWorks);
+      const response = await Work.model.updateOne(
+        { _id: id },
+        {
+          $set: {
+            dailyWork: dailyWorks,
+          },
+        }
+      );
+      const { grandTotalRevenue, grandTotalExpenditure } =
+        helpers.generateGrandRevenues(response);
+      console.log("grand", grandTotalRevenue, grandTotalExpenditure);
+      // await Work.model.updateOne(
+      //   { _id: id },
+      //   {
+      //     $set: {
+      //       totalRevenue: grandTotalRevenue,
+      //       totalExpenditure: grandTotalExpenditure,
+      //     },
+      //   }
+      // );
+      return res.status(200).send(dispatch);
+    }
+  } catch (err) {
+    return res.send(err);
   }
 }
 module.exports = {
@@ -378,4 +435,5 @@ module.exports = {
   getDispatchDailyReport,
   forceStopDispatches,
   getSingleDispatch,
+  postWorkForSitework,
 };

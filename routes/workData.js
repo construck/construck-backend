@@ -10,7 +10,6 @@ const eqData = require("../models/equipments");
 const prjData = require("../models/projects");
 const moment = require("moment");
 const e = require("express");
-const { isNull, intersection } = require("lodash");
 const { default: mongoose } = require("mongoose");
 const send = require("../utils/sendEmailNode");
 const { sendEmail } = require("./sendEmailRoute");
@@ -53,7 +52,7 @@ router.get("/", async (req, res) => {
       .populate("createdBy")
       .populate("workDone")
       .sort([["_id", "descending"]]);
-    // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
+    // res.status(200).send(workList.filter((w) => !_.isNull(w.driver)));
     res.status(200).send(
       workList.filter((w) => {
         w.workDone !== null;
@@ -83,7 +82,7 @@ router.get("/v2", async (req, res) => {
       .populate("createdBy")
       .populate("workDone")
       .sort([["_id", "descending"]]);
-    // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
+    // res.status(200).send(workList.filter((w) => !_.isNull(w.driver)));
     res.status(200).send(workList);
   } catch (err) {
     res.send(err);
@@ -117,7 +116,7 @@ router.get("/v3", async (req, res) => {
       .populate("workDone", "jobDescription")
       .sort([["_id", "descending"]]);
 
-    // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
+    // res.status(200).send(workList.filter((w) => !_.isNull(w.driver)));
     res.status(200).send(workList);
   } catch (err) {
     res.send(err);
@@ -173,7 +172,7 @@ router.get("/filtered2", async (req, res) => {
       .populate("workDone", "jobDescription")
       .sort([["_id", "descending"]]);
 
-    // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
+    // res.status(200).send(workList.filter((w) => !_.isNull(w.driver)));
     res.status(200).send(workList);
   } catch (err) {
     res.send(err);
@@ -909,7 +908,7 @@ router.get("/v3/:vendorName", async (req, res) => {
       .populate("workDone")
       .sort([["_id", "descending"]]);
 
-    // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
+    // res.status(200).send(workList.filter((w) => !_.isNull(w.driver)));
 
     let filteredByVendor = workList.filter((w) => {
       return (
@@ -974,8 +973,8 @@ router.get("/v3/driver/:driverId", async (req, res) => {
       )
       .filter(
         (w) =>
-          // !isNull(w.driver) &&
-          !isNull(w.workDone) && w.status !== "recalled"
+          // !_.isNull(w.driver) &&
+          !_.isNull(w.workDone) && w.status !== "recalled"
       );
 
     let siteWorkList = [];
@@ -1193,7 +1192,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
 
     let orderedList = _.orderBy(finalList, "dispatchDate", "desc");
 
-    res.status(200).send(orderedList.filter((d) => !isNull(d)));
+    res.status(200).send(orderedList.filter((d) => !_.isNull(d)));
   } catch (err) {
     res.send(err);
   }
@@ -1202,21 +1201,46 @@ router.get("/v3/driver/:driverId", async (req, res) => {
 router.get("/v3/toreverse/:plateNumber", async (req, res) => {
   let { plateNumber } = req.params;
   let { startDate, endDate } = req.query;
+  startDate = new Date(startDate);
+  endDate = new Date(endDate);
+  startDate.setHours(0, 0, 0, 0);
+  endDate.setHours(23, 59, 59, 0);
+
   if (plateNumber && startDate && endDate) {
     try {
-      let workList = await workData.model
-        .find(
+      let query = {
+        $and: [
           {
             "equipment.plateNumber": { $regex: plateNumber.toUpperCase() },
             workStartDate: { $gte: moment(startDate) },
-            workStartDate: { $lte: moment(endDate).add(23, "hours") },
-            $or: [
-              { status: "stopped" },
-              { status: "rejected" },
-              { status: "approved" },
-              { status: "rejected" },
-              { status: "on going", "dailyWork.pending": false },
-            ],
+            workEndDate: { $lte: endDate },
+          },
+          // {
+          //   $or: [
+          //     { status: "stopped" },
+          //     { status: "rejected" },
+          //     { status: "approved" },
+          //     { status: "rejected" },
+          //     { status: "on going", "dailyWork.pending": false },
+          //   ],
+          // },
+        ],
+      };
+
+      let workList = await workData.model
+        .find(
+          // query,
+          {
+            "equipment.plateNumber": { $regex: plateNumber.toUpperCase() },
+            workStartDate: { $gte: startDate },
+            workEndDate: { $lte: endDate },
+            // $or: [
+            //   { status: "stopped" },
+            //   { status: "rejected" },
+            //   { status: "approved" },
+            //   { status: "rejected" },
+            //   { status: "on going", "dailyWork.pending": false },
+            // ],
           },
           {
             "project.createdOn": false,
@@ -1239,6 +1263,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
         .populate("workDone")
         .sort([["_id", "descending"]]);
 
+      console.log("workList", workList.length);
       let listToSend = workList;
 
       let siteWorkList = [];
@@ -1424,7 +1449,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
 
       let orderedList = _.orderBy(finalList, "dispatchDate", "desc");
 
-      res.status(200).send(orderedList.filter((d) => !isNull(d)));
+      res.status(200).send(orderedList.filter((d) => !_.isNull(d)));
     } catch (err) {
       res.send(err);
     }
@@ -1439,6 +1464,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
 });
 
 router.get("/detailed/:canViewRevenues", async (req, res) => {
+  console.log("@@init...");
   let { canViewRevenues } = req.params;
   let {
     startDate,
@@ -1857,6 +1883,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         );
 
         datesPosted.map((dP) => {
+          console.log("@@dP", dP);
           if (
             moment(Date.parse(dP.date)).isSameOrAfter(moment(startDate)) &&
             moment(Date.parse(dP.date)).isSameOrBefore(
@@ -1866,6 +1893,12 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 .add(59, "seconds")
             )
           ) {
+            console.log(
+              "###",
+              w.equipment?.uom,
+              dP.duration,
+              w?.equipment?.supplierRate
+            );
             siteWorkList.push({
               "Dispatch date": moment(Date.parse(dP.date)).format("M/D/YYYY"),
               "Posted On": moment(Date.parse(dP.date)).format("M/D/YYYY"),
@@ -1890,14 +1923,15 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
                     : w?.equipment?.eqDescription === "TIPPER TRUCK" &&
-                      dP.comment === "Ibibazo bya panne"
-                    ? dP.duration * w?.equipment?.rate
-                    : (dP.duration > 0 ? 1 : 0) * dP.rate,
-                "Vendor payment":
-                  w.equipment?.uom === "hour"
-                    ? _.round(dP.duration / (60 * 60 * 1000), 2) *
-                      w?.equipment?.supplierRate
-                    : (dP.duration > 0 ? 1 : 0) * w?.equipment?.supplierRate,
+                        dP.comment === "Ibibazo bya panne"
+                      ? dP.duration * w?.equipment?.rate
+                      : (dP.duration > 0 ? 1 : 0) * dP.rate,
+                "Vendor payment": dP.expenditure,
+                // "Vendor payment":
+                //   w.equipment?.uom === "hour"
+                //     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
+                //       w?.equipment?.supplierRate
+                //     : (dP.duration > 0 ? 1 : 0) * w?.equipment?.supplierRate,
               }),
 
               "Driver Names": w.driver
@@ -2155,9 +2189,9 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
                     : w?.equipment?.eqDescription === "TIPPER TRUCK" &&
-                      dP.comment === "Ibibazo bya panne"
-                    ? dP.duration * w?.equipment?.rate
-                    : (dP.duration > 0 ? 1 : 0) * dP.rate,
+                        dP.comment === "Ibibazo bya panne"
+                      ? dP.duration * w?.equipment?.rate
+                      : (dP.duration > 0 ? 1 : 0) * dP.rate,
                 "Vendor payment":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
@@ -4730,30 +4764,16 @@ router.put("/swreverse/:id", async (req, res) => {
   let { reversedBy } = req.body;
 
   try {
-    let work = await workData.model.findOne({
-      _id: id,
-      "dailyWork.date": moment(date).format("DD-MMM-YYYY"),
-      status: { $in: ["on going", "stopped"] },
-    });
-
+    const filter = { _id: id };
+    const update = {
+      $pull: {
+        dailyWork: { date: date },
+      },
+    };
+    const work = await workData.model.findOneAndUpdate(filter, update);
     let updatedDuration = work.duration - duration;
     let updatedRevenue = work.totalRevenue - totalRevenue;
     let updatedExpenditure = work.totalExpenditure - totalExpenditure;
-
-    work = await workData.model.findOneAndUpdate(
-      {
-        _id: id,
-        "dailyWork.date": moment(date).format("DD-MMM-YYYY"),
-        status: { $in: ["on going", "stopped"] },
-      },
-      {
-        $pull: {
-          dailyWork: {
-            date: moment(date).format("DD-MMM-YYYY"),
-          },
-        },
-      }
-    );
 
     work.totalRevenue = updatedRevenue;
     work.totalExpenditure = updatedExpenditure;
@@ -4762,15 +4782,6 @@ router.put("/swreverse/:id", async (req, res) => {
     if (updatedDuration === 0) {
       work.status = "created";
     }
-
-    // let _dailyWorks = work.dailyWork;
-
-    // _.remove(_dailyWorks, function (d) {
-    //   return d.date === moment(date).format("DD-MMM-YYYY");
-    // });
-
-    // work.dailyWork = _dailyWorks;
-
     //log saving
     let log = {
       action: "DISPATCH REVERSED",
@@ -4784,6 +4795,7 @@ router.put("/swreverse/:id", async (req, res) => {
 
     res.send(work).status(201);
   } catch (err) {
+    console.log("@@@er", err);
     res.send(err);
   }
 });
@@ -4900,6 +4912,9 @@ router.post("/force-stop-dispatches", (req, res) => {
 });
 router.get("/details/:id", (req, res) => {
   works.getSingleDispatch(req, res);
+});
+router.patch("/post/:id/sitework", (req, res) => {
+  works.postWorkForSitework(req, res);
 });
 
 async function getEmployees(listIds) {

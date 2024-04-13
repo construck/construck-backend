@@ -1,4 +1,7 @@
-// import * as password from "./password";
-// import * as token from "./token";
+const generateRevenues = require("./generate/revenues");
+const generateGrandRevenues = require("./generateGrandRevenues");
 
-// export { password, token };
+module.exports = {
+  generateRevenues,
+  generateGrandRevenues,
+};
