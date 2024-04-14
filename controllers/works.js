@@ -1,11 +1,15 @@
 const _ = require("lodash");
 const moment = require("moment");
 const Work = require("./../models/workData");
+const Equipment = require("./../models/equipments");
+const Employee = require("./../models/employees");
 const { Project } = require("../models/projects");
 const Customer = require("./../models/customers");
 const DispatchReport = require("./../models/dispatchReports");
 const mongoose = require("mongoose");
 const mailer = require("./../helpers/mailer/dispatchReport");
+// const helpers = require("../helpers/generateRevenues");
+const helpers = require("../helpers/generate/revenues");
 
 const isWorkNotPosted = (work, date) => {
   let start = moment(work?.workStartDate).format("YYYY-MM-DD");
@@ -174,7 +178,7 @@ async function captureDispatchDailyReport(date) {
         );
       });
       // SAVE DISPATCH REPORT ONE BY ONE
-      // await DispatchReport.model.insertMany(report);
+      await DispatchReport.model.insertMany(report);
       // SEND EMAIL
       await mailer.dispatchReport(date, report);
       // return;
@@ -318,7 +322,163 @@ async function getDispatchDailyReport(req, res) {
     return res.status(200).send({ count: report.length, report });
   }
 }
+
+// FORCE STOP DISPATCHES, SHOULD BE DELETED AFTER ITS USE
+async function forceStopDispatches(req, res) {
+  return;
+  const ids = [
+    // new mongoose.Types.ObjectId("660d5c95f4269bdbd030addb"),
+  ];
+  let date = moment().format("YYYY-MM-DD");
+
+  console.log("START CLEANING DISPATCHES:", date);
+  // CHECK IF THERE ARE DISPATCHES SCHEDULED FOR TODAY
+  const dispatches = await Work.model.find({
+    _id: { $in: ids },
+  });
+  dispatches.map(async (dispatch) => {
+    let workDurationDays = dispatch.workDurationDays;
+    workDurationDays =
+      moment(date).diff(moment(dispatch.workStartDate), "days") + 1;
+    console.log(
+      "id",
+      workDurationDays,
+      dispatch.workStartDate,
+      dispatch.workEndDate,
+      moment().format("YYYY-MM-DD")
+    );
+    await Work.model.updateOne(
+      {
+        _id: dispatch._id,
+      },
+      {
+        $set: {
+          workEndDate: moment().format("YYYY-MM-DD"),
+          workDurationDays: workDurationDays,
+        },
+      }
+    );
+  });
+  res.status(200).send({
+    count: dispatches.length,
+    dispatches,
+  });
+}
+async function getSingleDispatch(req, res) {
+  let { id } = req.params;
+  try {
+    let work = await Work.model
+      .findById(id)
+      .populate("equipment")
+      .populate("dispatch");
+
+    return res.status(200).send(work);
+  } catch (err) {
+    return res.send(err);
+  }
+}
+
+async function postWorkForSitework(req, res) {
+  let { id } = req.params;
+  let data = req.body;
+  try {
+    // check if dispatch exists
+    let dispatch = await Work.model.findById(id);
+    if (_.isEmpty(dispatch) && dispatch.siteWork) {
+      res.status(503).send({
+        error: "Dispatch is not found or it's not a site work",
+      });
+      return;
+    } else {
+      let dailyWorks = [];
+
+      dailyWorks = data?.map((d) => {
+        let data = {};
+        data = { ...data, ...d };
+        const { totalRevenue, totalExpenditure } = helpers.generateRevenues(
+          dispatch,
+          d.duration,
+          d.comment
+        );
+        data.totalRevenue = totalRevenue;
+        data.totalExpenditure = totalExpenditure;
+        return data;
+      });
+      // calculate total revenue, and update it too
+      //
+      await Work.model.findOneAndUpdate(
+        { _id: id },
+        {
+          $set: {
+            dailyWork: dailyWorks,
+          },
+        }
+      );
+
+      // COMPUTE & AND UPDATE GRAND TOTAL OF THE WHOLE DISPATCH
+      const { grandTotalRevenue, grandTotalExpenditure } =
+        await helpers.generateGrandRevenues(dispatch._id);
+      const response = await Work.model.findOneAndUpdate(
+        { _id: id },
+        {
+          $set: {
+            totalRevenue: grandTotalRevenue,
+            totalExpenditure: grandTotalExpenditure,
+          },
+        },
+        { returnDocument: "after" }
+      );
+      let workIsDone = 0;
+      let duration = 0;
+      let update;
+      response?.dailyWork
+        ?.filter((d) => !d.pending)
+        .map((d) => {
+          workIsDone++;
+          duration += d.duration;
+        });
+      if (workIsDone === response?.workDurationDays) {
+        //IF THE WORK IS DONE, UPDATE THE STATUS OF THE DISPATCH
+        update = {
+          status: "stopped",
+          duration,
+        };
+        const updated = await Work.model.updateOne(
+          {
+            _id: id,
+          },
+          update
+        );
+        //IF THE WORK IS DONE, UPDATE THE STATUS OF THE EQUIPMENT
+        await Equipment.model.findOneAndUpdate(
+          { _id: dispatch?.equipment?._id },
+          {
+            eqStatus: "standby",
+          },
+          { returnDocument: "after" }
+        );
+        //IF THE WORK IS DONE, UPDATE THE STATUS OF THE DRIVER
+        let driver = await Employee.model.findOneAndUpdate(
+          { _id: dispatch?.driver },
+          {
+            status: "active",
+            assignedDate: null,
+            assignedShift: "",
+            assignedToSiteWork: false,
+          },
+          { returnDocument: "after" }
+        );
+      }
+      return res.status(200).send(response);
+    }
+  } catch (err) {
+    return res.send(err);
+  }
+}
 module.exports = {
   captureDispatchDailyReport,
   getDispatchDailyReport,
+  forceStopDispatches,
+  getSingleDispatch,
+  postWorkForSitework,
 };

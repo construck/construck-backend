@@ -15,31 +15,31 @@ const getPercentAvailable = (row) => {
 };
 
 async function equipmentReport(date, utilization) {
-  const { EMAIL_EQUIPMENT_REPORT_RECEIVER } = process.env;
+  const { EMAIL_EQUIPMENT_REPORT_RECEIVER, } = process.env;
   let to = EMAIL_EQUIPMENT_REPORT_RECEIVER;
   const tableBody = utilization.reduce((acc, item, currentIndex) => {
     return (
       acc +
       `
       <tr style="text-align: left;border-bottom:1px solid #CDCDCD;padding:5px;" bgcolor="${
-        currentIndex < 5 ? "#FFF4EB" : ""
+        currentIndex < 5 ? "#FFF4EB" : currentIndex >= 5 && currentIndex < 10 ? "#EBF0FF" :""
       }">
-        <td style="border: 1px solid #BABABA;padding: 10px;text-align:left"> ${
+        <td style="border: 1px solid #BABABA;padding: 4px 10px;text-align:left"> ${
           currentIndex + 1
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:left"> ${
+        <td style="	border: 1px solid #BABABA;padding: 4px 10px;text-align:left"> ${
           item.type
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">${
+        <td style="	border: 1px solid #BABABA;padding: 4px 10px;text-align:right">${
           item.available + item.workshop
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">${
+        <td style="	border: 1px solid #BABABA;padding: 4px 10px;text-align:right">${
           item.available !== 0 ? item.available : "-"
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">
+        <td style="	border: 1px solid #BABABA;padding: 4px 10px;text-align:right">
         ${getPercentAvailable(item)}
         </td>
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">${
+        <td style="	border: 1px solid #BABABA;padding: 4px 10px;text-align:right">${
           item.workshop !== 0 ? item.workshop : "-"
         }</td>
         <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">
@@ -54,22 +54,22 @@ async function equipmentReport(date, utilization) {
   <table width="600" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="border-collapse: collapse">
     <tr style="padding: 20px 20px 0 0px">
       <div style="text-align:left">
-        Hello,<br />
+      Greetings,<br />
         <p>
-          Daily equipment utilization report as of date: <b><u>${date}</u></b>,
+          Please see below the equipment availability report for <b><u>${moment(date).format("MMMM DD, YYYY")}</u></b>
         <br />
         </p>
       </div>
       <div style="margin-bottom: 32px">
         <table border="0" cellspacing="0" cellpadding="0" style="width:100%;border-collapse: collapse">
           <tr style="padding:5px;text-align: left;border-bottom:1px solid #CDCDCD">
-            <td style="background-color: #FBD487;color:#504438;width:12px;padding: 10px;font-size:12px;text-align:left;font-weight:normal">#</td>
-            <td style="background-color: #FBD487;color:#504438;width:160px;padding: 10px;font-size:12px;text-align:left;font-weight:normal">Equipment type</td>
-            <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">Total</td>
-            <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">Available</td>
-            <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">%</td>
-            <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">Workshop</td>
-            <td style="background-color: #FBD487;color:#504438;width: 60px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">%</td>
+            <td style="background-color: #FBD487;color:#504438;width:12px;padding:4px 10px;font-size:12px;text-align:left;font-weight:normal">#</td>
+            <td style="background-color: #FBD487;color:#504438;width:160px;padding:4px 10px;font-size:12px;text-align:left;font-weight:normal">Equipment type</td>
+            <td style="background-color: #FBD487;color:#504438;width: 50px;padding:4px 10px;font-size:12px;text-align:right;font-weight:normal">Total</td>
+            <td style="background-color: #FBD487;color:#504438;width: 50px;padding:4px 10px;font-size:12px;text-align:right;font-weight:normal">Available</td>
+            <td style="background-color: #FBD487;color:#504438;width: 50px;padding:4px 10px;font-size:12px;text-align:right;font-weight:normal">%</td>
+            <td style="background-color: #FBD487;color:#504438;width: 50px;padding:4px 10px;font-size:12px;text-align:right;font-weight:normal">Workshop</td>
+            <td style="background-color: #FBD487;color:#504438;width: 60px;padding:4px 10px;font-size:12px;text-align:right;font-weight:normal">%</td>
           </tr>
             ${tableBody}
         </table>
@@ -80,8 +80,8 @@ async function equipmentReport(date, utilization) {
   send(
     "appinfo@construck.rw",
     to,
-    `Equipment utilization report - ${moment(date).format("MM DD, YYYY")}`,
-    "Daily equipment utilization",
+    `Equipment availability report - ${moment(date).format("MMMM DD, YYYY")}`,
+    "Daily availability utilization",
     await template.layout(htmlTable)
   )
     .then(() => console.log("Sent"))

@@ -49,7 +49,7 @@ router.get("/enter-workshop", async (req, res) => {
     const equipments = await eqData.model
       .find({
         eqStatus: {
-          $nin: ["workshop", "disposed"]
+          $nin: ["disposed"]
         }
       })
       .populate("vendor")
@@ -722,6 +722,9 @@ router.get("/utilization/:startdate/:enddate/download", (req, res) => {
 });
 router.post("/utilization/:date", (req, res) => {
   EquipmentController.captureEquipmentUtilization(req, res);
+});
+router.patch("/type/dispatched", (req, res) => {
+  EquipmentController.changeEquipmentStatus(req, res);
 });
 
 module.exports = router;

@@ -1,16 +1,22 @@
 const mongoose = require("mongoose");
-const CronjobSchema = mongoose.Schema({
-  module: {
-    type: String,
+const CronjobSchema = mongoose.Schema(
+  {
+    module: {
+      type: String,
+    },
+    title: {
+      type: String,
+    },
+    time: {
+      type: mongoose.SchemaTypes.Date,
+      default: Date.now(),
+    },
+    payload: {
+      type: Object,
+    },
   },
-  title: {
-    type: String,
-  },
-  time: {
-    type: mongoose.SchemaTypes.Date,
-    default: Date.now(),
-  },
-});
+  { timestamp: true }
+);
 
 module.exports = {
   model: mongoose.model("cronjobs", CronjobSchema),

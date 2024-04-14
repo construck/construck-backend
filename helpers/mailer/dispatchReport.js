@@ -15,6 +15,9 @@ async function dispatchReport(date, dispatches) {
         currentIndex < 5 ? "#E7F3DD" : ""
       }">
         <td style="	border: 1px solid #BABABA;padding: 10px;text-align:left"> ${
+          currentIndex + 1
+        }</td>
+        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:left"> ${
           item.project
         }</td>
         <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">${
@@ -59,7 +62,7 @@ async function dispatchReport(date, dispatches) {
       <div style="margin-bottom: 32px">
         <table border="0" cellspacing="0" cellpadding="0" style="width:100%;border-collapse: collapse">
           <tr style="padding:5px;text-align: left;border-bottom:1px solid #CDCDCD">
-            <td style="background-color: #FBD487;color:#504438;width:160px;padding: 10px;font-size:12px;text-align:left;font-weight:normal">Project name</td>
+            <td style="background-color: #FBD487;color:#504438;width:12px;padding: 10px;font-size:12px;text-align:left;font-weight:normal">#</td>  
             <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">Total</td>
             <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">Open</td>
             <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">In progress</td>
