@@ -1232,8 +1232,11 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
           // query,
           {
             "equipment.plateNumber": { $regex: plateNumber.toUpperCase() },
-            workStartDate: { $gte: startDate },
-            workEndDate: { $lte: endDate },
+            workStartDate: { 
+              $gte: startDate,
+              $lte: endDate,
+             },
+            // workEndDate: { $lte: startDate },
             // $or: [
             //   { status: "stopped" },
             //   { status: "rejected" },

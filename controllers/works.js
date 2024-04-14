@@ -1,6 +1,8 @@
 const _ = require("lodash");
 const moment = require("moment");
 const Work = require("./../models/workData");
+const Equipment = require("./../models/equipments");
+const Employee = require("./../models/employees");
 const { Project } = require("../models/projects");
 const Customer = require("./../models/customers");
 const DispatchReport = require("./../models/dispatchReports");
@@ -370,9 +372,9 @@ async function getSingleDispatch(req, res) {
       .populate("equipment")
       .populate("dispatch");
 
-    res.status(200).send(work);
+    return res.status(200).send(work);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 }
 
@@ -388,7 +390,9 @@ async function postWorkForSitework(req, res) {
       });
       return;
     } else {
-      let dailyWorks = data?.map((d) => {
+      let dailyWorks = [];
+
+      dailyWorks = data?.map((d) => {
         let data = {};
         data = { ...data, ...d };
         const { totalRevenue, totalExpenditure } = helpers.generateRevenues(
@@ -396,15 +400,13 @@ async function postWorkForSitework(req, res) {
           d.duration,
           d.comment
         );
-        console.log("@after generate", d.duration, d.comment);
         data.totalRevenue = totalRevenue;
         data.totalExpenditure = totalExpenditure;
         return data;
       });
       // calculate total revenue, and update it too
       //
-      // console.log("dailyWorks", dailyWorks);
-      const response = await Work.model.updateOne(
+      await Work.model.findOneAndUpdate(
         { _id: id },
         {
           $set: {
@@ -412,19 +414,62 @@ async function postWorkForSitework(req, res) {
           },
         }
       );
+
+      // COMPUTE & AND UPDATE GRAND TOTAL OF THE WHOLE DISPATCH
       const { grandTotalRevenue, grandTotalExpenditure } =
-        helpers.generateGrandRevenues(response);
-      console.log("grand", grandTotalRevenue, grandTotalExpenditure);
-      // await Work.model.updateOne(
-      //   { _id: id },
-      //   {
-      //     $set: {
-      //       totalRevenue: grandTotalRevenue,
-      //       totalExpenditure: grandTotalExpenditure,
-      //     },
-      //   }
-      // );
-      return res.status(200).send(dispatch);
+        await helpers.generateGrandRevenues(dispatch._id);
+      const response = await Work.model.findOneAndUpdate(
+        { _id: id },
+        {
+          $set: {
+            totalRevenue: grandTotalRevenue,
+            totalExpenditure: grandTotalExpenditure,
+          },
+        },
+        { returnDocument: "after" }
+      );
+      let workIsDone = 0;
+      let duration = 0;
+      let update;
+      response?.dailyWork
+        ?.filter((d) => !d.pending)
+        .map((d) => {
+          workIsDone++;
+          duration += d.duration;
+        });
+      if (workIsDone === response?.workDurationDays) {
+        //IF THE WORK IS DONE, UPDATE THE STATUS OF THE DISPATCH
+        update = {
+          status: "stopped",
+          duration,
+        };
+        const updated = await Work.model.updateOne(
+          {
+            _id: id,
+          },
+          update
+        );
+        //IF THE WORK IS DONE, UPDATE THE STATUS OF THE EQUIPMENT
+        await Equipment.model.findOneAndUpdate(
+          { _id: dispatch?.equipment?._id },
+          {
+            eqStatus: "standby",
+          },
+          { returnDocument: "after" }
+        );
+        //IF THE WORK IS DONE, UPDATE THE STATUS OF THE DRIVER
+        let driver = await Employee.model.findOneAndUpdate(
+          { _id: dispatch?.driver },
+          {
+            status: "active",
+            assignedDate: null,
+            assignedShift: "",
+            assignedToSiteWork: false,
+          },
+          { returnDocument: "after" }
+        );
+      }
+      return res.status(200).send(response);
     }
   } catch (err) {
     return res.send(err);

@@ -1,11 +1,22 @@
+const Work = require("./../../models/workData");
 const _ = require("lodash");
 const HOURS_IN_A_DAY = 8;
 const TARGET_DURATION = 5;
 
-function generateGrandRevenues() {
+async function generateGrandRevenues(id) {
+  const dispatch = await Work.model.findById(id);
+  let grandTotalRevenue = 0;
+  let grandTotalExpenditure = 0;
+
+  dispatch.dailyWork?.map((d, index) => {
+    grandTotalRevenue += d.totalRevenue;
+    if (dispatch.equipment.eqOwner !== "Construck") {
+      grandTotalExpenditure += d.totalExpenditure;
+    }
+  });
   return {
-    grandTotalRevenue: 0,
-    grandTotalExpenditure: 0,
+    grandTotalRevenue,
+    grandTotalExpenditure,
   };
 }
 function generateRevenues(dispatch, duration, comment) {
@@ -24,7 +35,7 @@ function generateRevenues(dispatch, duration, comment) {
             ? 0
             : (supplierRate * duration) / 3600000;
       } else {
-        duration = duration > 0 ? duration * 3600000 : 0;
+        duration = duration > 0 ? duration : 0;
         totalRevenue = (dispatch.equipment.rate * duration) / 3600000;
         totalExpenditure =
           dispatch.equipment.eqOwner === "Construck"
