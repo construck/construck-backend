@@ -47,31 +47,65 @@ async function captureEquipmentUtilization(req, res) {
       date,
     });
     let types = [];
-    let equipments = [];
     if (snapshotExist?.length === 0) {
       // 2. FIND SNAPSHOT OF EQUIPMENTS ON A GIVEN DATE
-      equipments = await Equipment.model.find({
-        eqOwner: "Construck",
+      const response = await Equipment.model.find({
+        eqOwner: { $in: ["Construck", "MUTUMISHI COMPANY LTD"] },
         eqStatus: { $ne: "disposed" },
       });
 
-      const utilization = equipments.map((equipment) => {
-        let data = {
-          equipment: new mongoose.Types.ObjectId(equipment._id),
-          type: equipment.eqtype,
-          plateNumber: equipment.plateNumber,
-          assetClass: equipment.assetClass,
-          equipmentCategory: equipment.eqDescription,
-          owner: "Construck",
-          status: getStatus(equipment.eqStatus),
-          date,
+      let plateNumbers = response.map((e) => {
+        return {
+          id: e._id, // new mongoose.Types.ObjectId(e.value),
+          equipmentCategory: e.eqDescription,
+          plateNumber: e.plateNumber,
         };
-        return data;
       });
+      const maintenance = await Maintenance.model.find(
+        {
+          jobCard_status: "opened",
+        },
+        {
+          plate: 1,
+          status: 1,
+          jobCard_status: 1,
+        }
+      );
+      let plateNumbersInMaintenance = maintenance.map((e) => {
+        return {
+          id: new mongoose.Types.ObjectId(e.plate.value),
+          equipmentCategory: e.plate.eqDescription,
+          plateNumber: e.plate.text,
+          status: "workshop",
+        };
+      });
+      let plateNumbersNotInMaintenance = plateNumbers
+        .filter((x) => {
+          return !plateNumbersInMaintenance.some(
+            (item) => item.plateNumber === x.plateNumber
+          );
+        })
+        .map((availableEquipment) => ({
+          id: new mongoose.Types.ObjectId(availableEquipment.id),
+          equipmentCategory: availableEquipment.equipmentCategory,
+          plateNumber: availableEquipment.plateNumber,
+          status: "available",
+        }));
+      let makeOneArray = [
+        ...plateNumbersInMaintenance,
+        ...plateNumbersNotInMaintenance,
+      ];
+
+      makeOneArray = makeOneArray.filter(
+        (e) =>
+          e.equipmentCategory !== "WALK-BEHIND" &&
+          e.equipmentCategory !== "COMPRESSOR" &&
+          e.equipmentCategory !== "STUMPER"
+      );
       // SAVE DATA IN DATABASE
-      await EquipmentUtilization.model.insertMany(utilization);
+      await EquipmentUtilization.model.insertMany(makeOneArray);
       const data = await EquipmentType.model.find();
-      const table = await helper.generateEquipmentTable(data, utilization);
+      const table = await helper.generateEquipmentTable(data, makeOneArray);
 
       await mailer.equipmentReport(date, table);
       if (NODE_ENV === "production") {
@@ -97,6 +131,7 @@ async function captureEquipmentUtilization(req, res) {
       }
     }
   } catch (error) {
+    console.log("error", error);
     if (NODE_ENV === "production") {
       console.log("Cronjob: Cannot capture equipment report:", error);
     } else {
@@ -114,31 +149,65 @@ async function getEquipmentUtilizationByDate(req, res) {
   let { eqtypes } = req.query;
   eqtypes = !_.isEmpty(eqtypes) ? eqtypes.split(",") : [];
   if (date === moment().format("YYYY-MM-DD")) {
-    const equipments = await Equipment.model.find({
-      eqOwner: "Construck",
+    // 2. FIND SNAPSHOT OF EQUIPMENTS ON A GIVEN DATE
+    const response = await Equipment.model.find({
+      eqOwner: { $in: ["Construck", "MUTUMISHI COMPANY LTD"] },
       eqStatus: { $ne: "disposed" },
     });
 
-    const utilization = equipments.map((equipment) => {
-      let data = {
-        equipment: new mongoose.Types.ObjectId(equipment._id),
-        type: equipment.eqtype,
-        plateNumber: equipment.plateNumber,
-        assetClass: equipment.assetClass,
-        equipmentCategory: equipment.eqDescription,
-        owner: "Construck",
-        status: getStatus(equipment.eqStatus),
-        date,
+    let plateNumbers = response.map((e) => {
+      return {
+        id: e._id,
+        equipmentCategory: e.eqDescription,
+        plateNumber: e.plateNumber,
       };
-      return data;
     });
-
-    const data = await EquipmentType.model.find();
-    const table = await helper.generateEquipmentTable(
-      data,
-      utilization,
-      eqtypes
+    const maintenance = await Maintenance.model.find(
+      {
+        jobCard_status: "opened",
+      },
+      {
+        plate: 1,
+        status: 1,
+        jobCard_status: 1,
+      }
     );
+    let plateNumbersInMaintenance = maintenance.map((e) => {
+      return {
+        id: new mongoose.Types.ObjectId(e.plate.value),
+        equipmentCategory: e.plate.eqDescription,
+        plateNumber: e.plate.text,
+        status: "workshop",
+      };
+    });
+    let plateNumbersNotInMaintenance = plateNumbers
+      .filter((x) => {
+        return !plateNumbersInMaintenance.some(
+          (item) => item.plateNumber === x.plateNumber
+        );
+      })
+      .map((availableEquipment) => ({
+        id: new mongoose.Types.ObjectId(availableEquipment.id),
+        equipmentCategory: availableEquipment.equipmentCategory,
+        plateNumber: availableEquipment.plateNumber,
+        status: "available",
+      }));
+    let makeOneArray = [
+      ...plateNumbersInMaintenance,
+      ...plateNumbersNotInMaintenance,
+    ];
+
+    // filter makeOneArray without tipper truck
+    makeOneArray = makeOneArray.filter(
+      (e) =>
+        e.equipmentCategory !== "WALK-BEHIND" &&
+        e.equipmentCategory !== "COMPRESSOR" &&
+        e.equipmentCategory !== "STUMPER"
+    );
+    // SAVE DATA IN DATABASE
+    // await EquipmentUtilization.model.insertMany(makeOneArray);
+    const data = await EquipmentType.model.find();
+    const table = await helper.generateEquipmentTable(data, makeOneArray);
 
     return res.status(200).send({ count: table.length, response: table });
   }
