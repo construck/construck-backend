@@ -77,6 +77,7 @@ async function captureEquipmentUtilization(req, res) {
           equipmentCategory: e.plate.eqDescription,
           plateNumber: e.plate.text,
           status: "workshop",
+          date,
         };
       });
       let plateNumbersNotInMaintenance = plateNumbers
@@ -90,6 +91,7 @@ async function captureEquipmentUtilization(req, res) {
           equipmentCategory: availableEquipment.equipmentCategory,
           plateNumber: availableEquipment.plateNumber,
           status: "available",
+          date,
         }));
       let makeOneArray = [
         ...plateNumbersInMaintenance,
