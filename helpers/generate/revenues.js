@@ -3,13 +3,17 @@ const _ = require("lodash");
 const HOURS_IN_A_DAY = 8;
 const TARGET_DURATION = 5;
 
-async function generateGrandRevenues(id) {
+async function generateGrandTotals(id) {
+  console.log("@@@:init", id);
   const dispatch = await Work.model.findById(id);
   let grandTotalRevenue = 0;
   let grandTotalExpenditure = 0;
+  let grandDuration = 0;
 
   dispatch.dailyWork?.map((d, index) => {
+    console.log("@@@", d.duration);
     grandTotalRevenue += d.totalRevenue;
+    grandDuration += d.duration;
     if (dispatch.equipment.eqOwner !== "Construck") {
       grandTotalExpenditure += d.totalExpenditure;
     }
@@ -17,6 +21,7 @@ async function generateGrandRevenues(id) {
   return {
     grandTotalRevenue,
     grandTotalExpenditure,
+    grandDuration,
   };
 }
 function generateRevenues(dispatch, duration, comment) {
@@ -86,4 +91,4 @@ const getTotalRevenue = (rate, duration, comment, eqType) => {
   return amount;
 };
 
-module.exports = { generateRevenues, generateGrandRevenues };
+module.exports = { generateRevenues, generateGrandTotals };

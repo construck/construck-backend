@@ -405,7 +405,7 @@ async function postWorkForSitework(req, res) {
         return data;
       });
       // calculate total revenue, and update it too
-      //
+      console.log("###1:");
       await Work.model.findOneAndUpdate(
         { _id: id },
         {
@@ -414,20 +414,24 @@ async function postWorkForSitework(req, res) {
           },
         }
       );
-
+      console.log("###2:");
       // COMPUTE & AND UPDATE GRAND TOTAL OF THE WHOLE DISPATCH
-      const { grandTotalRevenue, grandTotalExpenditure } =
-        await helpers.generateGrandRevenues(dispatch._id);
+      const { grandTotalRevenue, grandTotalExpenditure, grandDuration } =
+        await helpers.generateGrandTotals(dispatch._id);
+      console.log("###3:", grandTotalRevenue, grandDuration);
       const response = await Work.model.findOneAndUpdate(
         { _id: id },
         {
           $set: {
             totalRevenue: grandTotalRevenue,
             totalExpenditure: grandTotalExpenditure,
+            duration: grandDuration,
+            status: "on going",
           },
         },
         { returnDocument: "after" }
       );
+      console.log("###4:", response.duration);
       let workIsDone = 0;
       let duration = 0;
       let update;
@@ -472,6 +476,7 @@ async function postWorkForSitework(req, res) {
       return res.status(200).send(response);
     }
   } catch (err) {
+    console.log("err", err);
     return res.send(err);
   }
 }
