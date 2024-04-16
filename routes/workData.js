@@ -1232,10 +1232,10 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
           // query,
           {
             "equipment.plateNumber": { $regex: plateNumber.toUpperCase() },
-            workStartDate: { 
+            workStartDate: {
               $gte: startDate,
               $lte: endDate,
-             },
+            },
             // workEndDate: { $lte: startDate },
             // $or: [
             //   { status: "stopped" },
@@ -4642,7 +4642,6 @@ router.put("/swamend/:id", async (req, res) => {
     prevTotalRevenue,
     prevTotalExpenditure,
   } = req.body;
-
   let duration = Math.abs(req.body.duration);
   if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
   postingDate = moment(postingDate, "DD-MMM-YYYY").format("YYYY-MM-DD");
@@ -4651,7 +4650,7 @@ router.put("/swamend/:id", async (req, res) => {
     let work = await workData.model.findOne({
       _id: id,
       "dailyWork.date": postingDate,
-      status: { $in: ["on going", "stopped"] },
+      status: { $in: ["created", "on going", "stopped"] },
     });
 
     let equipment = await eqData.model.findById(work?.equipment?._id);
@@ -4714,7 +4713,7 @@ router.put("/swamend/:id", async (req, res) => {
       {
         _id: id,
         "dailyWork.date": postingDate,
-        status: { $in: ["on going", "stopped"] },
+        status: { $in: ["created", "on going", "stopped"] },
       },
       {
         $set: {

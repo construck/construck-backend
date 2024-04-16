@@ -133,7 +133,6 @@ async function captureEquipmentUtilization(req, res) {
       }
     }
   } catch (error) {
-    console.log("error", error);
     if (NODE_ENV === "production") {
       console.log("Cronjob: Cannot capture equipment report:", error);
     } else {
