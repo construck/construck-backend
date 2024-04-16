@@ -4,7 +4,7 @@ const helper = require("../helpers/cronJob");
 
 // All cronjobs related to equipments
 async function equipmentCronjobs(req, res) {
-  const EVERY_30MINS = "0 */30 * * *";
+  const EVERY_30MINS = "*/10 * * * *";
   const EVERY_6PM = "0 18 * * *";
   const scheduleEvery6PM = cron.schedule(
     EVERY_6PM,
