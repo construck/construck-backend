@@ -114,4 +114,7 @@ app.listen(PORT, async () => {
   dispatchCronjobs.dispatchCronjobs();
   equipmentCronjobs.equipmentCronjobs();
   equipmentCronjobs.equipmentStatus();
+  cron.schedule("0 0 * * *", () => {
+    console.log('') // run every hour
+  })
 });
