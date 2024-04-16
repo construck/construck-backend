@@ -4764,6 +4764,7 @@ router.put("/swreverse/:id", async (req, res) => {
   let { id } = req.params;
   let { date, duration, totalRevenue, totalExpenditure } = req.query;
   let { reversedBy } = req.body;
+ 
 
   try {
     const filter = { _id: id };

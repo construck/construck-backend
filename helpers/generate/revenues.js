@@ -4,14 +4,12 @@ const HOURS_IN_A_DAY = 8;
 const TARGET_DURATION = 5;
 
 async function generateGrandTotals(id) {
-  console.log("@@@:init", id);
   const dispatch = await Work.model.findById(id);
   let grandTotalRevenue = 0;
   let grandTotalExpenditure = 0;
   let grandDuration = 0;
 
   dispatch.dailyWork?.map((d, index) => {
-    console.log("@@@", d.duration);
     grandTotalRevenue += d.totalRevenue;
     grandDuration += d.duration;
     if (dispatch.equipment.eqOwner !== "Construck") {
@@ -54,13 +52,13 @@ function generateRevenues(dispatch, duration, comment) {
         totalRevenue = dispatch.equipment.rate * (duration >= 1 ? 1 : 0);
       } else {
         totalRevenue = getTotalRevenue(
-          dispatch.equipment.rate,
+          dispatch.equipment,
           duration,
           comment,
           dispatch.equipment?.eqDescription
         );
         totalExpenditure = getTotalRevenue(
-          dispatch.equipment.supplierRate,
+          dispatch.equipment,
           duration,
           comment,
           dispatch.equipment?.eqDescription
@@ -77,16 +75,18 @@ function generateRevenues(dispatch, duration, comment) {
   };
 }
 
-const getTotalRevenue = (rate, duration, comment, eqType) => {
+const getTotalRevenue = (equipment, duration, comment, eqType) => {
+  console.log("duration", duration);
   let amount = 0;
   if (eqType === "TIPPER TRUCK" && comment === "Ibibazo bya panne") {
     if (duration >= TARGET_DURATION) {
-      amount = rate;
+      amount = equipment.rate;
     } else {
-      amount = rate * _.round(duration / HOURS_IN_A_DAY, 2);
+      amount = equipment.rate * _.round(duration / HOURS_IN_A_DAY, 2);
     }
   } else {
-    amount = rate;
+    console.log("something", (duration / 8) * equipment.rate);
+    amount = duration === 0 ? 0 : equipment.rate;
   }
   return amount;
 };
