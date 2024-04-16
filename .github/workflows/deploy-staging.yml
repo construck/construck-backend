@@ -1,0 +1,19 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [ dev ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm install
+      - name: Login to Heroku
+        run: heroku login
+      - name: Deploy to Staging
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}  # Replace with your Heroku API key
+        run: heroku deploy --app construck-backend-staging

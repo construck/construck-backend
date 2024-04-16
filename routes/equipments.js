@@ -720,9 +720,9 @@ router.get("/utilization/date/:date", (req, res) => {
 router.get("/utilization/:startdate/:enddate/download", (req, res) => {
   EquipmentController.downloadEquipmentUtilizationByDates(req, res);
 });
-router.post("/utilization/:date", (req, res) => {
-  EquipmentController.captureEquipmentUtilization(req, res);
-});
+// router.post("/utilization/:date", (req, res) => {
+//   EquipmentController.captureEquipmentUtilization(req, res);
+// });
 router.patch("/type/dispatched", (req, res) => {
   EquipmentController.changeEquipmentStatus(req, res);
 });
