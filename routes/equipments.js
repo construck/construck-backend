@@ -711,7 +711,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.post("/utilization", (req, res) => {
+router.post("/availability", (req, res) => {
   EquipmentController.captureEquipmentUtilization(req, res);
 });
 router.get("/utilization/date/:date", (req, res) => {

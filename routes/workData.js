@@ -1467,6 +1467,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
 });
 
 router.get("/detailed/:canViewRevenues", async (req, res) => {
+  console.log("@@init...");
   let { canViewRevenues } = req.params;
   let {
     startDate,
