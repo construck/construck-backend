@@ -22,6 +22,9 @@ const HOURS_IN_A_DAY = 8;
 const ObjectId = require("mongoose").Types.ObjectId;
 const works = require("../controllers/works");
 const helper = require("./../helpers/checkExistDispatch");
+const {
+  checkIfEquipmentWasInWorkshop,
+} = require("../helpers/availability/equipment");
 
 const DURATION_LIMIT = 16;
 
@@ -2593,7 +2596,11 @@ router.get(
 );
 
 router.post("/", async (req, res) => {
+  // const {plateNumber}
   const isExist = await helper.checkExistDispatch(req.body);
+  const isFound = await checkIfEquipmentWasInWorkshop();
+  res.status(200).send(isFound);
+  return;
   if (isExist.length > 0) {
     let message = [];
     isExist.map((e) => {
@@ -4764,7 +4771,6 @@ router.put("/swreverse/:id", async (req, res) => {
   let { id } = req.params;
   let { date, duration, totalRevenue, totalExpenditure } = req.query;
   let { reversedBy } = req.body;
- 
 
   try {
     const filter = { _id: id };
