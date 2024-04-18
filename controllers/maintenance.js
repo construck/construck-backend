@@ -7,6 +7,10 @@ const MaintenanceController = require("../controllers/maintenance");
 const helper = require("./../helpers/maintenance");
 const Equipment = require("../models/equipments");
 
+const {
+  checkIfEquipmentWasInWorkshop,
+} = require("./../helpers/availability/equipment");
+
 async function createJobCard(req, res) {
   const { entryDate, driver, carPlate, mileages, location, status } =
     req.body.payload;
@@ -46,10 +50,10 @@ async function createJobCard(req, res) {
         (jobCards.length + 1 < 10
           ? `000${jobCards.length + 1}`
           : jobCards.length + 1 < 100
-          ? `00${jobCards.length + 1}`
-          : jobCards.length + 1 < 1000
-          ? `0${jobCards.length + 1}`
-          : `${jobCards.length + 1}`) +
+            ? `00${jobCards.length + 1}`
+            : jobCards.length + 1 < 1000
+              ? `0${jobCards.length + 1}`
+              : `${jobCards.length + 1}`) +
         "-" +
         (new Date().getUTCMonth() < 10
           ? `0${new Date().getMonth() + 1}`
@@ -119,8 +123,8 @@ async function updateJobCard(req, res) {
         supervisorApproval == true
           ? "pass"
           : sourceItem == "No Parts Required" && status == "repair"
-          ? "repair"
-          : status,
+            ? "repair"
+            : status,
       inspectionTools,
       mechanicalInspections,
       assignIssue,
@@ -166,7 +170,19 @@ async function updateJobCard(req, res) {
 
   return res.status(200).send(jobCard);
 }
+
+async function equipmentWasInWorkshop(req, res) {
+  const { id } = req.params;
+  const { startdate, enddate } = req.query;
+  const response = await checkIfEquipmentWasInWorkshop(id, startdate, enddate);
+  res.status(200).send({
+    message: "processing...",
+  });
+  return;
+}
+
 module.exports = {
   createJobCard,
   updateJobCard,
+  equipmentWasInWorkshop,
 };

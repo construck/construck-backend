@@ -2598,9 +2598,6 @@ router.get(
 router.post("/", async (req, res) => {
   // const {plateNumber}
   const isExist = await helper.checkExistDispatch(req.body);
-  const isFound = await checkIfEquipmentWasInWorkshop();
-  res.status(200).send(isFound);
-  return;
   if (isExist.length > 0) {
     let message = [];
     isExist.map((e) => {

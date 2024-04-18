@@ -13,6 +13,7 @@ const {
   getListOfEquipmentOnDuty,
   getListOfEquipmentInWorkshop,
   getListOfDisposedEquipments,
+  checkIfEquipmentWasInWorkshop,
 } = require("./../helpers/availability/equipment");
 
 const getStatus = (status) => {
@@ -402,6 +403,7 @@ async function checkEquipmentAvailabilityForDispatch(req, res) {
   }
 
   try {
+    // 0. CHECK IF EQUIPMENT HAS
     // 1: GET A LIST OF DISPOSED EQUIPMENT
     let listDisposed = await getListOfDisposedEquipments();
     let listDisposedEquip = listDisposed?.map((e) => {
@@ -431,11 +433,9 @@ async function checkEquipmentAvailabilityForDispatch(req, res) {
       ...listEquipOnDuty,
       ...listEquipInWorkshop,
     ]);
-    console.log("equip.count", combined.length);
     let availableEquipment = await Equipment.model.find({
       plateNumber: { $nin: combined },
     });
-    console.log("equip.available.count", availableEquipment.length);
     res.status(200).send(availableEquipment);
   } catch (err) {
     console.log("ERR:", err);
@@ -443,13 +443,10 @@ async function checkEquipmentAvailabilityForDispatch(req, res) {
   }
 }
 
-// async function checkIfEquipmentWasInWorkshop()
-
 module.exports = {
   changeEquipmentStatus,
   captureEquipmentUtilization,
   getEquipmentUtilizationByDate,
   downloadEquipmentUtilizationByDates,
   checkEquipmentAvailabilityForDispatch,
-  // checkIfEquipmentWasInWorkshop
 };
