@@ -1,7 +1,8 @@
+const express = require("express");
+const moment = require("moment");
+const _ = require("lodash");
 const Maintenance = require("../models/maintenance");
 const Work = require("../models/workData");
-const moment = require("moment");
-const express = require("express");
 const router = express.Router();
 const MaintenanceController = require("../controllers/maintenance");
 const helper = require("./../helpers/maintenance");
@@ -50,10 +51,10 @@ async function createJobCard(req, res) {
         (jobCards.length + 1 < 10
           ? `000${jobCards.length + 1}`
           : jobCards.length + 1 < 100
-            ? `00${jobCards.length + 1}`
-            : jobCards.length + 1 < 1000
-              ? `0${jobCards.length + 1}`
-              : `${jobCards.length + 1}`) +
+          ? `00${jobCards.length + 1}`
+          : jobCards.length + 1 < 1000
+          ? `0${jobCards.length + 1}`
+          : `${jobCards.length + 1}`) +
         "-" +
         (new Date().getUTCMonth() < 10
           ? `0${new Date().getMonth() + 1}`
@@ -123,8 +124,8 @@ async function updateJobCard(req, res) {
         supervisorApproval == true
           ? "pass"
           : sourceItem == "No Parts Required" && status == "repair"
-            ? "repair"
-            : status,
+          ? "repair"
+          : status,
       inspectionTools,
       mechanicalInspections,
       assignIssue,
@@ -175,9 +176,15 @@ async function equipmentWasInWorkshop(req, res) {
   const { id } = req.params;
   const { startdate, enddate } = req.query;
   const response = await checkIfEquipmentWasInWorkshop(id, startdate, enddate);
-  res.status(200).send({
-    message: "processing...",
-  });
+  if (!_.isEmpty(response)) {
+    res.status(409).send({
+      error: `Equipment with "${response?.plate?.text}" plate number was in the workshop between ${moment(response?.entryDate).format("MMMM DD, YYYY")} and ${moment(response?.endRepair).format("MMMM DD, YYYY")}`,
+    });
+  } else {
+    res.status(200).send({
+      message: "You can dispatch this equipment",
+    });
+  }
   return;
 }
 

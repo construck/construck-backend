@@ -403,7 +403,6 @@ async function checkEquipmentAvailabilityForDispatch(req, res) {
   }
 
   try {
-    // 0. CHECK IF EQUIPMENT HAS
     // 1: GET A LIST OF DISPOSED EQUIPMENT
     let listDisposed = await getListOfDisposedEquipments();
     let listDisposedEquip = listDisposed?.map((e) => {

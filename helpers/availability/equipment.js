@@ -57,93 +57,74 @@ async function getListOfDisposedEquipments() {
 }
 
 async function checkIfEquipmentWasInWorkshop(id, entrydate, endrepair) {
-  entrydate = moment(entrydate)
-    // .add(1, "day")
-    .startOf("day");
-  endrepair = moment(endrepair)
-    // .subtract(1, "day")
-    .endOf("day");
-  console.log("@@@days", entrydate, endrepair);
-  let dates = [];
-  let query = {};
-  // query = {
-  //   "plate.value": id,
-  //   entryDate: { $gte: entrydate },
-  //   endRepair: { $lte: endrepair },
-  // };
-  // query = {
-  //   "plate.value": id,
-  //   $or: [
-  //     {
-  //       entryDate: { $gt: entrydate },
-  //       endRepair: { $lt: entrydate },
-  //     },
-  //     {
-  //       entryDate: { $gt: endrepair },
-  //       endRepair: { $lt: endrepair },
-  //     },
-  //     {
-  //       entryDate: { $gt: entrydate },
-  //       endRepair: { $lt: endrepair },
-  //     },
-  //   ],
-  // };
-  // query = {
-  //   $and: [
-  //     {
-  //       "plate.value": id,
-  //       $or: [
-  //         {
-  //           entryDate: {
-  //             $lt: { $and: [{ $gt: entrydate }, { $gt: endrepair }] },
-  //           },
-  //         },
-  //         {
-  //           endRepair: { $gt: entrydate, $lt: endrepair },
-  //         },
-  //         {
-  //           entryDate: { $lt: entrydate },
-  //           endRepair: { $gt: endrepair },
-  //         },
-  //       ],
-  //     },
-  //   ],
-  // };
-  // const maintenance = await Maintenance.model.findOne(query, {
-  //   "plate.text": 1,
-  //   "plate.value": 1,
-  //   status: 1,
-  //   jobCard_status: 1,
-  //   entryDate: 1,
-  //   endRepair: 1,
-  // });
-  const maintenance = await Maintenance.model.aggregate([
-    {
-      $match: {
-        $or: [
-          {
-            $and: [
-              { entryDate: { $gt: entrydate } },
-              { endRepair: { $gt: entrydate } },
-            ],
-          },
-          {
-            $and: [
-              { entryDate: { $gt: endrepair } },
-              { endRepair: { $lt: endrepair } },
-            ],
-          },
-          {
-            $and: [
-              { entryDate: { $gt: entrydate } },
-              { endRepair: { $lt: endrepair } },
-            ],
-          },
-        ],
+  entrydate = moment(entrydate).startOf("day");
+  endrepair = moment(endrepair).endOf("day");
+  console.log("@@@entrydate", entrydate);
+  console.log("@@@endrepair", endrepair);
+  console.log("@@dates@@:", moment(entrydate).endOf("day"));
+  //TODO: check if there is job card with same entry and endrepair dates, return with empty array
+
+  let query = {
+    "plate.value": id,
+    jobCard_status: "closed",
+  };
+  // DISPATCH(entrydate & endrepair) FALLS BETWEEN JOB CARD(entryDate, endRepair)
+  const queryOne = {
+    entryDate: { $lte: entrydate },
+    endRepair: { $gte: endrepair },
+  };
+  // DISPATCH(entrydate) FALLS BETWEEN JOB CARD(entryDate, endRepair), but endrepair is above endRepair
+  // entryDate is less than entrydate
+  // endRepair is greater than entrydate
+  // endRepair is less than endrepair
+  const queryTwo = {
+    $and: [
+      {
+        entryDate: { $lt: entrydate },
       },
+      {
+        endRepair: { $gt: moment(entrydate).add(1, "days") },
+      },
+      {
+        endRepair: { $lte: endrepair },
+      },
+    ],
+  };
+  // DISPATCH(endrepair) FALLS BETWEEN JOB CARD(entryDate, endRepair), but entryDate is less than entrydate
+  // entryDate(02) is less than endrepair(03)
+  // endRepair(10) is greater than endrepair(03)
+  // entryDate(02) is greater than entrydate(01)
+  const queryThree = {
+    $and: [
+      {
+        entryDate: { $lt: moment(endrepair).startOf("day") },
+      },
+      {
+        endRepair: { $gte: moment(endrepair).subtract(1, "days") },
+      },
+      {
+        entryDate: { $gt: entrydate },
+      },
+    ],
+  };
+  // DISPATCH(entrydate & endrepair) FALLS OUTSIDE JOB CARD(entryDate, endRepair)
+  const queryFour = {
+    entryDate: { $gt: entrydate },
+    endRepair: { $lt: endrepair },
+  };
+
+  const maintenance = await Maintenance.model.findOne(
+    {
+      ...query,
+      $or: [queryOne, queryTwo, queryThree, queryFour],
     },
-  ]);
-  console.log("@@maintenance", maintenance);
+    {
+      entryDate: 1,
+      endRepair: 1,
+      plate: 1,
+    }
+  );
+  console.log("maintenance", maintenance);
   return maintenance || [];
 }
 module.exports = {
