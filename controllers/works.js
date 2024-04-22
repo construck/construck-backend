@@ -475,10 +475,37 @@ async function postWorkForSitework(req, res) {
     return res.send(err);
   }
 }
+
+// GET WORKS DONE BY EQUIPMENT WITHIN A PERIOD OF TIME AND SPECIFIC PROJECTS
+async function worksByEquipment(req, res) {
+  let { id, startdate, enddate } = req.params;
+  const { projects } = req.query;
+  startdate = moment(startdate).startOf("day");
+  enddate = moment(enddate).endOf("day");
+  console.log("id", id, startdate, enddate);
+  // Query
+  let query = {
+    siteWork: false,
+    "equipment._id": new mongoose.Types.ObjectId(id),
+    workStartDate: {
+      $gte: startdate,
+      $lte: enddate,
+    },
+  };
+  const response = await Work.model.find(query);
+  // Fetch works by dates and projects
+  res.status(200).send({
+    count: response.length,
+    response,
+  });
+  return;
+}
+
 module.exports = {
   captureDispatchDailyReport,
   getDispatchDailyReport,
   forceStopDispatches,
   getSingleDispatch,
   postWorkForSitework,
+  worksByEquipment,
 };
