@@ -228,4 +228,8 @@ router.put("/maintenance/:id", async (req, res) => {
   MaintenanceController.updateJobCard(req, res);
 });
 
+router.get("/maintenance/inworkshop/:id", (req, res) => {
+  MaintenanceController.equipmentWasInWorkshop(req, res);
+});
+
 module.exports = router;

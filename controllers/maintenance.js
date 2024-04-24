@@ -1,11 +1,16 @@
+const express = require("express");
+const moment = require("moment");
+const _ = require("lodash");
 const Maintenance = require("../models/maintenance");
 const Work = require("../models/workData");
-const moment = require("moment");
-const express = require("express");
 const router = express.Router();
 const MaintenanceController = require("../controllers/maintenance");
 const helper = require("./../helpers/maintenance");
 const Equipment = require("../models/equipments");
+
+const {
+  checkIfEquipmentWasInWorkshop,
+} = require("./../helpers/availability/equipment");
 
 async function createJobCard(req, res) {
   const { entryDate, driver, carPlate, mileages, location, status } =
@@ -166,7 +171,25 @@ async function updateJobCard(req, res) {
 
   return res.status(200).send(jobCard);
 }
+
+async function equipmentWasInWorkshop(req, res) {
+  const { id } = req.params;
+  const { startdate, enddate } = req.query;
+  const response = await checkIfEquipmentWasInWorkshop(id, startdate, enddate);
+  if (!_.isEmpty(response)) {
+    res.status(409).send({
+      error: `Equipment with "${response?.plate?.text}" plate number was in the workshop between ${moment(response?.entryDate).format("MMMM DD, YYYY")} and ${moment(response?.endRepair).format("MMMM DD, YYYY")}`,
+    });
+  } else {
+    res.status(200).send({
+      message: "You can dispatch this equipment",
+    });
+  }
+  return;
+}
+
 module.exports = {
   createJobCard,
   updateJobCard,
+  equipmentWasInWorkshop,
 };

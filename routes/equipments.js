@@ -49,8 +49,8 @@ router.get("/enter-workshop", async (req, res) => {
     const equipments = await eqData.model
       .find({
         eqStatus: {
-          $nin: ["disposed"]
-        }
+          $nin: ["disposed"],
+        },
       })
       .populate("vendor")
       .populate("equipmentType");
@@ -181,33 +181,7 @@ router.get("/type/:type/:date/:shift", async (req, res) => {
 });
 
 router.get("/:date/:shift", async (req, res) => {
-  let { date, shift } = req.params;
-  let { workStartDate, workEndDate, siteWork } = req.query;
-  if (siteWork !== "true") {
-    workStartDate = date;
-    workEndDate = date;
-  }
-
-  try {
-    let equipmentOnDuty = await getListOfEquipmentOnDuty(
-      new Date(workStartDate),
-      new Date(workEndDate),
-      shift,
-      siteWork
-    );
-
-    let listEquipOnDuty = equipmentOnDuty?.map((e) => {
-      return e._id;
-    });
-    let availableEquipment = await eqData.model.find({
-      plateNumber: { $nin: listEquipOnDuty },
-      eqStatus: {$nin: ["workshop", "disposed"]}
-    });
-
-    res.status(200).send(availableEquipment);
-  } catch (err) {
-    res.send(err);
-  }
+  EquipmentController.checkEquipmentAvailabilityForDispatch(req, res);
 });
 
 router.post("/", async (req, res) => {

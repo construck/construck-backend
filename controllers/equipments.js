@@ -9,6 +9,13 @@ const mailer = require("./../helpers/mailer/equipmentReport");
 const helper = require("./../helpers/generateEquipmentTable");
 const Maintenance = require("../models/maintenance");
 
+const {
+  getListOfEquipmentOnDuty,
+  getListOfEquipmentInWorkshop,
+  getListOfDisposedEquipments,
+  checkIfEquipmentWasInWorkshop,
+} = require("./../helpers/availability/equipment");
+
 const getStatus = (status) => {
   switch (status) {
     case "standby":
@@ -386,9 +393,59 @@ async function changeEquipmentStatus(req, res) {
     return res.status(200).send(plates);
   }
 }
+
+async function checkEquipmentAvailabilityForDispatch(req, res) {
+  let { date, shift } = req.params;
+  let { workStartDate, workEndDate, siteWork } = req.query;
+  if (siteWork !== "true") {
+    workStartDate = date;
+    workEndDate = date;
+  }
+
+  try {
+    // 1: GET A LIST OF DISPOSED EQUIPMENT
+    let listDisposed = await getListOfDisposedEquipments();
+    let listDisposedEquip = listDisposed?.map((e) => {
+      return e.plateNumber;
+    });
+    // 3. GET LIST OF EQUIPMENT ON DUTY
+    let equipmentOnDuty = await getListOfEquipmentOnDuty(
+      new Date(workStartDate),
+      new Date(workEndDate),
+      shift,
+      siteWork
+    );
+    let listEquipOnDuty = [];
+    listEquipOnDuty = equipmentOnDuty?.map((e) => {
+      return e.equipment.plateNumber;
+    });
+    // 2. GET LIST OF EQUIPMENT IN WORKSHOP
+    let equipmentInWorkshop = await getListOfEquipmentInWorkshop();
+
+    let listEquipInWorkshop = equipmentInWorkshop?.map((e) => {
+      return e.plate.text;
+    });
+
+    // 4. COMBINED ALL LISTS
+    let combined = _.uniq([
+      ...listDisposedEquip,
+      ...listEquipOnDuty,
+      ...listEquipInWorkshop,
+    ]);
+    let availableEquipment = await Equipment.model.find({
+      plateNumber: { $nin: combined },
+    });
+    res.status(200).send(availableEquipment);
+  } catch (err) {
+    console.log("ERR:", err);
+    res.send(err);
+  }
+}
+
 module.exports = {
   changeEquipmentStatus,
   captureEquipmentUtilization,
   getEquipmentUtilizationByDate,
   downloadEquipmentUtilizationByDates,
+  checkEquipmentAvailabilityForDispatch,
 };
