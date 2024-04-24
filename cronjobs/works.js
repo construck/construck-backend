@@ -4,7 +4,7 @@ const helper = require("../helpers/cronJob");
 
 // All cronjobs related to dispatches
 async function dispatchCronjobs(req, res) {
-  cron.schedule(
+  const scheduleEvery8AM = cron.schedule(
     "0 8 * * *", // Run every day at 8:00 AM
     async () => {
       await WorkController.captureDispatchDailyReport(req, res);
@@ -18,6 +18,7 @@ async function dispatchCronjobs(req, res) {
       timezone: "Africa/Kigali",
     }
   );
+  scheduleEvery8AM.start();
 }
 
 module.exports = { dispatchCronjobs };

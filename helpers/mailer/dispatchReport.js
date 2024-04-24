@@ -12,27 +12,27 @@ async function dispatchReport(date, dispatches) {
       acc +
       `
       <tr style="text-align: left;border-bottom:1px solid #CDCDCD;padding:5px;" bgcolor="${
-        currentIndex < 5 ? "#E7F3DD" : ""
+        currentIndex < 5 ? "#FFF4EB" : currentIndex >= 5 && currentIndex < 10 ? "#EBF0FF" :""
       }">
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:left"> ${
+        <td style="	border: 1px solid #BABABA;font-size:13px;padding: 10px;text-align:left"> ${
           currentIndex + 1
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:left"> ${
+        <td style="	border: 1px solid #BABABA;font-size:13px;padding: 10px;text-align:left"> ${
           item.project
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">${
+        <td style="	border: 1px solid #BABABA;font-size:13px;padding: 10px;text-align:right">${
           item.created + item.inProgress + item.stopped
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">${
+        <td style="	border: 1px solid #BABABA;font-size:13px;padding: 10px;text-align:right">${
           item.created !== 0 ? item.created : "-"
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">${
+        <td style="	border: 1px solid #BABABA;font-size:13px;padding: 10px;text-align:right">${
           item.inProgress !== 0 ? item.inProgress : "-"
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">${
+        <td style="	border: 1px solid #BABABA;font-size:13px;padding: 10px;text-align:right">${
           item.stopped !== 0 ? item.stopped : "-"
         }</td>
-        <td style="	border: 1px solid #BABABA;padding: 10px;text-align:right">
+        <td style="	border: 1px solid #BABABA;font-size:13px;padding: 10px;text-align:right">
         
         ${
           item.stopped !== 0
@@ -53,21 +53,22 @@ async function dispatchReport(date, dispatches) {
   <table width="600" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="border-collapse: collapse">
     <tr style="padding: 20px 20px 0 0px">
       <div style="text-align:left">
-        Hello,<br />
+        Greetings,,<br />
         <p>
-          Daily dispatch report as of date: <b><u>${moment(date).format("MMM DD, YYYY")}</u></b>,
+        Please see below the daily dispatch report for: <b><u>${moment(date).format("MMMM DD, YYYY")}</u></b>,
         <br />
         </p>
       </div>
       <div style="margin-bottom: 32px">
         <table border="0" cellspacing="0" cellpadding="0" style="width:100%;border-collapse: collapse">
           <tr style="padding:5px;text-align: left;border-bottom:1px solid #CDCDCD">
-            <td style="background-color: #FBD487;color:#504438;width:12px;padding: 10px;font-size:12px;text-align:left;font-weight:normal">#</td>  
-            <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">Total</td>
-            <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">Open</td>
-            <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">In progress</td>
-            <td style="background-color: #FBD487;color:#504438;width: 50px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">Stopped</td>
-            <td style="background-color: #FBD487;color:#504438;width: 60px;padding: 10px;font-size:12px;text-align:right;font-weight:normal">% Stopped</td>
+            <td style="background-color: #FBD487;color:#504438;width:12px;padding:4px 10px;font-size:12px;text-align:left;font-weight:normal">#</td>  
+            <td style="background-color: #FBD487;color:#504438;width: 50px;padding:4px 10px;font-size:12px;text-align:left;font-weight:normal">Project</td>
+            <td style="background-color: #FBD487;color:#504438;width: 50px;padding:4px 10px;font-size:12px;text-align:right;font-weight:normal">Total</td>
+            <td style="background-color: #FBD487;color:#504438;width: 50px;padding:4px 10px;font-size:12px;text-align:right;font-weight:normal">Open</td>
+            <td style="background-color: #FBD487;color:#504438;width: 50px;padding:4px 10px;font-size:12px;text-align:right;font-weight:normal">In progress</td>
+            <td style="background-color: #FBD487;color:#504438;width: 50px;padding:4px 10px;font-size:12px;text-align:right;font-weight:normal">Stopped</td>
+            <td style="background-color: #FBD487;color:#504438;width: 60px;padding:4px 10px;font-size:12px;text-align:right;font-weight:normal">% Stopped</td>
           </tr>
             ${tableBody}
         </table>
@@ -78,7 +79,7 @@ async function dispatchReport(date, dispatches) {
   send(
     "appinfo@construck.rw",
     to,
-    `Dispatch report - ${moment(date).format("MMM DD, YYYY")}`,
+    `Dispatch report - ${moment(date).format("MMMM DD, YYYY")}`,
     "Daily dispatch report",
     await template.layout(htmlTable)
   )
