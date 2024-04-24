@@ -8,7 +8,6 @@ const Customer = require("./../models/customers");
 const DispatchReport = require("./../models/dispatchReports");
 const mongoose = require("mongoose");
 const mailer = require("./../helpers/mailer/dispatchReport");
-// const helpers = require("../helpers/generateRevenues");
 const helpers = require("../helpers/generate/revenues");
 
 const isWorkNotPosted = (work, date) => {
