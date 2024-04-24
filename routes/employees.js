@@ -93,12 +93,14 @@ router.post("/", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   let { phone, password } = req.body;
+  console.log('phone', phone, password)
   let projects = await fetchProjects();
   let defaultPassword = "12345";
 
   try {
     let employee = await employeeData.model.findOne({ phone: phone });
     let vendor = await venData.model.findOne({ phone: phone });
+    console.log('@@emp', vendor)
     let user = await userData.model.findOne({ phone: phone });
     let allowed = false;
     let userType = null;
@@ -192,7 +194,8 @@ router.post("/login", async (req, res) => {
 
     if (userType === "vendor") {
       allowed = await bcrypt.compare(password, vendor.password);
-      res.status(200).send({
+      console.log('allowed', allowed, vendor)
+      return res.status(200).send({
         employee: {
           _id: vendor.name,
           firstName: vendor.name,
@@ -308,6 +311,7 @@ router.post("/login", async (req, res) => {
     // });
     // }
   } catch (err) {
+    console.log('err', err)
     res.status(500).send({
       message: `${err}`,
       error: true,

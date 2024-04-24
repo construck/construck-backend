@@ -4922,6 +4922,9 @@ router.patch("/post/:id/sitework", (req, res) => {
 router.get("/sd/equipment/:id/:startdate/:enddate", (req, res) => {
   works.worksByEquipment(req, res);
 });
+router.patch("/post/singledispatches", (req, res) => {
+  works.bulkPostSingleDispatch(req, res);
+});
 
 async function getEmployees(listIds) {
   let list = [];
