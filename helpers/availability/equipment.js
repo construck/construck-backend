@@ -59,10 +59,6 @@ async function getListOfDisposedEquipments() {
 async function checkIfEquipmentWasInWorkshop(id, entrydate, endrepair) {
   entrydate = moment(entrydate).startOf("day");
   endrepair = moment(endrepair).endOf("day");
-  console.log("@@@entrydate", entrydate);
-  console.log("@@@endrepair", endrepair);
-  console.log("@@dates@@:", moment(entrydate).endOf("day"));
-  //TODO: check if there is job card with same entry and endrepair dates, return with empty array
 
   let query = {
     "plate.value": id,
@@ -74,9 +70,6 @@ async function checkIfEquipmentWasInWorkshop(id, entrydate, endrepair) {
     endRepair: { $gte: endrepair },
   };
   // DISPATCH(entrydate) FALLS BETWEEN JOB CARD(entryDate, endRepair), but endrepair is above endRepair
-  // entryDate is less than entrydate
-  // endRepair is greater than entrydate
-  // endRepair is less than endrepair
   const queryTwo = {
     $and: [
       {
@@ -91,9 +84,6 @@ async function checkIfEquipmentWasInWorkshop(id, entrydate, endrepair) {
     ],
   };
   // DISPATCH(endrepair) FALLS BETWEEN JOB CARD(entryDate, endRepair), but entryDate is less than entrydate
-  // entryDate(02) is less than endrepair(03)
-  // endRepair(10) is greater than endrepair(03)
-  // entryDate(02) is greater than entrydate(01)
   const queryThree = {
     $and: [
       {
@@ -113,7 +103,8 @@ async function checkIfEquipmentWasInWorkshop(id, entrydate, endrepair) {
     endRepair: { $lt: endrepair },
   };
 
-  const maintenance = await Maintenance.model.findOne(
+  let maintenance = [];
+  maintenance = await Maintenance.model.findOne(
     {
       ...query,
       $or: [queryOne, queryTwo, queryThree, queryFour],
@@ -124,7 +115,12 @@ async function checkIfEquipmentWasInWorkshop(id, entrydate, endrepair) {
       plate: 1,
     }
   );
-  console.log("maintenance", maintenance);
+  if (
+    moment(maintenance?.entryDate).format("YYYY-MM-DD") ===
+    moment(maintenance?.endRepair).format("YYYY-MM-DD")
+  ) {
+    maintenance = [];
+  }
   return maintenance || [];
 }
 module.exports = {

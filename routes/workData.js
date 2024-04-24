@@ -26,6 +26,8 @@ const {
   checkIfEquipmentWasInWorkshop,
 } = require("../helpers/availability/equipment");
 
+const MaintenanceController = require("./../controllers/maintenance");
+
 const DURATION_LIMIT = 16;
 
 function isValidObjectId(id) {
@@ -1929,9 +1931,9 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
                     : w?.equipment?.eqDescription === "TIPPER TRUCK" &&
-                        dP.comment === "Ibibazo bya panne"
-                      ? dP.duration * w?.equipment?.rate
-                      : (dP.duration > 0 ? 1 : 0) * dP.rate,
+                      dP.comment === "Ibibazo bya panne"
+                    ? dP.duration * w?.equipment?.rate
+                    : (dP.duration > 0 ? 1 : 0) * dP.rate,
                 "Vendor payment": dP.expenditure,
                 // "Vendor payment":
                 //   w.equipment?.uom === "hour"
@@ -2195,9 +2197,9 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
                     : w?.equipment?.eqDescription === "TIPPER TRUCK" &&
-                        dP.comment === "Ibibazo bya panne"
-                      ? dP.duration * w?.equipment?.rate
-                      : (dP.duration > 0 ? 1 : 0) * dP.rate,
+                      dP.comment === "Ibibazo bya panne"
+                    ? dP.duration * w?.equipment?.rate
+                    : (dP.duration > 0 ? 1 : 0) * dP.rate,
                 "Vendor payment":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
@@ -2596,7 +2598,6 @@ router.get(
 );
 
 router.post("/", async (req, res) => {
-  // const {plateNumber}
   const isExist = await helper.checkExistDispatch(req.body);
   if (isExist.length > 0) {
     let message = [];
@@ -2644,10 +2645,6 @@ router.post("/", async (req, res) => {
     equipment.assignedShift = req.body?.dispatch?.shift;
     let driver = req.body?.driver === "NA" ? null : req.body?.driver;
 
-    // console.log('@@equipment', equipment)
-    // console.log('@@workToCreate', workToCreate)
-    // console.log('@@employeeData', employeeData)
-    // return;
     let employee = await employeeData.model.findById(driver);
     if (employee) {
       employee.status = "dispatched";
