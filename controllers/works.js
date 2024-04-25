@@ -499,7 +499,7 @@ async function worksByEquipment(req, res) {
       "project._id": { $in: projects },
     };
   }
-  const response = await Work.model.find(query).sort({ workStartDate: 1 });
+  const response = await Work.model.find(query).sort({ workStartDate: 1 }).populate('driver');
   // Fetch works by dates and projects
   if (response.length > 0) {
     return res.status(200).send({
