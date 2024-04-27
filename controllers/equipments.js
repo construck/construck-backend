@@ -32,7 +32,7 @@ const getStatus = (status) => {
 async function captureEquipmentUtilization(req, res) {
   const { NODE_ENV } = process.env;
   let date;
-  if (NODE_ENV === "production") {
+  if (NODE_ENV === "production" || NODE_ENV === "staging") {
     date = moment()
       .startOf("day")
       .set("hour", 0)
@@ -46,7 +46,7 @@ async function captureEquipmentUtilization(req, res) {
           "This automation is designed to be run in production otherwise specify the date in the query string",
       });
       return;
-    }
+    } 
   }
   try {
     // 1. CHECK IF THERE IS DATA FOR SELECTED DATE
@@ -117,30 +117,30 @@ async function captureEquipmentUtilization(req, res) {
       const table = await helper.generateEquipmentTable(data, makeOneArray);
 
       await mailer.equipmentReport(date, table);
-      if (NODE_ENV === "production") {
+      if (NODE_ENV === "production" || NODE_ENV === "staging") {
         console.log(
-          `Cronjob: Equipment utilization captured successfully: ${date}`
+          `Cronjob: Equipment availability report is captured successfully: ${date}`
         );
       } else {
         return res.status(200).send({
-          error: `Cronjob: Equipment utilization captured successfully: ${date}`,
+          error: `Cronjob: Equipment availability report is captured successfully: ${date}`,
         });
       }
       return table;
     } else {
-      if (NODE_ENV === "production") {
+      if (NODE_ENV === "production" || NODE_ENV === "staging") {
         console.log(
-          "Equipment utilization on the selected date exists already"
+          "Equipment availability on the selected date exists already"
         );
         return;
       } else {
         return res.status(409).send({
-          error: "Equipment utilization on the selected date exists already",
+          error: "Equipment availability on the selected date exists already",
         });
       }
     }
   } catch (error) {
-    if (NODE_ENV === "production") {
+    if (NODE_ENV === "production" || NODE_ENV === "staging") {
       console.log("Cronjob: Cannot capture equipment report:", error);
     } else {
       return res.status(503).send({
@@ -254,7 +254,6 @@ async function downloadEquipmentUtilizationByDates(req, res) {
   startdate.setHours(0, 0, 0, 0);
   enddate.setHours(23, 59, 59, 0);
 
-  console.log("@@@", startdate, enddate);
   try {
     let query;
     if (_.isEmpty(eqtypes)) {
@@ -262,12 +261,10 @@ async function downloadEquipmentUtilizationByDates(req, res) {
         moment(startdate).format("YYYY-MM-DD") ===
         moment(enddate).format("YYYY-MM-DD")
       ) {
-        console.log("1");
         query = {
           date: { $eq: start },
         };
       } else {
-        console.log("2");
         query = {
           date: { $gte: startdate, $lte: enddate },
         };
@@ -277,13 +274,11 @@ async function downloadEquipmentUtilizationByDates(req, res) {
         moment(startdate).format("YYYY-MM-DD") ===
         moment(enddate).format("YYYY-MM-DD")
       ) {
-        console.log("3");
         query = {
           date: { $gte: startdate, $lte: enddate },
           equipmentCategory: { $in: eqtypes },
         };
       } else {
-        console.log("4");
         query = {
           date: startdate,
           equipmentCategory: { $in: eqtypes },
@@ -309,7 +304,6 @@ async function downloadEquipmentUtilizationByDates(req, res) {
     });
     return res.status(200).send(response);
   } catch (error) {
-    console.log("error", error);
     return res.status(503).send({
       error: "Something went wrong, try again",
     });
@@ -437,7 +431,6 @@ async function checkEquipmentAvailabilityForDispatch(req, res) {
     });
     res.status(200).send(availableEquipment);
   } catch (err) {
-    console.log("ERR:", err);
     res.send(err);
   }
 }

@@ -4,12 +4,11 @@ const helper = require("../helpers/cronJob");
 
 // All cronjobs related to equipments
 async function equipmentCronjobs(req, res) {
-  const EVERY_30MINS = "*/10 * * * *";
-  const EVERY_6PM = "0 18 * * *";
+  const EVERY_6PM = "0 10 * * *";
   const scheduleEvery6PM = cron.schedule(
     EVERY_6PM,
     async () => {
-      console.log("running a task every day at 10:00");
+      console.log("running a task every day at 18:00");
       await EquipmentController.captureEquipmentUtilization(req, res);
       await helper.cronJobLogger("Equipment", "Equipment availability report");
     },
@@ -18,18 +17,7 @@ async function equipmentCronjobs(req, res) {
       timezone: "Africa/Kigali",
     }
   );
-  const scheduleEveryHalfHour = cron.schedule(
-    EVERY_30MINS,
-    async () => {
-      console.log("CRONJOB => TESTING => Run every one hour");
-    },
-    {
-      scheduled: true,
-      timezone: "Africa/Kigali",
-    }
-  );
   scheduleEvery6PM.start();
-  scheduleEveryHalfHour.start();
 }
 async function equipmentStatus(req, res) {
   cron.schedule(

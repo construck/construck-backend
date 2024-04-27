@@ -486,7 +486,6 @@ async function worksByEquipment(req, res) {
   let query;
   query = {
     siteWork: false,
-    status: { $ne: "recalled" },
     "equipment._id": new mongoose.Types.ObjectId(id),
     workStartDate: {
       $gte: startdate,
@@ -499,7 +498,11 @@ async function worksByEquipment(req, res) {
       "project._id": { $in: projects },
     };
   }
-  const response = await Work.model.find(query).sort({ workStartDate: 1 }).populate('driver');
+  const response = await Work.model
+    .find(query)
+    .sort({ workStartDate: 1 })
+    .populate("driver");
+  console.log("response", response);
   // Fetch works by dates and projects
   if (response.length > 0) {
     return res.status(200).send({
