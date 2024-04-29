@@ -46,7 +46,7 @@ async function captureEquipmentUtilization(req, res) {
           "This automation is designed to be run in production otherwise specify the date in the query string",
       });
       return;
-    } 
+    }
   }
   try {
     // 1. CHECK IF THERE IS DATA FOR SELECTED DATE

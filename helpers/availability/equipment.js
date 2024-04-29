@@ -5,17 +5,18 @@ const Work = require("./../../models/workData");
 const Maintenance = require("./../../models/maintenance");
 
 async function getListOfEquipmentOnDuty(startDate, endDate, shift, siteWork) {
+  siteWork = siteWork === "true";
   let query = [];
   query = {
     $or: [
       {
+        "dispatch.shift": shift,
         siteWork: false,
-        shift,
         workStartDate: endDate,
       },
       {
+        "dispatch.shift": shift,
         siteWork: true,
-        shift,
         workStartDate: {
           $lte: startDate,
         },
@@ -26,8 +27,14 @@ async function getListOfEquipmentOnDuty(startDate, endDate, shift, siteWork) {
     ],
   };
 
-  const response = Work.model.find(query);
-  return response;
+  const response = await Work.model.find(query, {
+    workStartDate: 1,
+    workEndDate: 1,
+    siteWork: 1,
+    "dispatch.shift": 1,
+    "equipment.plateNumber": 1,
+  });
+  return response || [];
 }
 
 async function getListOfEquipmentInWorkshop() {

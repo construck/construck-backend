@@ -3260,8 +3260,7 @@ router.put("/:id", async (req, res) => {
   }
   delete updateObj.driver;
   try {
-    // console.log('equip',new mongoose.Types.ObjectId(req?.body?.equipment?._id))
-    // return;
+    updateObj.equipment._id =  new mongoose.Types.ObjectId(req?.body?.equipment?._id)
     let currentWork = await workData.model.updateOne(
       { _id: new mongoose.Types.ObjectId(id) },
       updateObj
@@ -3279,19 +3278,8 @@ router.put("/:id", async (req, res) => {
       "day",
       "[]"
     );
-    // const dispatches = await workData.model.find({
-
-    //   workStartDate: {
-    //     $gte: moment(req.body.workStartDate).startOf("day").toDate(),
-    //   },
-    //   workEndDate: {
-    //     $lte: moment(req.body.workEndDate).endOf("day").toDate(),
-    //   },
-    //   status: { $in: ["created", "on going", "in progress"] },
-    // });
 
     if (isBetween) {
-      console.log("updating... equip:");
       await eqData.model.findOneAndUpdate(
         { _id: new mongoose.Types.ObjectId(req?.body?.equipment?._id) },
         {
@@ -3299,24 +3287,9 @@ router.put("/:id", async (req, res) => {
         }
       );
     }
-    // currentWork.driver = new mongoose.Types.ObjectId(currentWork.driver)
     {
       returnNewDocument: true;
     }
-    // await workData.model.updateMany(
-    //   {
-    //     "project._id": projectId,
-    //   },
-    //   {
-    //     $set: {
-    //       "project.projectAdmin": new mongoose.Types.ObjectId(projectAdmin),
-    //     },
-    //   }
-    // );
-
-    // employee.assignedToSiteWork = req.body?.siteWork;
-    //   employee.assignedDate = moment(req.body?.dispatch?.date);
-    //   employee.assignedShift = req.body?.dispatch?.shift;
 
     await employeeData.model.findOneAndUpdate(
       { _id: currentWork?.driver },
