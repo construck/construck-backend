@@ -395,7 +395,6 @@ async function checkEquipmentAvailabilityForDispatch(req, res) {
     workStartDate = date;
     workEndDate = date;
   }
-
   try {
     // 1: GET A LIST OF DISPOSED EQUIPMENT
     let listDisposed = await getListOfDisposedEquipments();
@@ -413,12 +412,10 @@ async function checkEquipmentAvailabilityForDispatch(req, res) {
     listEquipOnDuty = equipmentOnDuty?.map((e) => {
       return e.equipment.plateNumber;
     });
+
     // 2. GET LIST OF EQUIPMENT IN WORKSHOP
     let equipmentInWorkshop = await getListOfEquipmentInWorkshop(workStartDate);
 
-    // console.log('equipmentInWorkshop', equipmentInWorkshop)
-    // res.status(200).send(equipmentInWorkshop);
-    // return;
 
     let listEquipInWorkshop = equipmentInWorkshop?.map((e) => {
       return e.plate.text;

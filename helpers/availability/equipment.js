@@ -6,22 +6,23 @@ const Maintenance = require("./../../models/maintenance");
 
 async function getListOfEquipmentOnDuty(startDate, endDate, shift, siteWork) {
   siteWork = siteWork === "true";
+  let formattedStartDate = moment(startDate).format("YYYY-MM-DD");
   let query = [];
   query = {
     $or: [
       {
         "dispatch.shift": shift,
         siteWork: false,
-        workStartDate: endDate,
+        workStartDate: formattedStartDate,
       },
       {
         "dispatch.shift": shift,
         siteWork: true,
         workStartDate: {
-          $lte: startDate,
+          $lte: moment(startDate).format("YYYY-MM-DD"),
         },
         workEndDate: {
-          $gte: endDate,
+          $gte: moment(endDate).format("YYYY-MM-DD") ,
         },
       },
     ],
@@ -50,8 +51,6 @@ async function getListOfEquipmentInWorkshop(workStartDate) {
       entryDate: 1,
     }
   );
-  console.log("workStartDate", workStartDate);
-  console.log("maintenance", maintenance);
   return maintenance || [];
 }
 

@@ -39,7 +39,7 @@ router.get("/token/:id", async (req, res) => {
 router.get("/:date/:shift", async (req, res) => {
   let { type, date, shift } = req.params;
   try {
-    const employee = await employeeData.model.find({
+    let query = {
       $or: [
         { status: "active" },
         {
@@ -63,7 +63,13 @@ router.get("/:date/:shift", async (req, res) => {
           assignedToSiteWork: { $ne: true },
         },
       ],
-    });
+    };
+    const employee = await employeeData.model.find(
+      {},
+      {
+        password: 0,
+      }
+    );
     res.status(200).send(employee);
   } catch (err) {
     res.send(err);
