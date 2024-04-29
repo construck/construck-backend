@@ -37,18 +37,21 @@ async function getListOfEquipmentOnDuty(startDate, endDate, shift, siteWork) {
   return response || [];
 }
 
-async function getListOfEquipmentInWorkshop() {
+async function getListOfEquipmentInWorkshop(workStartDate) {
   const maintenance = await Maintenance.model.find(
     {
       jobCard_status: "opened",
+      entryDate: { $gte: workStartDate },
     },
     {
       plate: 1,
       status: 1,
       jobCard_status: 1,
+      entryDate: 1,
     }
   );
-
+  console.log("workStartDate", workStartDate);
+  console.log("maintenance", maintenance);
   return maintenance || [];
 }
 
