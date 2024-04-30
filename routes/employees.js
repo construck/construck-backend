@@ -90,11 +90,37 @@ router.post("/", async (req, res) => {
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.send({
+    res.status(503).send({
       error,
       key,
     });
   }
+});
+router.post("/drivers", async (req, res) => {
+  // COMMENT THIS CODES IF APP IS APPROVED
+  // return res.status(500).send({
+  //   message: "Try again later",
+  // });
+  try {
+    let hashedPassword = await bcrypt.hash(req.body.password, 10);
+    let employeeToCreate = new employeeData.model(req.body);
+    employeeToCreate.password = hashedPassword;
+    employeeToCreate.status = "active";
+    let employeeCreated = await employeeToCreate.save();
+
+    res.status(201).send(employeeCreated);
+  } catch (err) {
+    let error = findError(err.code);
+    let keyPattern = err.keyPattern;
+    let key = _.findKey(keyPattern, function (key) {
+      return key === 1;
+    });
+    res.status(503).send({
+      error,
+      key,
+    });
+  }
+  return;
 });
 
 router.post("/login", async (req, res) => {

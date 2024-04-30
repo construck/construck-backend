@@ -50,7 +50,11 @@ const EmployeeSchema = mongoose.Schema({
   assignedToSiteWork: { type: Boolean, default: false },
   employmentStatus:{
     type: String
-  }
+  },
+  source:{
+    type: String,
+    default: "web",
+  },
 });
 
 module.exports = {
