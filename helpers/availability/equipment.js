@@ -11,18 +11,20 @@ async function getListOfEquipmentOnDuty(startDate, endDate, shift, siteWork) {
   query = {
     $or: [
       {
+        status: { $ne: "recalled" },
         "dispatch.shift": shift,
         siteWork: false,
         workStartDate: formattedStartDate,
       },
       {
+        status: { $ne: "recalled" },
         "dispatch.shift": shift,
         siteWork: true,
         workStartDate: {
           $lte: moment(startDate).format("YYYY-MM-DD"),
         },
         workEndDate: {
-          $gte: moment(endDate).format("YYYY-MM-DD") ,
+          $gte: moment(endDate).format("YYYY-MM-DD"),
         },
       },
     ],

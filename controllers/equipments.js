@@ -416,7 +416,7 @@ async function checkEquipmentAvailabilityForDispatch(req, res) {
     // 2. GET LIST OF EQUIPMENT IN WORKSHOP
     let equipmentInWorkshop = await getListOfEquipmentInWorkshop(workStartDate);
 
-
+    
     let listEquipInWorkshop = equipmentInWorkshop?.map((e) => {
       return e.plate.text;
     });
