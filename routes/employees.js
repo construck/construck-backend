@@ -7,6 +7,7 @@ const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const { getDeviceToken } = require("../controllers.js/employees");
 const { fetchProjects } = require("./projects");
+const { default: mongoose } = require("mongoose");
 
 router.get("/", async (req, res) => {
   try {
@@ -125,12 +126,16 @@ router.post("/drivers", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   let { phone, password } = req.body;
-  console.log("phone", phone, password);
   let projects = await fetchProjects();
   let defaultPassword = "12345";
 
   try {
-    let employee = await employeeData.model.findOne({ phone: phone });
+    let employee = await employeeData.model.findOne({
+      phone: phone,
+      status: { $nin: ["deleted", "inactive"] },
+    });
+    // console.log("employee", employee);
+    // return;
     let vendor = await venData.model.findOne({ phone: phone });
     let user = await userData.model.findOne({ phone: phone });
     let allowed = false;
@@ -347,6 +352,53 @@ router.post("/login", async (req, res) => {
       message: `${err}`,
       error: true,
     });
+  }
+});
+
+router.delete("/delete-account/:id", async (req, res) => {
+  const { id } = req.params;
+  const { password } = req.body;
+  try {
+    const isDeletedOrInactive = await employeeData.model.findOne({
+      _id: new mongoose.Types.ObjectId(id),
+      status: { $nin: ["deleted", "inactive"] },
+    });
+    if (_.isEmpty(isDeletedOrInactive)) {
+      return res.status(404).send({
+        code: "USER_ACCOUNT_NOT_FOUND",
+        message: "Account not found",
+      });
+    }
+    isDefaultPassword = await bcrypt.compare(
+      password,
+      isDeletedOrInactive.password
+    );
+    if (!isDefaultPassword) {
+      return res.status(401).send({
+        code: "USER_PASSWORD_INCORRECT",
+        message: "Password is incorrect, try again",
+      });
+    }
+    const response = await employeeData.model.findByIdAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id) },
+      {
+        status: "deleted",
+      },
+      { new: true }
+    );
+    if (_.isNull(response)) {
+      return res.status(403).send({
+        code: "USER_DELETE_ERROR",
+        message: "Error occurred, Try again later or contact support",
+      });
+    }
+
+    return res.status(200).send({
+      code: "USER_DELETE_SUCCESS",
+      message: "Your account has been schedule to be deleted after 30 days.",
+    });
+  } catch (error) {
+    console.log("error", error);
   }
 });
 
