@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const User = require("../models/users");
 const eqData = require("../models/equipments");
 const assetAvblty = require("../models/assetAvailability");
 const downTimeData = require("../models/downtimes");
@@ -110,6 +111,28 @@ router.get("/v2", async (req, res) => {
     res.status(200).send(equipments);
   } catch (err) {}
 });
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // find owner
+    const owner = await User.model.findById(id);
+    const equipments = await eqData.model.find(
+      {
+        eqOwner: owner.firstName,
+      },
+      {
+        _id: 1,
+        eqDescription: 1,
+        plateNumber: 1,
+        eqtype: 1
+      }
+    ).sort({
+      createdOn: -1
+    });
+    res.status(200).send(equipments);
+  } catch (err) {}
+});
 
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
@@ -185,6 +208,7 @@ router.get("/:date/:shift", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
+  console.log("karibu", req.body);
   try {
     eqData.model.findOne(
       {
@@ -192,18 +216,22 @@ router.post("/", async (req, res) => {
       },
       async (err, eq) => {
         if (err) {
+          console.log("what now");
         }
         if (eq) {
+          console.log("duplicate");
           res.send({
             error: "Duplicate key",
             key: "Plate number",
           });
         } else {
+          console.log("go on");
           try {
             const eqToCreate = new eqData.model(req.body);
             const eqCreated = await eqToCreate.save();
             res.status(201).send(eqCreated);
           } catch (err) {
+            console.log("@@here", err);
             let error = findError(err.code);
             let keyPattern = err.keyPattern;
             let key = _.findKey(keyPattern, function (key) {
@@ -217,7 +245,9 @@ router.post("/", async (req, res) => {
         }
       }
     );
+    console.log("confused");
   } catch (err) {
+    console.log("err", err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {

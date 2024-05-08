@@ -1472,7 +1472,6 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
 });
 
 router.get("/detailed/:canViewRevenues", async (req, res) => {
-  console.log("@@init...");
   let { canViewRevenues } = req.params;
   let {
     startDate,
@@ -1891,7 +1890,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         );
 
         datesPosted.map((dP) => {
-          console.log("@@dP", dP);
           if (
             moment(Date.parse(dP.date)).isSameOrAfter(moment(startDate)) &&
             moment(Date.parse(dP.date)).isSameOrBefore(
@@ -1901,12 +1899,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 .add(59, "seconds")
             )
           ) {
-            console.log(
-              "###",
-              w.equipment?.uom,
-              dP.duration,
-              w?.equipment?.supplierRate
-            );
             siteWorkList.push({
               "Dispatch date": moment(Date.parse(dP.date)).format("M/D/YYYY"),
               "Posted On": moment(Date.parse(dP.date)).format("M/D/YYYY"),
@@ -1991,12 +1983,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 .add(59, "seconds")
             )
           ) {
+            console.log("##", w.project === undefined ? w._id : null);
             siteWorkList.push({
               "Dispatch date": moment(Date.parse(dNP)).format("M/D/YYYY"),
               "Posted On": "",
               "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
               "Site work?": w.siteWork,
-              "Project Description": w.project.prjDescription,
+              "Project Description": "",
               "Equipment Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
               "Unit of measurement": w.equipment?.uom,
@@ -2333,6 +2326,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     res.status(200).send(orderedList.filter((w) => w !== null));
   } catch (err) {
+    console.log("yes", err);
     res.send(err);
   }
 });
@@ -3260,7 +3254,9 @@ router.put("/:id", async (req, res) => {
   }
   delete updateObj.driver;
   try {
-    updateObj.equipment._id =  new mongoose.Types.ObjectId(req?.body?.equipment?._id)
+    updateObj.equipment._id = new mongoose.Types.ObjectId(
+      req?.body?.equipment?._id
+    );
     let currentWork = await workData.model.updateOne(
       { _id: new mongoose.Types.ObjectId(id) },
       updateObj
