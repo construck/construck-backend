@@ -2625,7 +2625,7 @@ router.post("/", async (req, res) => {
     // IF EQUIPMENT IS STANDBY OR DISPATCHED, PROCEED
     let equipment = await eqData.model.findOne({
       _id: workToCreate?.equipment?._id,
-      eqStatus: { $in: ["standby", "dispatched"] },
+      eqStatus: "disposed",
     });
     if (_.isEmpty(equipment)) {
       return res.status(404).send({
@@ -3260,7 +3260,9 @@ router.put("/:id", async (req, res) => {
   }
   delete updateObj.driver;
   try {
-    updateObj.equipment._id =  new mongoose.Types.ObjectId(req?.body?.equipment?._id)
+    updateObj.equipment._id = new mongoose.Types.ObjectId(
+      req?.body?.equipment?._id
+    );
     let currentWork = await workData.model.updateOne(
       { _id: new mongoose.Types.ObjectId(id) },
       updateObj
