@@ -2628,7 +2628,7 @@ router.post("/", async (req, res) => {
     // IF EQUIPMENT IS STANDBY OR DISPATCHED, PROCEED
     let equipment = await eqData.model.findOne({
       _id: workToCreate?.equipment?._id,
-      eqStatus: "disposed",
+      eqStatus: { $ne: "disposed" },
     });
     if (_.isEmpty(equipment)) {
       return res.status(404).send({
