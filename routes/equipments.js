@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const User = require("../models/users");
 const eqData = require("../models/equipments");
 const assetAvblty = require("../models/assetAvailability");
 const downTimeData = require("../models/downtimes");
@@ -110,6 +111,30 @@ router.get("/v2", async (req, res) => {
     res.status(200).send(equipments);
   } catch (err) {}
 });
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // find owner
+    const owner = await User.model.findById(id);
+    const equipments = await eqData.model
+      .find(
+        {
+          eqOwner: owner.firstName,
+        },
+        {
+          _id: 1,
+          eqDescription: 1,
+          plateNumber: 1,
+          eqtype: 1,
+        }
+      )
+      .sort({
+        createdOn: -1,
+      });
+    res.status(200).send(equipments);
+  } catch (err) {}
+});
 
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
@@ -192,32 +217,47 @@ router.post("/", async (req, res) => {
       },
       async (err, eq) => {
         if (err) {
+          return res.status(509).send({
+            code: "EQUIPMENT_ERROR",
+            error: "Duplicate key",
+            message: "Equipment can not be created",
+            key: "Plate number",
+          });
         }
         if (eq) {
-          res.send({
+          return res.status(409).send({
+            code: "EQUIPMENT_EXIST",
             error: "Duplicate key",
+            message: "Equipment can not be created",
             key: "Plate number",
           });
         } else {
           try {
             const eqToCreate = new eqData.model(req.body);
             const eqCreated = await eqToCreate.save();
-            res.status(201).send(eqCreated);
+            return res.status(201).send({
+              code: "EQUIPMENT_CREATED",
+              message: "Equipment has been created successfully.",
+            });
           } catch (err) {
             let error = findError(err.code);
             let keyPattern = err.keyPattern;
             let key = _.findKey(keyPattern, function (key) {
               return key === 1;
             });
-            res.send({
+            return res.status(409).send({
+              code: "EQUIPMENT_ERROR",
               error,
+              message: "Something when wrong, try again",
               key,
             });
           }
         }
       }
     );
+    console.log("confused");
   } catch (err) {
+    console.log("err", err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {

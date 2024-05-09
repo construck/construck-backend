@@ -32,9 +32,7 @@ const UserSchema = mongoose.Schema(
       type: String,
     },
     company: {
-      type: mongoose.SchemaTypes.ObjectId,
-      transform: (v) => (v === "" ? null : v),
-      ref: "customers",
+      type: String,
     },
     assignedProjects: {
       type: [],
@@ -49,6 +47,10 @@ const UserSchema = mongoose.Schema(
     },
     permissions: {
       type: Object,
+    },
+    source: {
+      type: String,
+      default: "web",
     },
   },
 
