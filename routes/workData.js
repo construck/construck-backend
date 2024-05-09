@@ -2451,9 +2451,13 @@ router.get("/monthlyRevenuePerProject/:projectName", async (req, res) => {
 
 router.get("/monthlyValidatedRevenues/:projectName", async (req, res) => {
   let { projectName } = req.params;
-  let result = await getValidatedRevenuesByProject(projectName);
-
-  res.send(result);
+  console.log("projectName", projectName);
+  try {
+    let result = await getValidatedRevenuesByProject(projectName);
+    res.send(result);
+  } catch (error) {
+    console.log("what??", error);
+  }
 });
 
 router.get("/monthlyNonValidatedRevenues/:projectName", async (req, res) => {
@@ -2474,9 +2478,14 @@ router.get("/dailyValidatedRevenues/:projectName", async (req, res) => {
 router.get("/dailyNonValidatedRevenues/:projectName", async (req, res) => {
   let { projectName } = req.params;
   let { month, year } = req.query;
-  let result = await getDailyNonValidatedRevenues(projectName, month, year);
+  console.log("@@@", projectName, month, year);
+  try {
+    let result = await getDailyNonValidatedRevenues(projectName, month, year);
 
-  res.send(result);
+    res.send(result);
+  } catch (error) {
+    console.log("####err", error);
+  }
 });
 
 router.get("/validatedList/:projectName", async (req, res) => {
@@ -5426,6 +5435,7 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
     });
     return list;
   } catch (err) {
+    console.log('%%%%', err)
     err;
     return err;
   }

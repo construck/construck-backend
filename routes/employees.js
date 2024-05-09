@@ -97,20 +97,21 @@ router.post("/", async (req, res) => {
     });
   }
 });
-router.post("/drivers", async (req, res) => {
+router.post("/vendors", async (req, res) => {
   // COMMENT THIS CODES IF APP IS APPROVED
   // return res.status(500).send({
   //   message: "Try again later",
   // });
   try {
     let hashedPassword = await bcrypt.hash(req.body.password, 10);
-    let employeeToCreate = new employeeData.model(req.body);
-    employeeToCreate.password = hashedPassword;
-    employeeToCreate.status = "active";
-    let employeeCreated = await employeeToCreate.save();
+    let userToCreate = new userData.model(req.body);
+    userToCreate.password = hashedPassword;
+    userToCreate.status = "active";
+    let employeeCreated = await userToCreate.save();
 
     res.status(201).send(employeeCreated);
   } catch (err) {
+    console.log("error", err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
@@ -127,17 +128,17 @@ router.post("/drivers", async (req, res) => {
 router.post("/login", async (req, res) => {
   let { phone, password } = req.body;
   let projects = await fetchProjects();
-  let defaultPassword = "12345";
+  const defaultPassword = password || "12345";
 
   try {
     let employee = await employeeData.model.findOne({
       phone: phone,
       status: { $nin: ["deleted", "inactive"] },
     });
-    // console.log("employee", employee);
-    // return;
-    // let vendor = await venData.model.findOne({ phone: phone });
-    let user = await userData.model.findOne({ phone: phone });
+    let user = await userData.model.findOne({
+      phone: phone,
+      status: { $nin: ["deleted", "inactive"] },
+    });
     let allowed = false;
     let userType = null;
     let isDefaultPassword = false;
@@ -149,32 +150,28 @@ router.post("/login", async (req, res) => {
         employee.password
       );
     }
-    if (user && user.userType === 'vendor') {
+    if (user && user.userType === "vendor") {
       userType = "vendor";
-      isDefaultPassword = await bcrypt.compare(
-        defaultPassword,
-        user.password
-      );
+      isDefaultPassword =
+        (await bcrypt.compare(password, user.password)) ||
+        defaultPassword === user.password;
     } // vendor
-    if (user && user.userType !== 'vendor') {
+    if (user && user.userType !== "vendor") {
       userType = "consUser";
-      isDefaultPassword = await bcrypt.compare(defaultPassword, user.password);
     } // cons User
-
     if (userType === null) {
-      console.log('@@@null', userType);
       allowed = false;
       res.status(401).send({
         message: "Not allowed!",
         error: true,
       });
     }
+    ``;
 
     if (userType === "employee") {
       if (!isDefaultPassword) {
         allowed = await bcrypt.compare(password, employee.password);
         if (employee.status !== "inactive" && allowed) {
-          // employee.message = "Allowed";
           res.status(200).send({
             employee: {
               _id: employee._id,
@@ -230,7 +227,6 @@ router.post("/login", async (req, res) => {
     }
 
     if (userType === "vendor") {
-     
       allowed = await bcrypt.compare(password, user.password);
       return res.status(200).send({
         employee: {
@@ -248,8 +244,10 @@ router.post("/login", async (req, res) => {
     }
 
     if (userType === "consUser") {
-      allowed = await bcrypt.compare(password, user.password);
-      if (user.status !== "inactive") {
+      if (
+        (await bcrypt.compare(password, user.password)) &&
+        user.status !== "inactive"
+      ) {
         let _projects = user.assignedProjects?.map((p) => {
           let _p = { ...p };
           _p.id = p?._id;
@@ -283,9 +281,8 @@ router.post("/login", async (req, res) => {
         });
       }
     }
-
   } catch (err) {
-    console.log('@@err', err)
+    console.log("@@err", err);
     res.status(500).send({
       message: `${err}`,
       error: true,
@@ -297,7 +294,7 @@ router.delete("/delete-account/:id", async (req, res) => {
   const { id } = req.params;
   const { password } = req.body;
   try {
-    const isDeletedOrInactive = await employeeData.model.findOne({
+    const isDeletedOrInactive = await userData.model.findOne({
       _id: new mongoose.Types.ObjectId(id),
       status: { $nin: ["deleted", "inactive"] },
     });
@@ -317,7 +314,7 @@ router.delete("/delete-account/:id", async (req, res) => {
         message: "Password is incorrect, try again",
       });
     }
-    const response = await employeeData.model.findByIdAndUpdate(
+    const response = await userData.model.findByIdAndUpdate(
       { _id: new mongoose.Types.ObjectId(id) },
       {
         status: "deleted",

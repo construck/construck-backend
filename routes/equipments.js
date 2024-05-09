@@ -117,19 +117,21 @@ router.get("/:id", async (req, res) => {
   try {
     // find owner
     const owner = await User.model.findById(id);
-    const equipments = await eqData.model.find(
-      {
-        eqOwner: owner.firstName,
-      },
-      {
-        _id: 1,
-        eqDescription: 1,
-        plateNumber: 1,
-        eqtype: 1
-      }
-    ).sort({
-      createdOn: -1
-    });
+    const equipments = await eqData.model
+      .find(
+        {
+          eqOwner: owner.firstName,
+        },
+        {
+          _id: 1,
+          eqDescription: 1,
+          plateNumber: 1,
+          eqtype: 1,
+        }
+      )
+      .sort({
+        createdOn: -1,
+      });
     res.status(200).send(equipments);
   } catch (err) {}
 });
@@ -208,7 +210,6 @@ router.get("/:date/:shift", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  console.log("karibu", req.body);
   try {
     eqData.model.findOne(
       {
@@ -216,29 +217,38 @@ router.post("/", async (req, res) => {
       },
       async (err, eq) => {
         if (err) {
-          console.log("what now");
+          return res.status(509).send({
+            code: "EQUIPMENT_ERROR",
+            error: "Duplicate key",
+            message: "Equipment can not be created",
+            key: "Plate number",
+          });
         }
         if (eq) {
-          console.log("duplicate");
-          res.send({
+          return res.status(409).send({
+            code: "EQUIPMENT_EXIST",
             error: "Duplicate key",
+            message: "Equipment can not be created",
             key: "Plate number",
           });
         } else {
-          console.log("go on");
           try {
             const eqToCreate = new eqData.model(req.body);
             const eqCreated = await eqToCreate.save();
-            res.status(201).send(eqCreated);
+            return res.status(201).send({
+              code: "EQUIPMENT_CREATED",
+              message: "Equipment has been created successfully.",
+            });
           } catch (err) {
-            console.log("@@here", err);
             let error = findError(err.code);
             let keyPattern = err.keyPattern;
             let key = _.findKey(keyPattern, function (key) {
               return key === 1;
             });
-            res.send({
+            return res.status(409).send({
+              code: "EQUIPMENT_ERROR",
               error,
+              message: "Something when wrong, try again",
               key,
             });
           }
