@@ -2,7 +2,7 @@ const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const userData = require("../models/users");
 const Driver = require("../models/drivers");
-const venData = require("../models/vendors");
+const Vendor = require("../models/vendors");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const token = require("../tokens/tokenGenerator");
@@ -99,6 +99,7 @@ router.post("/login", async (req, res) => {
     // GENERATE JWT TOKEN AND SEND IT TO CLIENT
 
     if (user) {
+      console.log("@@user", user);
       const payload = {
         id: user._id,
         email: user.email,
