@@ -78,8 +78,13 @@ router.post("/login", async (req, res) => {
       .populate("company");
 
     let vendor = await venData.model.findOne({ phone: email });
-
-    console.log(vendor);
+    let vendorProfile;
+    if (user && user.userType === "vendor") {
+      vendorProfile = await venData.model.findById(
+        { _id: user._id },
+        { password: 0 }
+      );
+    }
 
     if (user?.length === 0 || !user) {
       if (vendor?.length === 0 || !vendor) {
@@ -99,9 +104,14 @@ router.post("/login", async (req, res) => {
       : false;
 
     if (userAllowed) {
+      console.log("vendor", vendorProfile);
       if (user.status === "active") {
         delete user.password;
-        res.status(200).send({ user, message: "Allowed" });
+        res.status(200).send({
+          user,
+          vendor: vendorProfile,
+          message: "Allowed",
+        });
       } else {
         res.status(401).send({
           message: "Not activated!",
