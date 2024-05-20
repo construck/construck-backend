@@ -482,38 +482,44 @@ async function worksByEquipment(req, res) {
   projects = projects.split(",").filter((r) => !_.isEmpty(r));
   startdate = moment(startdate).startOf("day");
   enddate = moment(enddate).endOf("day");
-  // Query
-  let query;
-  query = {
-    siteWork: false,
-    "equipment._id": new mongoose.Types.ObjectId(id),
-    workStartDate: {
-      $gte: startdate,
-      $lte: enddate,
-    },
-  };
-  if (projects.length) {
+  try {
+    // Query
+    let query;
     query = {
-      ...query,
-      "project._id": { $in: projects },
+      siteWork: false,
+      "equipment._id": new mongoose.Types.ObjectId(id),
+      workStartDate: {
+        $gte: startdate,
+        $lte: enddate,
+      },
     };
-  }
-  const response = await Work.model
-    .find(query)
-    .sort({ workStartDate: 1 })
-    .populate("driver");
-  console.log("response", response);
-  // Fetch works by dates and projects
-  if (response.length > 0) {
-    return res.status(200).send({
-      count: response.length,
-      response,
-    });
-  } else {
-    return res.status(404).send({
-      error:
-        "Equipment you selected does not have any dispatch withing chosen dates",
-    });
+    if (projects.length) {
+      query = {
+        ...query,
+        "project._id": { $in: projects },
+      };
+    }
+
+    const response = await Work.model
+      .find(query)
+      .sort({ workStartDate: 1 })
+      .populate("driver");
+      
+    // Fetch works by dates and projects
+    if (response.length > 0) {
+      return res.status(200).send({
+        count: response.length,
+        response,
+      });
+    } else {
+      return res.status(404).send({
+        error:
+          "Equipment you selected does not have any dispatch withing chosen dates",
+      });
+    }
+  } catch (error) {
+    return
+    console.log("@@err", error);
   }
 }
 
