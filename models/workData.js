@@ -147,6 +147,10 @@ const WorkSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    fuel: {
+      type: Number,
+      default: null,
+    },
   },
   {
     timestamps: true,
