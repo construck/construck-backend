@@ -2467,6 +2467,13 @@ router.get("/monthlyNonValidatedRevenues/:projectName", async (req, res) => {
   res.send(result);
 });
 
+router.get("/monthlyNotPosted/:projectName", async (req, res) => {
+  let { projectName } = req.params;
+  let result = await getNotPostedRevenuedByProject(projectName);
+
+  res.send(result);
+});
+
 router.get("/dailyValidatedRevenues/:projectName", async (req, res) => {
   let { projectName } = req.params;
   let { month, year } = req.query;
@@ -2483,6 +2490,20 @@ router.get("/dailyNonValidatedRevenues/:projectName", async (req, res) => {
     let result = await getDailyNonValidatedRevenues(projectName, month, year);
 
     res.send(result);
+  } catch (error) {
+    console.log("####err", error);
+  }
+});
+
+router.get("/dailyNotPostedRevenues/:projectName", async (req, res) => {
+  let { projectName } = req.params;
+  let { month, year } = req.query;
+  console.log("@@@", projectName, month, year);
+  try {
+    let result = await getDailyNotPostedRevenues(projectName, month, year);
+
+    res.send(result);
+
   } catch (error) {
     console.log("####err", error);
   }
@@ -2524,6 +2545,14 @@ router.get("/nonValidatedByDay/:projectName", async (req, res) => {
   let { projectName } = req.params;
   let { transactionDate } = req.query;
   let result = await getNonValidatedListByDay(projectName, transactionDate);
+
+  res.send(result);
+});
+
+router.get("/notPostedByDay/:projectName", async (req, res) => {
+  let { projectName } = req.params;
+  let { transactionDate } = req.query;
+  let result = await getNotPostedListByDay(projectName, transactionDate);
 
   res.send(result);
 });
@@ -4009,8 +4038,13 @@ router.put("/start/:id", async (req, res) => {
 router.put("/stop/:id", async (req, res) => {
   let { id } = req.params;
 
+  
   let { endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy } =
     req.body;
+
+
+    console.log(endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy)
+
 
   let duration = Math.abs(req.body.duration);
 
@@ -5108,9 +5142,142 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
   let pipeline = [
     {
       $match: {
-        "project.prjDescription": "SEBEYA DAM",
+        "project.prjDescription": prjDescription,
         status: {
           $nin: ["recalled", "created"],
+        },
+      },
+    },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    // {
+    //   $match: {
+    //     $or: [
+    //       {
+    //         "dailyWork.status": {
+    //           $exists: false,
+    //         },
+    //         siteWork: true,
+    //       },
+    //       {
+    //         "dailyWork.status": {
+    //           $exists: true,
+    //           $eq: "",
+    //         },
+    //         siteWork: true,
+    //       },
+    //       {
+    //         status: "stopped",
+    //         siteWork: false,
+    //       },
+    //     ],
+    //   },
+    // }
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: "$dailyWork.date",
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          month: {
+            $month: "$transactionDate",
+          },
+          year: {
+            $year: "$transactionDate",
+          },
+        },
+        totalRevenue: {
+          $sum: "$newTotalRevenue",
+        },
+      },
+    },
+    {
+      $match: {
+        $or: [
+          {
+            "_id.month": {
+              $gt: 4,
+            },
+            "_id.year": {
+              $gte: 2023,
+            },
+          },
+          {
+            "_id.year": {
+              $gt: 2023,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $sort: {
+        "_id.year": 1,
+      },
+    },
+    {
+      $sort: {
+        "_id.month": 1,
+      },
+    },
+    // {
+    //   $limit: 5,
+    // }
+  ];
+
+  try {
+    let nonValidatedJobs = await workData.model.aggregate(pipeline);
+    let list = nonValidatedJobs
+      .filter(($) => $?._id.month)
+      .map(($) => {
+        return {
+          monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
+          totalRevenue: $?.totalRevenue.toLocaleString(),
+          id: $?._id,
+        };
+      });
+    return list;
+  } catch (err) {
+    err;
+    return err;
+  }
+}
+
+async function getNotPostedRevenuedByProject(prjDescription) {
+  let pipeline = [
+    {
+      $match: {
+        "project.prjDescription": prjDescription,
+        status: {
+          $nin: ["approved", "released", "validated", "recalled"],
         },
       },
     },
@@ -5435,7 +5602,111 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
     });
     return list;
   } catch (err) {
-    console.log('%%%%', err)
+    console.log("%%%%", err);
+    err;
+    return err;
+  }
+}
+
+async function getDailyNotPostedRevenues(prjDescription, month, year) {
+  let pipeline = [
+    {
+      $match: {
+        "project.prjDescription": prjDescription,
+      },
+    },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    // {
+    //   $match: {
+    //     $or: [
+    //       {
+    //         "dailyWork.status": {
+    //           $exists: false,
+    //         },
+    //         siteWork: true,
+    //       },
+    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
+    //       {
+    //         status: "stopped",
+    //         siteWork: false,
+    //       },
+    //     ],
+    //   },
+    // },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: "$dailyWork.date",
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+        month: {
+          $month: "$transactionDate",
+        },
+        year: {
+          $year: "$transactionDate",
+        },
+      },
+    },
+    {
+      $match: {
+        month: parseInt(month),
+        year: parseInt(year),
+      },
+    },
+    {
+      $group: {
+        _id: {
+          date: {
+            $dateToString: { format: "%Y-%m-%d", date: "$transactionDate" },
+          },
+        },
+        totalRevenue: {
+          $sum: "$newTotalRevenue",
+        },
+      },
+    },
+    {
+      $sort: {
+        _id: 1,
+      },
+    },
+  ];
+
+  try {
+    let validatedJobs = await workData.model.aggregate(pipeline);
+    let list = validatedJobs.map(($) => {
+      return {
+        totalRevenue: $?.totalRevenue.toLocaleString(),
+        id: $?._id,
+      };
+    });
+    return list;
+  } catch (err) {
+    console.log("%%%%", err);
     err;
     return err;
   }
@@ -5730,6 +6001,99 @@ async function getValidatedListByDay(prjDescription, transactionDate) {
 }
 
 async function getNonValidatedListByDay(prjDescription, transactionDate) {
+  let pipeline = [
+    {
+      $match: {
+        "project.prjDescription": prjDescription,
+      },
+    },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    // {
+    //   $match: {
+    //     $or: [
+    //       {
+    //         "dailyWork.status": {
+    //           $exists: false,
+    //         },
+    //         siteWork: true,
+    //       },
+    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
+    //       {
+    //         status: "stopped",
+    //         siteWork: false,
+    //       },
+    //     ],
+    //   },
+    // },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: "$dailyWork.date",
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+        month: {
+          $month: "$transactionDate",
+        },
+        year: {
+          $year: "$transactionDate",
+        },
+      },
+    },
+    {
+      $match: {
+        transactionDate: new Date(transactionDate),
+      },
+    },
+    {
+      $sort: {
+        "equipment.eqDescription": 1,
+      },
+    },
+  ];
+
+  try {
+    let jobs = await workData.model.aggregate(pipeline);
+
+    let _jobs = [...jobs];
+
+    let __jobs = _jobs.map((v) => {
+      let strRevenue = v.newTotalRevenue.toLocaleString();
+      v.strRevenue = strRevenue;
+      return v;
+    });
+
+    return __jobs;
+  } catch (err) {
+    err;
+    return err;
+  }
+}
+
+async function getNotPostedListByDay(prjDescription, transactionDate) {
   let pipeline = [
     {
       $match: {
