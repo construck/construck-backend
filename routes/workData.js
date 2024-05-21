@@ -3895,7 +3895,7 @@ router.put("/reject/:id", async (req, res) => {
 
 router.put("/start/:id", async (req, res) => {
   let { id } = req.params;
-  let { startIndex, postingDate } = req.body;
+  let { fuel, startIndex, postingDate } = req.body;
 
   let dd = postingDate?.split(".")[0];
   let mm = postingDate?.split(".")[1];
@@ -3931,6 +3931,7 @@ router.put("/start/:id", async (req, res) => {
             eqStatus: "in progress",
             assignedDate: Date.now(),
             millage: startIndex,
+            fuel: fuel
           },
         }
       );
