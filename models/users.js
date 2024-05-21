@@ -34,6 +34,9 @@ const UserSchema = mongoose.Schema(
     company: {
       type: String,
     },
+    driver: { type: mongoose.Schema.Types.ObjectId, ref: "Driver" },
+    customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer" },
+    vendor: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
     assignedProjects: {
       type: [],
     },
