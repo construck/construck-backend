@@ -73,10 +73,7 @@ router.post("/", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  // const drivers = await Driver.model.find();
-  // console.log("@@@@drivers", drivers);
   let { email, password, phone } = req.body;
-  // console.log("@@@@email", phone, email, password);
 
   try {
     let query = {};
@@ -95,25 +92,29 @@ router.post("/login", async (req, res) => {
     // CHECK IF PASSWORD IF CORRECT
     // GENERATE JWT TOKEN AND SEND IT TO CLIENT
 
-    console.log("@@@user", user);
+    if (user) {
+      const payload = {
+        id: user._id,
+        email: user.email,
+        phone: user.phone,
+        userType: user.userType,
+      };
 
-    const payload = {
-      id: user._id,
-      email: user.email,
-      phone: user.phone,
-      userType: user.userType,
-    };
+      // GENERATE
+      const generatedToken = await token.tokenGenerator(payload);
+      delete user.password;
 
-    // GENERATE
-    const generatedToken = await token.tokenGenerator(payload);
-    delete user.password;
-    // let { password, ...userWithoutPassword } = user;
-
-    res.status(200).send({
-      user,
-      message: "Allowed",
-      token: generatedToken,
-    });
+      res.status(200).send({
+        user,
+        message: "Allowed",
+        token: generatedToken,
+      });
+    } else {
+      res.status(401).send({
+        message: "Not allowed!",
+        error: true,
+      });
+    }
   } catch (err) {
     console.log("err", err);
     res.status(500).send({
