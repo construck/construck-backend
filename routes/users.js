@@ -1,9 +1,11 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const userData = require("../models/users");
+const Driver = require("../models/drivers");
 const venData = require("../models/vendors");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
+const token = require("../tokens/tokenGenerator");
 
 router.get("/", async (req, res) => {
   try {
@@ -71,71 +73,49 @@ router.post("/", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  let { email, password } = req.body;
+  // const drivers = await Driver.model.find();
+  // console.log("@@@@drivers", drivers);
+  let { email, password, phone } = req.body;
+  // console.log("@@@@email", phone, email, password);
+
   try {
-    let user = await userData.model
-      .findOne({ email: email })
-      .populate("company");
-
-    let vendor = await venData.model.findOne({ phone: email });
-    let vendorProfile;
-    if (user && user.userType === "vendor") {
-      vendorProfile = await venData.model.findById(
-        { _id: user._id },
-        { password: 0 }
-      );
-    }
-
-    if (user?.length === 0 || !user) {
-      if (vendor?.length === 0 || !vendor) {
-        res.status(404).send({
-          message: "User not found!",
-          error: true,
-        });
-        return;
-      }
-    }
-
-    let userAllowed = user
-      ? await bcrypt.compare(password, user?.password)
-      : false;
-    let vendorAllowed = vendor
-      ? await bcrypt.compare(password, vendor?.password)
-      : false;
-
-    if (userAllowed) {
-      console.log("vendor", vendorProfile);
-      if (user.status === "active") {
-        delete user.password;
-        res.status(200).send({
-          user,
-          vendor: vendorProfile,
-          message: "Allowed",
-        });
-      } else {
-        res.status(401).send({
-          message: "Not activated!",
-          error: true,
-        });
-      }
-    } else if (vendorAllowed) {
-      res.status(200).send({
-        user: {
-          _id: vendor._id,
-          firstName: vendor.name,
-          lastName: "",
-          status: "active",
-          userType: "vendor",
-        },
-        message: "Allowed",
-      });
+    let query = {};
+    if (email) {
+      query = { email };
     } else {
-      res.status(401).send({
-        message: "Not allowed!",
-        error: true,
-      });
+      query = { phone };
     }
+    let user = await userData.model
+      .findOne(query)
+      .populate("customer")
+      .populate("driver")
+      .populate("vendor");
+
+    // IMPLEMENT NEW LOGIN: SERVING ALL USER TYPES
+    // CHECK IF PASSWORD IF CORRECT
+    // GENERATE JWT TOKEN AND SEND IT TO CLIENT
+
+    console.log("@@@user", user);
+
+    const payload = {
+      id: user._id,
+      email: user.email,
+      phone: user.phone,
+      userType: user.userType,
+    };
+
+    // GENERATE
+    const generatedToken = await token.tokenGenerator(payload);
+    delete user.password;
+    // let { password, ...userWithoutPassword } = user;
+
+    res.status(200).send({
+      user,
+      message: "Allowed",
+      token: generatedToken,
+    });
   } catch (err) {
+    console.log("err", err);
     res.status(500).send({
       message: `${err}`,
       error: true,
