@@ -981,7 +981,6 @@ router.get("/v3/driver/:driverId", async (req, res) => {
       //     // !_.isNull(w.driver) &&
       //     !_.isNull(w.workDone) && w.status !== "recalled"
       // );
-    console.log(listToSend,workList)
     let siteWorkList = [];
 
     let l = listToSend.map((w) => {
