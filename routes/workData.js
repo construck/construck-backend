@@ -10,7 +10,7 @@ const eqData = require("../models/equipments");
 const prjData = require("../models/projects");
 const moment = require("moment");
 const e = require("express");
-const { default: mongoose } = require("mongoose");
+const { default: mongoose, Types } = require("mongoose");
 const send = require("../utils/sendEmailNode");
 const { sendEmail } = require("./sendEmailRoute");
 const logs = require("../models/logs");
@@ -2467,9 +2467,10 @@ router.get("/monthlyNonValidatedRevenues/:projectName", async (req, res) => {
   res.send(result);
 });
 
-router.get("/monthlyNotPosted/:projectName", async (req, res) => {
-  let { projectName } = req.params;
-  let result = await getNotPostedRevenuedByProject(projectName);
+router.get("/monthlyNotPosted/:vendorId", async (req, res) => {
+  let { vendorId } = req.params;
+  // let result = await getNotPostedRevenuedByProject(vendorId);
+  let result = await getNotPostedRevenuedByVendor(vendorId);
 
   res.send(result);
 });
@@ -2495,15 +2496,13 @@ router.get("/dailyNonValidatedRevenues/:projectName", async (req, res) => {
   }
 });
 
-router.get("/dailyNotPostedRevenues/:projectName", async (req, res) => {
-  let { projectName } = req.params;
+router.get("/dailyNotPostedRevenues/:userId", async (req, res) => {
+  let { userId } = req.params;
   let { month, year } = req.query;
-  console.log("@@@", projectName, month, year);
+
   try {
-    let result = await getDailyNotPostedRevenues(projectName, month, year);
-
+    let result = await getDailyNotPostedRevenues(month, year, userId);
     res.send(result);
-
   } catch (error) {
     console.log("####err", error);
   }
@@ -2549,10 +2548,10 @@ router.get("/nonValidatedByDay/:projectName", async (req, res) => {
   res.send(result);
 });
 
-router.get("/notPostedByDay/:projectName", async (req, res) => {
-  let { projectName } = req.params;
+router.get("/notPostedByDay/:userId", async (req, res) => {
+  let { userId } = req.params;
   let { transactionDate } = req.query;
-  let result = await getNotPostedListByDay(projectName, transactionDate);
+  let result = await getNotPostedListByDay(userId, transactionDate);
 
   res.send(result);
 });
@@ -4038,13 +4037,17 @@ router.put("/start/:id", async (req, res) => {
 router.put("/stop/:id", async (req, res) => {
   let { id } = req.params;
 
-  
   let { endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy } =
     req.body;
 
-
-    console.log(endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy)
-
+  console.log(
+    endIndex,
+    tripsDone,
+    comment,
+    moreComment,
+    postingDate,
+    stoppedBy
+  );
 
   let duration = Math.abs(req.body.duration);
 
@@ -5271,11 +5274,11 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
   }
 }
 
-async function getNotPostedRevenuedByProject(prjDescription) {
+async function getNotPostedRevenuedByVendor(userId) {
   let pipeline = [
     {
       $match: {
-        "project.prjDescription": prjDescription,
+        "equipment.vendor": new Types.ObjectId(userId),
         status: {
           $nin: ["approved", "released", "validated", "recalled"],
         },
@@ -5397,6 +5400,7 @@ async function getNotPostedRevenuedByProject(prjDescription) {
           id: $?._id,
         };
       });
+    console.log(list);
     return list;
   } catch (err) {
     err;
@@ -5608,11 +5612,12 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
   }
 }
 
-async function getDailyNotPostedRevenues(prjDescription, month, year) {
+async function getDailyNotPostedRevenues(month, year, userId) {
   let pipeline = [
     {
       $match: {
-        "project.prjDescription": prjDescription,
+        // "project.prjDescription": prjDescription,
+        "equipment.vendor": new mongoose.Types.ObjectId(userId),
       },
     },
     {
@@ -5698,12 +5703,14 @@ async function getDailyNotPostedRevenues(prjDescription, month, year) {
 
   try {
     let validatedJobs = await workData.model.aggregate(pipeline);
+
     let list = validatedJobs.map(($) => {
       return {
         totalRevenue: $?.totalRevenue.toLocaleString(),
         id: $?._id,
       };
     });
+    // console.log(list);
     return list;
   } catch (err) {
     console.log("%%%%", err);
@@ -6093,11 +6100,11 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
   }
 }
 
-async function getNotPostedListByDay(prjDescription, transactionDate) {
+async function getNotPostedListByDay(userId, transactionDate) {
   let pipeline = [
     {
       $match: {
-        "project.prjDescription": prjDescription,
+        "equipment.vendor": new Types.ObjectId(userId),
       },
     },
     {
