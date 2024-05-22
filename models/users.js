@@ -51,6 +51,10 @@ const UserSchema = mongoose.Schema(
     permissions: {
       type: Object,
     },
+    accountType: {
+      type: Object,
+      default: "internal",
+    },
     source: {
       type: String,
       default: "web",

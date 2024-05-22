@@ -19,7 +19,10 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
   try {
-    let user = await userData.model.findById(id).populate("company");
+    let user = await userData.model
+      .findById(id)
+      .populate("company")
+      .populate("driver");
     res.status(200).send(user);
   } catch (err) {
     res.send(err);
@@ -39,6 +42,7 @@ router.post("/", async (req, res) => {
     status,
     assignedProjects,
     permissions,
+    vendor,
   } = req.body;
 
   try {
@@ -55,11 +59,13 @@ router.post("/", async (req, res) => {
       status,
       assignedProjects,
       permissions,
+      vendor,
     });
 
     let userCreated = await userToCreate.save();
     res.status(201).send(userCreated);
   } catch (err) {
+    console.log("err", err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
@@ -118,7 +124,6 @@ router.post("/login", async (req, res) => {
   } catch (err) {
     console.log("err", err);
     res.status(500).send({
-      message: `${err}`,
       error: true,
     });
   }
@@ -133,6 +138,48 @@ router.put("/status", async (req, res) => {
     let updatedUser = await userD.save();
     res.status(201).send(updatedUser);
   } catch (err) {
+    res.status(500).send({
+      message: `${err}`,
+      error: true,
+    });
+  }
+});
+router.put("/:id/disable-account", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const response = await userData.model.findByIdAndUpdate(
+      id,
+      {
+        status: "inactive",
+      },
+      {
+        password: 0,
+      }
+    );
+    res.status(201).send(response);
+  } catch (err) {
+    console.log("err");
+    res.status(500).send({
+      message: `${err}`,
+      error: true,
+    });
+  }
+});
+router.put("/:id/activate-account", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const response = await userData.model.findByIdAndUpdate(
+      id,
+      {
+        status: "active",
+      },
+      {
+        password: 0,
+      }
+    );
+    res.status(201).send(response);
+  } catch (err) {
+    console.log("err");
     res.status(500).send({
       message: `${err}`,
       error: true,
