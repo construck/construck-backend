@@ -976,11 +976,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               return dW.date === moment().format("DD-MMM-YYYY");
             }).length === 0)
       )
-      .filter(
-        (w) =>
-          // !_.isNull(w.driver) &&
-          !_.isNull(w.workDone) && w.status !== "recalled"
-      );
+      // .filter(
+      //   (w) =>
+      //     // !_.isNull(w.driver) &&
+      //     !_.isNull(w.workDone) && w.status !== "recalled"
+      // );
 
     let siteWorkList = [];
 
