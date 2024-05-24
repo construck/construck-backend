@@ -24,6 +24,7 @@ async function createUser(req, res) {
   } = req.body;
 
   const password = "12345"; // Default password
+  console.log('email', email)
 
   try {
     let hashedPassword = await bcrypt.hash(password, 10);
@@ -32,7 +33,7 @@ async function createUser(req, res) {
       lastName,
       username,
       password: hashedPassword,
-      email,
+      email: email || null,
       phone,
       userType,
       accountType,
