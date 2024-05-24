@@ -31,12 +31,17 @@ const UserSchema = mongoose.Schema(
     userType: {
       type: String,
     },
-    company: {
-      type: String,
-    },
     driver: { type: mongoose.Schema.Types.ObjectId, ref: "Driver" },
-    customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer" },
-    vendor: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
+    company: {
+      type: mongoose.Schema.Types.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "customers",
+    },
+    vendor: {
+      type: mongoose.Schema.Types.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "vendors",
+    },
     assignedProjects: {
       type: [],
     },
@@ -58,6 +63,10 @@ const UserSchema = mongoose.Schema(
     source: {
       type: String,
       default: "web",
+    },
+    setpassword: {
+      type: Boolean,
+      default: false,
     },
   },
 

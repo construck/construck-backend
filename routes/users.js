@@ -2,14 +2,23 @@ const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const userData = require("../models/users");
 const Driver = require("../models/drivers");
-const venData = require("../models/vendors");
+const Vendor = require("../models/vendors");
+const Customer = require("../models/customers");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const token = require("../tokens/tokenGenerator");
+const UserController = require("./../controllers/users");
 
 router.get("/", async (req, res) => {
   try {
-    let users = await userData.model.find().populate("company");
+    let users = await userData.model
+      .find(
+        {},
+        {
+          password: 0,
+        }
+      )
+      // .populate("company");
     res.status(200).send(users);
   } catch (err) {
     res.send(err);
@@ -20,7 +29,9 @@ router.get("/:id", async (req, res) => {
   let { id } = req.params;
   try {
     let user = await userData.model
-      .findById(id)
+      .findById(id, {
+        password: 0,
+      })
       .populate("company")
       .populate("driver");
     res.status(200).send(user);
@@ -30,67 +41,30 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  let {
-    firstName,
-    lastName,
-    username,
-    password,
-    email,
-    phone,
-    userType,
-    company,
-    status,
-    assignedProjects,
-    permissions,
-    vendor,
-  } = req.body;
-
-  try {
-    let hashedPassword = await bcrypt.hash(password, 10);
-    let userToCreate = new userData.model({
-      firstName,
-      lastName,
-      username,
-      password: hashedPassword,
-      email,
-      phone,
-      userType,
-      company,
-      status,
-      assignedProjects,
-      permissions,
-      vendor,
-    });
-
-    let userCreated = await userToCreate.save();
-    res.status(201).send(userCreated);
-  } catch (err) {
-    console.log("err", err);
-    let error = findError(err.code);
-    let keyPattern = err.keyPattern;
-    let key = _.findKey(keyPattern, function (key) {
-      return key === 1;
-    });
-    res.send({
-      error,
-      key,
-    });
-  }
+  UserController.createUser(req, res);
 });
 
 router.post("/login", async (req, res) => {
   let { email, password, phone } = req.body;
 
   try {
-    let query = {};
+    let query = {
+      status: "active",
+    };
     if (email) {
-      query = { email };
+      query = {
+        ...query,
+        email,
+      };
     } else {
-      query = { phone };
+      query = {
+        ...query,
+        phone,
+      };
     }
     let user = await userData.model
       .findOne(query)
-      .populate("customer")
+      .populate("company")
       .populate("driver")
       .populate("vendor");
 

@@ -6274,7 +6274,6 @@ async function stopWork(
 
     if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
 
-    console.log(work.siteWork);
 
     if (work.siteWork) {
       let dailyWorks = [...work.dailyWork];
