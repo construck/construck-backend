@@ -10,7 +10,7 @@ const eqData = require("../models/equipments");
 const prjData = require("../models/projects");
 const moment = require("moment");
 const e = require("express");
-const { default: mongoose } = require("mongoose");
+const { default: mongoose, Types } = require("mongoose");
 const send = require("../utils/sendEmailNode");
 const { sendEmail } = require("./sendEmailRoute");
 const logs = require("../models/logs");
@@ -935,7 +935,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         {
           $or: [
             {
-              "equipment.eqOwner": driverId,
+              "equipment.vendor": Types.ObjectId(driverId),
               status: { $ne: "released" },
             },
             {
@@ -976,12 +976,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               return dW.date === moment().format("DD-MMM-YYYY");
             }).length === 0)
       )
-      .filter(
-        (w) =>
-          // !_.isNull(w.driver) &&
-          !_.isNull(w.workDone) && w.status !== "recalled"
-      );
-
+      // .filter(
+      //   (w) =>
+      //     // !_.isNull(w.driver) &&
+      //     !_.isNull(w.workDone) && w.status !== "recalled"
+      // );
     let siteWorkList = [];
 
     let l = listToSend.map((w) => {
