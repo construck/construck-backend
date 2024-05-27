@@ -11,14 +11,13 @@ const UserController = require("./../controllers/users");
 
 router.get("/", async (req, res) => {
   try {
-    let users = await userData.model
-      .find(
-        {},
-        {
-          password: 0,
-        }
-      )
-      // .populate("company");
+    let users = await userData.model.find(
+      {},
+      {
+        password: 0,
+      }
+    );
+    // .populate("company");
     res.status(200).send(users);
   } catch (err) {
     res.send(err);
@@ -54,24 +53,22 @@ router.post("/login", async (req, res) => {
     if (email) {
       query = {
         ...query,
-        email,
+        email: email.trim(),
       };
     } else {
       query = {
         ...query,
-        phone,
+        phone: phone.trim(),
       };
     }
-    let user = await userData.model
-      .findOne(query)
-      .populate("company")
-      .populate("driver")
-      .populate("vendor");
-
+    let user = await userData.model.findOne(query)
+    .populate("company")
+    .populate("driver")
+    .populate("vendor");
+    console.log('user', user)
     // IMPLEMENT NEW LOGIN: SERVING ALL USER TYPES
     // CHECK IF PASSWORD IF CORRECT
     // GENERATE JWT TOKEN AND SEND IT TO CLIENT
-
     if (user) {
       const payload = {
         id: user._id,
@@ -84,13 +81,13 @@ router.post("/login", async (req, res) => {
       const generatedToken = await token.tokenGenerator(payload);
       delete user.password;
 
-      res.status(200).send({
+      return res.status(200).send({
         user,
         message: "Allowed",
         token: generatedToken,
       });
     } else {
-      res.status(401).send({
+      return res.status(401).send({
         message: "Not allowed!",
         error: true,
       });
