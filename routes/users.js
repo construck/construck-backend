@@ -137,6 +137,27 @@ router.put("/:id/assign-projects", async (req, res) => {
     });
   }
 });
+router.put("/:id/disable-account", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const response = await userData.model.findByIdAndUpdate(
+      id,
+      {
+        status: "inactive",
+      },
+      {
+        password: 0,
+      }
+    );
+    res.status(201).send(response);
+  } catch (err) {
+    console.log("err");
+    res.status(500).send({
+      message: `${err}`,
+      error: true,
+    });
+  }
+});
 router.put("/:id/activate-account", async (req, res) => {
   try {
     const { id } = req.params;
