@@ -5,7 +5,8 @@ const app = express();
 const bodyParser = require("body-parser");
 const cron = require("node-cron");
 const PORT = process.env.PORT ? process.env.PORT : 9000;
-
+const dotenv = require("dotenv").config();
+const _ = require("lodash");
 const mongoose = require("mongoose");
 const equipments = require("./routes/equipments");
 const downtimes = require("./routes/downtimes");
@@ -32,14 +33,14 @@ const mechanical = require("./routes/mechanicals");
 const download = require("./routes/download");
 const send = require("./utils/sendEmailNode");
 const fun = require("./utils/cron-functions");
-const dotenv = require("dotenv").config();
-const _ = require("lodash");
 const dispatchCronjobs = require("./cronjobs/works");
 const equipmentCronjobs = require("./cronjobs/equipments");
 
 const { NODE_ENV, CONS_MONGO_DB } = process.env;
 
 mongoDB = CONS_MONGO_DB;
+
+console.log('CONS_MONGO_DB', mongoDB)
 
 mongoose.connect(mongoDB, { useNewUrlParser: true });
 //Get the default connection

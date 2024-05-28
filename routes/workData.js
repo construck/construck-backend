@@ -2034,6 +2034,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Project Description": w.project?.prjDescription,
               "Equipment Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
+              "Owner": w.equipment?.eqOwner,
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)":
                 w.equipment?.uom === "hour"
@@ -2042,7 +2043,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Duration (DAYS)":
                 w.equipment?.uom === "day" ? _.round(dP.duration, 2) : 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-              "Other work description": w.dispatch?.otherJobType,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
                 "Projected Revenue":
                   w.equipment?.uom === "hour" ? dP?.rate * 5 : dP?.rate,
@@ -2054,32 +2054,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     ? dP.duration * w?.equipment?.rate
                     : (dP.duration > 0 ? 1 : 0) * dP.rate,
                 "Vendor payment": dP.expenditure,
-                // "Vendor payment":
-                //   w.equipment?.uom === "hour"
-                //     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
-                //       w?.equipment?.supplierRate
-                //     : (dP.duration > 0 ? 1 : 0) * w?.equipment?.supplierRate,
               }),
 
               "Driver Names": w.driver
                 ? w?.driver?.firstName + " " + w?.driver?.lastName
-                : w.equipment?.eqOwner,
-              "Turn boy 1":
-                w?.turnBoy?.length >= 1
-                  ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
-                  : "",
-              "Turn boy 2":
-                w?.turnBoy?.length >= 2
-                  ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
-                  : "",
-              "Turn boy 3":
-                w?.turnBoy?.length >= 3
-                  ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
-                  : "",
-              "Turn boy 4":
-                w?.turnBoy?.length >= 4
-                  ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
-                  : "",
+                : "",
               "Driver contacts": w.driver?.phone,
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
@@ -2110,20 +2089,19 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 .add(59, "seconds")
             )
           ) {
-            console.log("##", w.project === undefined ? w._id : null);
             siteWorkList.push({
               "Dispatch date": moment(Date.parse(dNP)).format("M/D/YYYY"),
               "Posted On": "",
               "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
               "Site work?": w.siteWork,
-              "Project Description": "",
+              "Project Description": w.project?.prjDescription,
               "Equipment Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
+              "Owner": w.equipment?.eqOwner,
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)": 0,
               "Duration (DAYS)": 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-              "Other work description": w.dispatch?.otherJobType,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
                 "Projected Revenue":
                   w.equipment?.uom === "hour"
@@ -2135,23 +2113,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
               "Driver Names": w.driver
                 ? w?.driver?.firstName + " " + w?.driver?.lastName
-                : w.equipment?.eqOwner,
-              "Turn boy 1":
-                w?.turnBoy?.length >= 1
-                  ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
-                  : "",
-              "Turn boy 2":
-                w?.turnBoy?.length >= 2
-                  ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
-                  : "",
-              "Turn boy 3":
-                w?.turnBoy?.length >= 3
-                  ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
-                  : "",
-              "Turn boy 4":
-                w?.turnBoy?.length >= 4
-                  ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
-                  : "",
+                : "",
               "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
@@ -2189,11 +2151,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Project Description": w.project.prjDescription,
               "Equipment Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
+              "Owner": w.equipment?.eqOwner,
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)": 0,
               "Duration (DAYS)": 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-              "Other work description": w.dispatch?.otherJobType,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
                 "Projected Revenue":
                   w.equipment?.uom === "hour"
@@ -2205,23 +2167,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
               "Driver Names": w.driver
                 ? w?.driver?.firstName + " " + w?.driver?.lastName
-                : w.equipment?.eqOwner,
-              "Turn boy 1":
-                w?.turnBoy?.length >= 1
-                  ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
-                  : "",
-              "Turn boy 2":
-                w?.turnBoy?.length >= 2
-                  ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
-                  : "",
-              "Turn boy 3":
-                w?.turnBoy?.length >= 3
-                  ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
-                  : "",
-              "Turn boy 4":
-                w?.turnBoy?.length >= 4
-                  ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
-                  : "",
+                : "",
               "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
@@ -2301,6 +2247,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Project Description": w.project?.prjDescription,
               "Equipment Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
+              "Owner": w.equipment?.eqOwner,
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)":
                 w.equipment?.uom === "hour"
@@ -2309,7 +2256,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Duration (DAYS)":
                 w.equipment?.uom === "day" ? _.round(dP.duration, 2) : 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-              "Other work description": w.dispatch?.otherJobType,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
                 "Projected Revenue":
                   w.equipment?.uom === "hour" ? dP.rate * 5 : dP.rate,
@@ -2329,23 +2275,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
               "Driver Names": w.driver
                 ? w?.driver?.firstName + " " + w?.driver?.lastName
-                : w.equipment?.eqOwner,
-              "Turn boy 1":
-                w?.turnBoy?.length >= 1
-                  ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
-                  : "",
-              "Turn boy 2":
-                w?.turnBoy?.length >= 2
-                  ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
-                  : "",
-              "Turn boy 3":
-                w?.turnBoy?.length >= 3
-                  ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
-                  : "",
-              "Turn boy 4":
-                w?.turnBoy?.length >= 4
-                  ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
-                  : "",
+                : "",
               "Driver contacts": w.driver?.phone,
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
@@ -2390,6 +2320,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             "Project Description": w.project.prjDescription,
             "Equipment Plate number": w.equipment.plateNumber,
             "Equipment Type": w.equipment?.eqDescription,
+            "Owner": w.equipment?.eqOwner,
             "Unit of measurement": w.equipment?.uom,
             "Duration (HRS)":
               w.equipment?.uom === "hour"
@@ -2398,7 +2329,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             "Duration (DAYS)":
               w.equipment?.uom === "day" ? _.round(w.duration, 2) : 0,
             "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-            "Other work description": w.dispatch?.otherJobType,
             ...((canViewRevenues === "true" || canViewRevenues === true) && {
               "Projected Revenue":
                 w.equipment?.uom === "hour"
@@ -2410,23 +2340,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             "Driver Names": w.driver
               ? w?.driver?.firstName + " " + w?.driver?.lastName
-              : w.equipment?.eqOwner,
-            "Turn boy 1":
-              w?.turnBoy?.length >= 1
-                ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
-                : "",
-            "Turn boy 2":
-              w?.turnBoy?.length >= 2
-                ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
-                : "",
-            "Turn boy 3":
-              w?.turnBoy?.length >= 3
-                ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
-                : "",
-            "Turn boy 4":
-              w?.turnBoy?.length >= 4
-                ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
-                : "",
+              : "",
             "Driver contacts": w.driver?.phone,
             "Target trips": w.dispatch?.targetTrips,
             "Trips done": w?.tripsDone,
@@ -2451,10 +2365,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     let orderedList = _.orderBy(finalList, "Dispatch date", "desc");
 
-    res.status(200).send(orderedList.filter((w) => w !== null));
+    return res.status(200).send(orderedList.filter((w) => w !== null));
   } catch (err) {
     console.log("yes", err);
-    res.send(err);
+    return res.send(err);
   }
 });
 

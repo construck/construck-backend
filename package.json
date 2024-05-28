@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon  index.js",
+    "dev": "nodemon --env-file=.env index.js",
     "dev:staging": "nodemon index.js",
     "dev:production": "nodemon index.js",
     "deploy:staging": "git push staging dev:master",
