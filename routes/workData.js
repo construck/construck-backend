@@ -1621,7 +1621,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             {
               siteWork: false,
               workStartDate: {
-                $gte: moment(startDate),
+                $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
@@ -1655,7 +1655,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             {
               siteWork: false,
               workStartDate: {
-                $gte: moment(startDate),
+                $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
