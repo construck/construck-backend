@@ -935,7 +935,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         {
           $or: [
             {
-              "equipment.eqOwner": driverId,
+              "equipment.vendor": Types.ObjectId(driverId),
               status: { $ne: "released" },
             },
             {
@@ -976,12 +976,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               return dW.date === moment().format("DD-MMM-YYYY");
             }).length === 0)
       )
-      .filter(
-        (w) =>
-          // !_.isNull(w.driver) &&
-          !_.isNull(w.workDone) && w.status !== "recalled"
-      );
-
+      // .filter(
+      //   (w) =>
+      //     // !_.isNull(w.driver) &&
+      //     !_.isNull(w.workDone) && w.status !== "recalled"
+      // );
     let siteWorkList = [];
 
     let l = listToSend.map((w) => {
@@ -2462,9 +2461,12 @@ router.get("/monthlyValidatedRevenues/:projectName", async (req, res) => {
 
 router.get("/monthlyNonValidatedRevenues/:projectName", async (req, res) => {
   let { projectName } = req.params;
-  let result = await getNonValidatedRevenuesByProject(projectName);
-
-  res.send(result);
+  try {
+    let result = await getNonValidatedRevenuesByProject(projectName);
+    return res.status(200).send(result);
+  } catch (error) {
+    return res.status(503).send({ error: "Error occurred, try again later" });
+  }
 });
 
 router.get("/monthlyNotPosted/:vendorId", async (req, res) => {
@@ -2543,9 +2545,14 @@ router.get("/validatedByDay/:projectName", async (req, res) => {
 router.get("/nonValidatedByDay/:projectName", async (req, res) => {
   let { projectName } = req.params;
   let { transactionDate } = req.query;
-  let result = await getNonValidatedListByDay(projectName, transactionDate);
-
-  res.send(result);
+  try {
+    let result = await getNonValidatedListByDay(projectName, transactionDate);
+    return res.status(200).send(result);
+  } catch (error) {
+    return res.status(503).status({
+      error: "Some error occurred, try again later or contact administrator",
+    });
+  }
 });
 
 router.get("/notPostedByDay/:userId", async (req, res) => {
@@ -2656,7 +2663,7 @@ router.post("/", async (req, res) => {
     // IF EQUIPMENT IS STANDBY OR DISPATCHED, PROCEED
     let equipment = await eqData.model.findOne({
       _id: workToCreate?.equipment?._id,
-      eqStatus: "disposed",
+      eqStatus: { $ne: "disposed" },
     });
     if (_.isEmpty(equipment)) {
       return res.status(404).send({
@@ -3404,6 +3411,15 @@ router.put("/approveDailyWork/:id", async (req, res) => {
     approvedExpenditure,
   } = req.body;
 
+  console.log(
+    "##",
+    postingDate,
+    approvedBy,
+    approvedRevenue,
+    approvedDuration,
+    approvedExpenditure
+  );
+
   try {
     let workRec = await workData.model.findById(id);
 
@@ -3416,6 +3432,13 @@ router.put("/approveDailyWork/:id", async (req, res) => {
     let _approvedDuration = workRec.approvedDuration
       ? workRec.approvedDuration
       : 0;
+
+    console.log(
+      "Gucanganyikirwa tu",
+      _approvedDuration,
+      _approvedRevenue,
+      _approvedExpenditure
+    );
 
     let work = await workData.model.findOneAndUpdate(
       {
@@ -3453,9 +3476,9 @@ router.put("/approveDailyWork/:id", async (req, res) => {
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
 
-    res.status(201).send(work);
+    return res.status(201).send(work);
   } catch (err) {
-    res.status(500).send({
+    return res.status(500).send({
       error: err,
     });
   }
@@ -3567,6 +3590,14 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
     reason,
   } = req.body;
 
+  console.log(
+    postingDate,
+    rejectedRevenue,
+    rejectedDuration,
+    rejectedExpenditure,
+    reason
+  );
+
   try {
     let workRec = await workData.model.findById(id);
 
@@ -3615,9 +3646,8 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
 
-    res.send(work);
-
-    let receipts = await getProjectAdminEmail(workRec.project.prjDescription);
+    let receipts =
+      false && (await getProjectAdminEmail(workRec.project.prjDescription));
     // let receipts = ["bhigiro@cvl.co.rw"];
 
     if (receipts.length > 0) {
@@ -3635,8 +3665,10 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
         }
       );
     }
+    return res.status(200).send(work);
   } catch (err) {
-    res.send(err);
+    console.log("@@err", err);
+    return res.status(503).send(err);
   }
 });
 
@@ -3895,14 +3927,16 @@ router.put("/reject/:id", async (req, res) => {
     };
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
-
-    let receipts = await getProjectAdminEmail(work.project.prjDescription);
-    // let receipts = ["bhigiro@cvl.co.rw"];
-
+    const { NODE_ENV } = process.env;
+    console.log("process.env.NODE_ENV", NODE_ENV);
+    let receipts =
+      NODE_ENV === "production"
+        ? await getProjectAdminEmail(work.project.prjDescription)
+        : [];
     if (receipts.length > 0) {
       await sendEmail(
         "appinfo@construck.rw",
-        receipts,
+        "receipts",
         "Work Rejected",
         "workRejected",
         "",
@@ -3923,7 +3957,7 @@ router.put("/reject/:id", async (req, res) => {
 
 router.put("/start/:id", async (req, res) => {
   let { id } = req.params;
-  let { startIndex, postingDate } = req.body;
+  let { fuel, startIndex, postingDate } = req.body;
 
   let dd = postingDate?.split(".")[0];
   let mm = postingDate?.split(".")[1];
@@ -3959,6 +3993,7 @@ router.put("/start/:id", async (req, res) => {
             eqStatus: "in progress",
             assignedDate: Date.now(),
             millage: startIndex,
+            fuel: fuel,
           },
         }
       );
@@ -5714,6 +5749,7 @@ async function getDailyNotPostedRevenues(month, year, userId) {
     return list;
   } catch (err) {
     console.log("%%%%", err);
+
     err;
     return err;
   }
@@ -6643,8 +6679,6 @@ async function stopWork(
     duration = equipment?.uom == "hour" ? duration / 3600000 : duration;
 
     if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
-
-    console.log(work.siteWork);
 
     if (work.siteWork) {
       let dailyWorks = [...work.dailyWork];
