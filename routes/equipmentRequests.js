@@ -1,11 +1,115 @@
 const router = require("express").Router();
+const { Types } = require("mongoose");
+const { createEquipmentRequest } = require("../controllers/equipmentRequests");
 const requestData = require("../models/equipmentRequest");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 
 router.get("/", async (req, res) => {
   try {
-    const requests = await requestData.model.find().populate("equipmentType").populate('workToBeDone');
+    let pipeline = [
+      {
+        $lookup: {
+          from: "requestsdetails",
+          localField: "_id",
+          foreignField: "request",
+          as: "details",
+        },
+      },
+      {
+        $unwind: {
+          path: "$details",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "equipmenttypes",
+          localField: "details.equipmentType",
+          foreignField: "_id",
+          as: "details.equipmentType",
+        },
+      },
+      {
+        $lookup: {
+          from: "jobtypes",
+          localField: "details.workToBeDone",
+          foreignField: "_id",
+          as: "details.workToBeDone",
+        },
+      },
+      {
+        $unwind: {
+          path: "$details.equipmentType",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $unwind: {
+          path: "$details.workToBeDone",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          referenceNumber: {
+            $first: "$referenceNumber",
+          },
+          project: {
+            $first: "$project",
+          },
+          startDate: {
+            $first: "$startDate",
+          },
+          endDate: {
+            $first: "$endDate",
+          },
+          shift: {
+            $first: "$shift",
+          },
+          status: {
+            $first: "$status",
+          },
+          owner: {
+            $first: "$owner",
+          },
+          details: {
+            $push: "$details",
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "projects",
+          localField: "project",
+          foreignField: "_id",
+          as: "project",
+        },
+      },
+      {
+        $unwind: {
+          path: "$project",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          project: "$project.description",
+          projectId: "$project._id",
+        },
+      },
+    ];
+
+    // const requests = await requestData.model
+    //   .find()
+    //   .populate("equipmentType")
+    //   .populate("workToBeDone");
+
+    const requests = await requestData.model
+      .aggregate(pipeline)
+      .sort({ startDate: 1 });
+
     res.status(200).send(requests);
   } catch (err) {
     res.send(err);
@@ -14,8 +118,12 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
+
   try {
-    const jobType = await requestData.model.findById(id).populate("equipmentType").populate('workToBeDone');
+    const jobType = await requestData.model
+      .findById(id)
+      .populate("equipmentType")
+      .populate("workToBeDone");
     res.status(200).send(jobType);
   } catch (err) {
     res.send(err);
@@ -24,9 +132,110 @@ router.get("/:id", async (req, res) => {
 
 router.get("/byOwner/:id", async (req, res) => {
   let { id } = req.params;
+  let pipeline = [
+    {
+      $match: {
+        owner: new Types.ObjectId(id),
+      },
+    },
+    {
+      $lookup: {
+        from: "requestsdetails",
+        localField: "_id",
+        foreignField: "request",
+        as: "details",
+      },
+    },
+    {
+      $unwind: {
+        path: "$details",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "equipmenttypes",
+        localField: "details.equipmentType",
+        foreignField: "_id",
+        as: "details.equipmentType",
+      },
+    },
+    {
+      $lookup: {
+        from: "jobtypes",
+        localField: "details.workToBeDone",
+        foreignField: "_id",
+        as: "details.workToBeDone",
+      },
+    },
+    {
+      $unwind: {
+        path: "$details.equipmentType",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $unwind: {
+        path: "$details.workToBeDone",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $group: {
+        _id: "$_id",
+        referenceNumber: {
+          $first: "$referenceNumber",
+        },
+        project: {
+          $first: "$project",
+        },
+        startDate: {
+          $first: "$startDate",
+        },
+        endDate: {
+          $first: "$endDate",
+        },
+        shift: {
+          $first: "$shift",
+        },
+        status: {
+          $first: "$status",
+        },
+        owner: {
+          $first: "$owner",
+        },
+        details: {
+          $push: "$details",
+        },
+      },
+    },
+    {
+      $lookup: {
+        from: "projects",
+        localField: "project",
+        foreignField: "_id",
+        as: "project",
+      },
+    },
+    {
+      $unwind: {
+        path: "$project",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $addFields: {
+        project: "$project.description",
+        projectId: "$project._id",
+      },
+    },
+  ];
   try {
-    const jobType = await requestData.model.find({owner:id}).populate("equipmentType").populate('workToBeDone');
-    res.status(200).send(jobType);
+    const requests = await requestData.model
+      .aggregate(pipeline)
+      .sort({ startDate: 1 });
+
+    res.status(200).send(requests);
   } catch (err) {
     res.send(err);
   }
@@ -34,10 +243,12 @@ router.get("/byOwner/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    let requestToCreate = new requestData.model(req.body);
-    let requestCreated = await requestToCreate.save();
+    // let requestToCreate = new requestData.model(req.body);
+    // let requestCreated = await requestToCreate.save();
 
-    res.status(201).send(requestCreated);
+    let created = await createEquipmentRequest(req.body);
+
+    res.status(201).send({ created });
   } catch (err) {
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
@@ -56,10 +267,14 @@ router.put("/assignQuantity/:id", async (req, res) => {
   let { id } = req.params;
 
   try {
-    let updatedRequest = await requestData.model.findByIdAndUpdate(id, {
-      approvedQuantity: quantity,
-      status: 'approved'
-    }, {new:true});
+    let updatedRequest = await requestData.model.findByIdAndUpdate(
+      id,
+      {
+        approvedQuantity: quantity,
+        status: "approved",
+      },
+      { new: true }
+    );
 
     res.status(201).send(updatedRequest);
   } catch (err) {
