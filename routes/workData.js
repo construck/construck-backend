@@ -4015,6 +4015,7 @@ router.put("/approveDailyWork/:id", async (req, res) => {
 
     res.status(201).send(work);
   } catch (err) {
+    console.log(err)
     res.status(500).send({
       error: err,
     });
@@ -4213,8 +4214,6 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
       .format(
         `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
       );
-
-    console.log(startOfMonth, endOfMonth);
     let q1 = await workData.model.updateMany(
       {
         siteWork: false,
@@ -6298,6 +6297,34 @@ async function getValidatedListByDay(prjDescription, transactionDate) {
         transactionDate: new Date(transactionDate),
       },
     },
+    {
+      $lookup: {
+        from: "drivers",
+        localField: "driver",
+        foreignField: "user",
+        as: "driver",
+      },
+    },
+    {
+      $unwind: {
+        path: "$driver",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "driver.user",
+        foreignField: "_id",
+        as: "driver",
+      },
+    },
+    {
+      $unwind: {
+        path: "$driver",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
   ];
 
   try {
@@ -6310,6 +6337,8 @@ async function getValidatedListByDay(prjDescription, transactionDate) {
       v.strRevenue = strRevenue;
       return v;
     });
+
+    console.log(__jobs)
 
     return __jobs;
   } catch (err) {
@@ -6386,20 +6415,7 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
         transactionDate: new Date(transactionDate),
       },
     },
-    {
-      $lookup: {
-        from: "drivers",
-        localField: "driver",
-        foreignField: "user",
-        as: "driver",
-      },
-    },
-    {
-      $unwind: {
-        path: "$driver",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
+    
     {
       $lookup: {
         from: "users",
@@ -6554,6 +6570,8 @@ async function getNotPostedListByDay(userId, transactionDate) {
       v.strRevenue = strRevenue;
       return v;
     });
+
+    console.log(__jobs)
     return __jobs;
   } catch (err) {
     err;
