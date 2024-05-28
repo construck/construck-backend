@@ -18,7 +18,8 @@ const UserSchema = mongoose.Schema(
     },
     email: {
       type: String,
-      required: true,
+      // required: true,
+      sparse: true,
       unique: true,
       dropDups: true,
     },
@@ -31,8 +32,16 @@ const UserSchema = mongoose.Schema(
     userType: {
       type: String,
     },
+    driver: { type: mongoose.Schema.Types.ObjectId, ref: "Driver" },
     company: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "customers",
+    },
+    vendor: {
+      type: mongoose.Schema.Types.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "vendors",
     },
     assignedProjects: {
       type: [],
@@ -48,9 +57,17 @@ const UserSchema = mongoose.Schema(
     permissions: {
       type: Object,
     },
+    accountType: {
+      type: Object,
+      default: "internal",
+    },
     source: {
       type: String,
       default: "web",
+    },
+    setpassword: {
+      type: Boolean,
+      default: false,
     },
   },
 

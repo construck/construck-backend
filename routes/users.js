@@ -1,13 +1,23 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const userData = require("../models/users");
-const venData = require("../models/vendors");
+const Driver = require("../models/drivers");
+const Vendor = require("../models/vendors");
+const Customer = require("../models/customers");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
+const token = require("../tokens/tokenGenerator");
+const UserController = require("./../controllers/users");
 
 router.get("/", async (req, res) => {
   try {
-    let users = await userData.model.find().populate("company");
+    let users = await userData.model.find(
+      {},
+      {
+        password: 0,
+      }
+    );
+    // .populate("company");
     res.status(200).send(users);
   } catch (err) {
     res.send(err);
@@ -17,7 +27,12 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
   try {
-    let user = await userData.model.findById(id).populate("company");
+    let user = await userData.model
+      .findById(id, {
+        password: 0,
+      })
+      .populate("company")
+      .populate("driver");
     res.status(200).send(user);
   } catch (err) {
     res.send(err);
@@ -25,109 +40,61 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  let {
-    firstName,
-    lastName,
-    username,
-    password,
-    email,
-    phone,
-    userType,
-    company,
-    status,
-    assignedProjects,
-    permissions,
-  } = req.body;
-
-  try {
-    let hashedPassword = await bcrypt.hash(password, 10);
-    let userToCreate = new userData.model({
-      firstName,
-      lastName,
-      username,
-      password: hashedPassword,
-      email,
-      phone,
-      userType,
-      company,
-      status,
-      assignedProjects,
-      permissions,
-    });
-
-    let userCreated = await userToCreate.save();
-    res.status(201).send(userCreated);
-  } catch (err) {
-    let error = findError(err.code);
-    let keyPattern = err.keyPattern;
-    let key = _.findKey(keyPattern, function (key) {
-      return key === 1;
-    });
-    res.send({
-      error,
-      key,
-    });
-  }
+  UserController.createUser(req, res);
 });
 
 router.post("/login", async (req, res) => {
-  let { email, password } = req.body;
+  let { email, password, phone } = req.body;
+
   try {
-    let user = await userData.model
-      .findOne({ email: email })
-      .populate("company");
-
-    let vendor = await venData.model.findOne({ phone: email });
-
-    console.log(vendor);
-
-    if (user?.length === 0 || !user) {
-      if (vendor?.length === 0 || !vendor) {
-        res.status(404).send({
-          message: "User not found!",
-          error: true,
-        });
-        return;
-      }
+    let query = {
+      status: "active",
+    };
+    if (email) {
+      query = {
+        ...query,
+        email: email.trim(),
+      };
+    } else {
+      query = {
+        ...query,
+        phone: phone.trim(),
+      };
     }
+    let user = await userData.model.findOne(query)
+    .populate("company")
+    .populate("driver")
+    .populate("vendor");
+    console.log('user', user)
+    // IMPLEMENT NEW LOGIN: SERVING ALL USER TYPES
+    // CHECK IF PASSWORD IF CORRECT
+    // GENERATE JWT TOKEN AND SEND IT TO CLIENT
+    if (user) {
+      const payload = {
+        id: user._id,
+        email: user.email,
+        phone: user.phone,
+        userType: user.userType,
+      };
 
-    let userAllowed = user
-      ? await bcrypt.compare(password, user?.password)
-      : false;
-    let vendorAllowed = vendor
-      ? await bcrypt.compare(password, vendor?.password)
-      : false;
+      // GENERATE
+      const generatedToken = await token.tokenGenerator(payload);
+      delete user.password;
 
-    if (userAllowed) {
-      if (user.status === "active") {
-        delete user.password;
-        res.status(200).send({ user, message: "Allowed" });
-      } else {
-        res.status(401).send({
-          message: "Not activated!",
-          error: true,
-        });
-      }
-    } else if (vendorAllowed) {
-      res.status(200).send({
-        user: {
-          _id: vendor._id,
-          firstName: vendor.name,
-          lastName: "",
-          status: "active",
-          userType: "vendor",
-        },
+      return res.status(200).send({
+        user,
         message: "Allowed",
+        token: generatedToken,
       });
     } else {
-      res.status(401).send({
+      return res.status(401).send({
         message: "Not allowed!",
         error: true,
       });
     }
   } catch (err) {
+    console.log("err", err);
     res.status(500).send({
-      message: `${err}`,
       error: true,
     });
   }
@@ -142,6 +109,48 @@ router.put("/status", async (req, res) => {
     let updatedUser = await userD.save();
     res.status(201).send(updatedUser);
   } catch (err) {
+    res.status(500).send({
+      message: `${err}`,
+      error: true,
+    });
+  }
+});
+router.put("/:id/disable-account", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const response = await userData.model.findByIdAndUpdate(
+      id,
+      {
+        status: "inactive",
+      },
+      {
+        password: 0,
+      }
+    );
+    res.status(201).send(response);
+  } catch (err) {
+    console.log("err");
+    res.status(500).send({
+      message: `${err}`,
+      error: true,
+    });
+  }
+});
+router.put("/:id/activate-account", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const response = await userData.model.findByIdAndUpdate(
+      id,
+      {
+        status: "active",
+      },
+      {
+        password: 0,
+      }
+    );
+    res.status(201).send(response);
+  } catch (err) {
+    console.log("err");
     res.status(500).send({
       message: `${err}`,
       error: true,
