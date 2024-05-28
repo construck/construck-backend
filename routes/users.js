@@ -61,11 +61,12 @@ router.post("/login", async (req, res) => {
         phone: phone.trim(),
       };
     }
-    let user = await userData.model.findOne(query)
-    .populate("company")
-    .populate("driver")
-    .populate("vendor");
-    console.log('user', user)
+    let user = await userData.model
+      .findOne(query)
+      .populate("company")
+      .populate("driver")
+      .populate("vendor");
+    console.log("user", user);
     // IMPLEMENT NEW LOGIN: SERVING ALL USER TYPES
     // CHECK IF PASSWORD IF CORRECT
     // GENERATE JWT TOKEN AND SEND IT TO CLIENT
@@ -115,22 +116,22 @@ router.put("/status", async (req, res) => {
     });
   }
 });
-router.put("/:id/disable-account", async (req, res) => {
+router.put("/:id/assign-projects", async (req, res) => {
   try {
     const { id } = req.params;
+    const { assignedProjects } = req.body;
     const response = await userData.model.findByIdAndUpdate(
       id,
       {
-        status: "inactive",
+        assignedProjects,
       },
       {
         password: 0,
       }
     );
-    res.status(201).send(response);
+    return res.status(201).send(response);
   } catch (err) {
-    console.log("err");
-    res.status(500).send({
+    return res.status(500).send({
       message: `${err}`,
       error: true,
     });

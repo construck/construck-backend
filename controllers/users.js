@@ -24,11 +24,10 @@ async function createUser(req, res) {
   } = req.body;
 
   const password = "12345"; // Default password
-  console.log('email', email)
 
   try {
-    let hashedPassword = await bcrypt.hash(password, 10);
-    let userToCreate = new User.model({
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const userToCreate = new User.model({
       firstName,
       lastName,
       username,
@@ -45,6 +44,7 @@ async function createUser(req, res) {
     });
     let response = await userToCreate.save();
 
+    // IF DRIVER, CREATE DRIVER PROJECT
     if (userType === "driver") {
       const driverResponse = await Driver.model.create({
         title: driver.title,
@@ -59,8 +59,8 @@ async function createUser(req, res) {
       );
       console.log("driverResponse", driverResponse);
     }
-
-    res.status(201).send(response);
+    
+    return res.status(201).send(response);
   } catch (err) {
     console.log("err", err);
     let error = findError(err.code);
