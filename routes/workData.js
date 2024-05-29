@@ -861,10 +861,10 @@ router.get("/filtered/:page", async (req, res) => {
         equipment._id equipment.plateNumber equipment.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
         equipment.eqStatus equipment.millage equipment.rate equipment.supplieRate equipment.uom
         startTime endTime duration tripsDone totalRevenue totalExpenditure projectedRevenue status siteWork workStartDate workEndDate
-        workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id 
+        workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id driver
         `
       )
-      .populate("driver")
+      .populate("driver", "firstName lastName phone userType driver")
       .populate("createdBy", "firstName lastName")
       .populate("workDone", "jobDescription _id")
       .limit(perPage)
@@ -965,22 +965,21 @@ router.get("/v3/driver/:driverId", async (req, res) => {
       .populate("workDone")
       .sort([["_id", "descending"]]);
 
-    let listToSend = workList
-      .filter(
-        (w) =>
-          w.siteWork === false ||
-          (w.siteWork === true &&
-            (w.status === "in progress" || w.status === "on going")) ||
-          (w.siteWork === true &&
-            _.filter(w.dailyWork, (dW) => {
-              return dW.date === moment().format("DD-MMM-YYYY");
-            }).length === 0)
-      )
-      // .filter(
-      //   (w) =>
-      //     // !_.isNull(w.driver) &&
-      //     !_.isNull(w.workDone) && w.status !== "recalled"
-      // );
+    let listToSend = workList.filter(
+      (w) =>
+        w.siteWork === false ||
+        (w.siteWork === true &&
+          (w.status === "in progress" || w.status === "on going")) ||
+        (w.siteWork === true &&
+          _.filter(w.dailyWork, (dW) => {
+            return dW.date === moment().format("DD-MMM-YYYY");
+          }).length === 0)
+    );
+    // .filter(
+    //   (w) =>
+    //     // !_.isNull(w.driver) &&
+    //     !_.isNull(w.workDone) && w.status !== "recalled"
+    // );
     let siteWorkList = [];
 
     let l = listToSend.map((w) => {
@@ -1799,7 +1798,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       },
       {
         $lookup: {
-          from: "employees",
+          from: "users",
           localField: "driver",
           foreignField: "_id",
           as: "driver",
@@ -1908,7 +1907,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       },
       {
         $lookup: {
-          from: "employees",
+          from: "users",
           localField: "driver",
           foreignField: "_id",
           as: "driver",
@@ -2034,7 +2033,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Project Description": w.project?.prjDescription,
               "Equipment Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
-              "Owner": w.equipment?.eqOwner,
+              Owner: w.equipment?.eqOwner,
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)":
                 w.equipment?.uom === "hour"
@@ -2097,7 +2096,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Project Description": w.project?.prjDescription,
               "Equipment Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
-              "Owner": w.equipment?.eqOwner,
+              Owner: w.equipment?.eqOwner,
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)": 0,
               "Duration (DAYS)": 0,
@@ -2151,7 +2150,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Project Description": w.project.prjDescription,
               "Equipment Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
-              "Owner": w.equipment?.eqOwner,
+              Owner: w.equipment?.eqOwner,
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)": 0,
               "Duration (DAYS)": 0,
@@ -2247,7 +2246,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Project Description": w.project?.prjDescription,
               "Equipment Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
-              "Owner": w.equipment?.eqOwner,
+              Owner: w.equipment?.eqOwner,
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)":
                 w.equipment?.uom === "hour"
@@ -2320,7 +2319,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             "Project Description": w.project.prjDescription,
             "Equipment Plate number": w.equipment.plateNumber,
             "Equipment Type": w.equipment?.eqDescription,
-            "Owner": w.equipment?.eqOwner,
+            Owner: w.equipment?.eqOwner,
             "Unit of measurement": w.equipment?.uom,
             "Duration (HRS)":
               w.equipment?.uom === "hour"
@@ -6091,6 +6090,26 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
         "project.prjDescription": prjDescription,
       },
     },
+
+    {
+      $lookup: {
+        from: "users",
+        localField: "driver",
+        foreignField: "_id",
+        as: "driver",
+      },
+    },
+    {
+      $unwind: {
+        path: "$driver",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    // {
+    //   $project: {
+    //     "driver.password": 0,
+    //   },
+    // },
     {
       $unwind: {
         path: "$dailyWork",
@@ -6150,6 +6169,11 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
     {
       $match: {
         transactionDate: new Date(transactionDate),
+      },
+    },
+    {
+      $project: {
+        "driver.password": 0,
       },
     },
     {
