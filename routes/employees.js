@@ -40,40 +40,50 @@ router.get("/token/:id", async (req, res) => {
 router.get("/:date/:shift", async (req, res) => {
   let { type, date, shift } = req.params;
   try {
-    let query = {
-      $or: [
-        { status: "active" },
-        {
-          status: "busy",
-          assignedShift: { $ne: shift },
-          assignedToSiteWork: { $ne: true },
-        },
-        {
-          status: "busy",
-          assignedDate: { $ne: date },
-          assignedToSiteWork: { $ne: true },
-        },
-        {
-          status: "dispatched",
-          assignedShift: { $ne: shift },
-          assignedToSiteWork: { $ne: true },
-        },
-        {
-          status: "dispatched",
-          assignedDate: { $ne: date },
-          assignedToSiteWork: { $ne: true },
-        },
-      ],
-    };
-    const employee = await employeeData.model.find(
-      {},
+    const response = await userData.model.find(
+      {
+        userType: "driver",
+        status: "active",
+      },
       {
         password: 0,
+        setpassword: 0,
       }
     );
-    res.status(200).send(employee);
+    // let query = {
+    //   $or: [
+    //     { status: "active" },
+    //     {
+    //       status: "busy",
+    //       assignedShift: { $ne: shift },
+    //       assignedToSiteWork: { $ne: true },
+    //     },
+    //     {
+    //       status: "busy",
+    //       assignedDate: { $ne: date },
+    //       assignedToSiteWork: { $ne: true },
+    //     },
+    //     {
+    //       status: "dispatched",
+    //       assignedShift: { $ne: shift },
+    //       assignedToSiteWork: { $ne: true },
+    //     },
+    //     {
+    //       status: "dispatched",
+    //       assignedDate: { $ne: date },
+    //       assignedToSiteWork: { $ne: true },
+    //     },
+    //   ],
+    // };
+    // const employee = await employeeData.model.find(
+    //   {},
+    //   {
+    //     password: 0,
+    //   }
+    // );
+    return res.status(200).send(response);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 

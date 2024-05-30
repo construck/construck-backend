@@ -10,7 +10,7 @@ const eqData = require("../models/equipments");
 const prjData = require("../models/projects");
 const moment = require("moment");
 const e = require("express");
-const { default: mongoose } = require("mongoose");
+const { default: mongoose, Types } = require("mongoose");
 const send = require("../utils/sendEmailNode");
 const { sendEmail } = require("./sendEmailRoute");
 const logs = require("../models/logs");
@@ -861,10 +861,10 @@ router.get("/filtered/:page", async (req, res) => {
         equipment._id equipment.plateNumber equipment.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
         equipment.eqStatus equipment.millage equipment.rate equipment.supplieRate equipment.uom
         startTime endTime duration tripsDone totalRevenue totalExpenditure projectedRevenue status siteWork workStartDate workEndDate
-        workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id 
+        workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id driver
         `
       )
-      .populate("driver")
+      .populate("driver", "firstName lastName phone userType driver")
       .populate("createdBy", "firstName lastName")
       .populate("workDone", "jobDescription _id")
       .limit(perPage)
@@ -935,7 +935,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         {
           $or: [
             {
-              "equipment.eqOwner": driverId,
+              "equipment.vendor": Types.ObjectId(driverId),
               status: { $ne: "released" },
             },
             {
@@ -980,7 +980,6 @@ router.get("/v3/driver/:driverId", async (req, res) => {
     //     // !_.isNull(w.driver) &&
     //     !_.isNull(w.workDone) && w.status !== "recalled"
     // );
-
     let siteWorkList = [];
 
     let l = listToSend.map((w) => {
@@ -1616,6 +1615,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               },
               "equipment.eqOwner": vendorName,
             },
+
 
             {
               siteWork: false,
@@ -2451,6 +2451,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Project Description": w.project?.prjDescription,
               "Equipment Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
+              Owner: w.equipment?.eqOwner,
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)":
                 w.equipment?.uom === "hour"
@@ -2459,7 +2460,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Duration (DAYS)":
                 w.equipment?.uom === "day" ? _.round(dP.duration, 2) : 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-              "Other work description": w.dispatch?.otherJobType,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
                 "Projected Revenue":
                   w.equipment?.uom === "hour" ? dP?.rate * 5 : dP?.rate,
@@ -2498,7 +2498,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     : "",
                 "Driver contacts": w.driver?.phone,
               }),
-
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
                 : 0,
@@ -2530,7 +2529,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 .add(59, "seconds")
             )
           ) {
-            console.log("##", w.project === undefined ? w._id : null);
             siteWorkList.push({
               "Dispatch date": moment(Date.parse(dNP)).format("M/D/YYYY"),
               "Posted On": "",
@@ -2539,11 +2537,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Project Description": w?.project?.prjDescription,
               "Equipment Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
+              Owner: w.equipment?.eqOwner,
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)": 0,
               "Duration (DAYS)": 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-              "Other work description": w.dispatch?.otherJobType,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
                 "Projected Revenue":
                   w.equipment?.uom === "hour"
@@ -2576,7 +2574,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   : 0,
                 "Trips done": 0,
               }),
-
               "Driver's/Operator's Comment": dNP.comment
                 ? dNP.comment + " - " + (dNP.moreComment ? dNP.moreComment : "")
                 : " ",
@@ -2646,7 +2643,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     : "",
                 "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
               }),
-
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
                 : 0,
@@ -2728,6 +2724,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Project Description": w.project?.prjDescription,
               "Equipment Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
+              Owner: w.equipment?.eqOwner,
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)":
                 w.equipment?.uom === "hour"
@@ -2736,7 +2733,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Duration (DAYS)":
                 w.equipment?.uom === "day" ? _.round(dP.duration, 2) : 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-              "Other work description": w.dispatch?.otherJobType,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
                 "Projected Revenue":
                   w.equipment?.uom === "hour" ? dP.rate * 5 : dP.rate,
@@ -2773,7 +2769,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     : "",
                 "Driver contacts": w.driver?.phone,
               }),
-
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
                 : 0,
@@ -2820,6 +2815,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             "Project Description": w.project.prjDescription,
             "Equipment Plate number": w.equipment.plateNumber,
             "Equipment Type": w.equipment?.eqDescription,
+            Owner: w.equipment?.eqOwner,
             "Unit of measurement": w.equipment?.uom,
             "Duration (HRS)":
               w.equipment?.uom === "hour"
@@ -2828,7 +2824,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             "Duration (DAYS)":
               w.equipment?.uom === "day" ? _.round(w.duration, 2) : 0,
             "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-            "Other work description": w.dispatch?.otherJobType,
             ...((canViewRevenues === "true" || canViewRevenues === true) && {
               "Projected Revenue":
                 w.equipment?.uom === "hour"
@@ -2857,7 +2852,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   : "",
               "Driver contacts": w.driver?.phone,
             }),
-
             "Target trips": w.dispatch?.targetTrips,
             "Trips done": w?.tripsDone,
             "Driver's/Operator's Comment": w.comment
@@ -2883,10 +2877,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     let orderedList = _.orderBy(finalList, "Dispatch date", "desc");
 
-    res.status(200).send(orderedList.filter((w) => w !== null));
+    return res.status(200).send(orderedList.filter((w) => w !== null));
   } catch (err) {
     console.log("yes", err);
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -3021,7 +3015,18 @@ router.get("/monthlyValidatedRevenues/:projectName", async (req, res) => {
 
 router.get("/monthlyNonValidatedRevenues/:projectName", async (req, res) => {
   let { projectName } = req.params;
-  let result = await getNonValidatedRevenuesByProject(projectName);
+  try {
+    let result = await getNonValidatedRevenuesByProject(projectName);
+    return res.status(200).send(result);
+  } catch (error) {
+    return res.status(503).send({ error: "Error occurred, try again later" });
+  }
+});
+
+router.get("/monthlyNotPosted/:vendorId", async (req, res) => {
+  let { vendorId } = req.params;
+  // let result = await getNotPostedRevenuedByProject(vendorId);
+  let result = await getNotPostedRevenuedByVendor(vendorId);
 
   res.send(result);
 });
@@ -3041,6 +3046,18 @@ router.get("/dailyNonValidatedRevenues/:projectName", async (req, res) => {
   try {
     let result = await getDailyNonValidatedRevenues(projectName, month, year);
 
+    res.send(result);
+  } catch (error) {
+    console.log("####err", error);
+  }
+});
+
+router.get("/dailyNotPostedRevenues/:userId", async (req, res) => {
+  let { userId } = req.params;
+  let { month, year } = req.query;
+
+  try {
+    let result = await getDailyNotPostedRevenues(month, year, userId);
     res.send(result);
   } catch (error) {
     console.log("####err", error);
@@ -3082,7 +3099,20 @@ router.get("/validatedByDay/:projectName", async (req, res) => {
 router.get("/nonValidatedByDay/:projectName", async (req, res) => {
   let { projectName } = req.params;
   let { transactionDate } = req.query;
-  let result = await getNonValidatedListByDay(projectName, transactionDate);
+  try {
+    let result = await getNonValidatedListByDay(projectName, transactionDate);
+    return res.status(200).send(result);
+  } catch (error) {
+    return res.status(503).status({
+      error: "Some error occurred, try again later or contact administrator",
+    });
+  }
+});
+
+router.get("/notPostedByDay/:userId", async (req, res) => {
+  let { userId } = req.params;
+  let { transactionDate } = req.query;
+  let result = await getNotPostedListByDay(userId, transactionDate);
 
   res.send(result);
 });
@@ -3963,6 +3993,15 @@ router.put("/approveDailyWork/:id", async (req, res) => {
     approvedExpenditure,
   } = req.body;
 
+  console.log(
+    "##",
+    postingDate,
+    approvedBy,
+    approvedRevenue,
+    approvedDuration,
+    approvedExpenditure
+  );
+
   try {
     let workRec = await workData.model.findById(id);
 
@@ -3975,6 +4014,13 @@ router.put("/approveDailyWork/:id", async (req, res) => {
     let _approvedDuration = workRec.approvedDuration
       ? workRec.approvedDuration
       : 0;
+
+    console.log(
+      "Gucanganyikirwa tu",
+      _approvedDuration,
+      _approvedRevenue,
+      _approvedExpenditure
+    );
 
     let work = await workData.model.findOneAndUpdate(
       {
@@ -4012,7 +4058,7 @@ router.put("/approveDailyWork/:id", async (req, res) => {
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
 
-    res.status(201).send(work);
+    return res.status(201).send(work);
   } catch (err) {
     console.log(err);
     res.status(500).send({
@@ -4127,6 +4173,14 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
     reason,
   } = req.body;
 
+  console.log(
+    postingDate,
+    rejectedRevenue,
+    rejectedDuration,
+    rejectedExpenditure,
+    reason
+  );
+
   try {
     let workRec = await workData.model.findById(id);
 
@@ -4175,9 +4229,8 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
 
-    res.send(work);
-
-    let receipts = await getProjectAdminEmail(workRec.project.prjDescription);
+    let receipts =
+      false && (await getProjectAdminEmail(workRec.project.prjDescription));
     // let receipts = ["bhigiro@cvl.co.rw"];
 
     if (receipts.length > 0) {
@@ -4195,8 +4248,10 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
         }
       );
     }
+    return res.status(200).send(work);
   } catch (err) {
-    res.send(err);
+    console.log("@@err", err);
+    return res.status(503).send(err);
   }
 });
 
@@ -4609,6 +4664,15 @@ router.put("/stop/:id", async (req, res) => {
     fuel,
     startIndex,
   } = req.body;
+
+  console.log(
+    endIndex,
+    tripsDone,
+    comment,
+    moreComment,
+    postingDate,
+    stoppedBy
+  );
 
   let duration = Math.abs(req.body.duration);
 
@@ -7185,6 +7249,124 @@ async function getNotPostedRevenuedByVendor(userId) {
             },
           ],
         },
+      },
+    },
+
+    {
+      $lookup: {
+        from: "users",
+        localField: "driver",
+        foreignField: "_id",
+        as: "driver",
+      },
+    },
+    {
+      $unwind: {
+        path: "$driver",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    // {
+    //   $project: {
+    //     "driver.password": 0,
+    //   },
+    // },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    // {
+    //   $match: {
+    //     $or: [
+    //       {
+    //         "dailyWork.status": {
+    //           $exists: false,
+    //         },
+    //         siteWork: true,
+    //       },
+    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
+    //       {
+    //         status: "stopped",
+    //         siteWork: false,
+    //       },
+    //     ],
+    //   },
+    // },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: "$dailyWork.date",
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+        month: {
+          $month: "$transactionDate",
+        },
+        year: {
+          $year: "$transactionDate",
+        },
+      },
+    },
+    {
+      $match: {
+        transactionDate: new Date(transactionDate),
+      },
+    },
+    {
+      $project: {
+        "driver.password": 0,
+      },
+    },
+    {
+      $sort: {
+        "equipment.eqDescription": 1,
+      },
+    },
+  ];
+
+  try {
+    let jobs = await workData.model.aggregate(pipeline);
+
+    let _jobs = [...jobs];
+
+    let __jobs = _jobs.map((v) => {
+      let strRevenue = v.newTotalRevenue.toLocaleString();
+      v.strRevenue = strRevenue;
+      return v;
+    });
+
+    return __jobs;
+  } catch (err) {
+    err;
+    return err;
+  }
+}
+
+async function getNotPostedListByDay(userId, transactionDate) {
+  let pipeline = [
+    {
+      $match: {
+        "equipment.vendor": new Types.ObjectId(userId),
       },
     },
     {
