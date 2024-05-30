@@ -1502,235 +1502,671 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
 
-  if (!searchByPlateNumber && !searchByProject) {
-    query = {
-      $or: [
-        {
-          siteWork: true,
-          workEndDate: {
-            $gte: new Date(startDate),
-          },
-        },
-        {
-          siteWork: false,
-          workStartDate: {
-            $gte: new Date(startDate),
-            $lte: new Date(endDate),
-          },
-        },
-      ],
-    };
-  } else if (searchByPlateNumber && !searchByProject) {
-    query = {
-      $or: [
-        {
-          siteWork: true,
-          workEndDate: {
-            $gte: new Date(startDate),
-          },
+  let projects =
+    userType !== "vendor" ? userProjects && JSON.parse(userProjects) : [];
+  let prjs = projects?.map((p) => {
+    return p?.prjDescription;
+  });
 
-          "equipment.plateNumber": {
-            $regex: searchText.toUpperCase(),
-          },
-        },
-
-        {
-          siteWork: false,
-          workStartDate: {
-            $gte: new Date(startDate),
-            $lte: new Date(endDate),
-          },
-          "equipment.plateNumber": {
-            $regex: searchText.toUpperCase(),
-          },
-        },
-      ],
-    };
-  } else if (!searchByPlateNumber && searchByProject) {
-    query = {
-      $or: [
-        {
-          siteWork: true,
-          workEndDate: {
-            $gte: new Date(startDate),
-          },
-
-          "project.prjDescription": {
-            $regex: project,
-          },
-        },
-
-        {
-          siteWork: false,
-          workStartDate: {
-            $gte: new Date(startDate),
-            $lte: new Date(endDate),
-          },
-          "project.prjDescription": {
-            $regex: project,
-          },
-        },
-      ],
-    };
-  } else if (searchByPlateNumber && searchByProject) {
-    query = {
-      $or: [
-        {
-          siteWork: true,
-          workEndDate: {
-            $gte: new Date(startDate),
-          },
-
-          "project.prjDescription": {
-            $regex: project,
-          },
-          "equipment.plateNumber": {
-            $regex: searchText.toUpperCase(),
-          },
-        },
-
-        {
-          siteWork: false,
-          workStartDate: {
-            $gte: new Date(startDate),
-            $lte: new Date(endDate),
-          },
-          "project.prjDescription": {
-            $regex: project,
-          },
-          "equipment.plateNumber": {
-            $regex: searchText.toUpperCase(),
-          },
-        },
-      ],
-    };
-  }
-
-  if (userType == "vendor") {
-    if (!searchByPlateNumber && !searchByProject) {
-      query = {
-        $or: [
-          {
-            siteWork: true,
-            workEndDate: {
-              $gte: moment(startDate).toDate(),
+  switch (userType) {
+    case "vendor":
+      if (!searchByPlateNumber && !searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+              "equipment.eqOwner": vendorName,
             },
-            "equipment.eqOwner": vendorName,
-          },
-          {
-            siteWork: false,
-            workStartDate: {
-              $gte: moment(startDate).toDate(),
-              $lte: moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds")
-                .toDate(),
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "equipment.eqOwner": vendorName,
             },
-            "equipment.eqOwner": vendorName,
-          },
-        ],
-      };
-    } else if (searchByPlateNumber && !searchByProject) {
-      query = {
-        $or: [
-          {
-            siteWork: true,
-            workEndDate: {
-              $gte: moment(startDate),
+          ],
+        };
+      } else if (searchByPlateNumber && !searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+              "equipment.eqOwner": vendorName,
             },
 
-            "equipment.plateNumber": {
-              $regex: searchText.toUpperCase(),
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+              "equipment.eqOwner": vendorName,
             },
-            "equipment.eqOwner": vendorName,
-          },
+          ],
+        };
+      } else if (!searchByPlateNumber && searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
 
-          {
-            siteWork: false,
-            workStartDate: {
-              $gte: moment(startDate),
-              $lte: moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds"),
-            },
-            "equipment.plateNumber": {
-              $regex: searchText.toUpperCase(),
-            },
-            "equipment.eqOwner": vendorName,
-          },
-        ],
-      };
-    } else if (!searchByPlateNumber && searchByProject) {
-      query = {
-        $or: [
-          {
-            siteWork: true,
-            workEndDate: {
-              $gte: moment(startDate),
-            },
-
-            "project.prjDescription": {
-              $regex: project,
-            },
-            "equipment.eqOwner": vendorName,
-          },
-
-          {
-            siteWork: false,
-            workStartDate: {
-              $gte: moment(startDate),
-              $lte: moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds"),
-            },
-            "project.prjDescription": {
-              $regex: project,
-            },
-            "equipment.eqOwner": vendorName,
-          },
-        ],
-      };
-    } else if (searchByPlateNumber && searchByProject) {
-      query = {
-        $or: [
-          {
-            siteWork: true,
-            workEndDate: {
-              $gte: moment(startDate),
+              "project.prjDescription": {
+                $regex: project,
+              },
+              "equipment.eqOwner": vendorName,
             },
 
-            "project.prjDescription": {
-              $regex: project,
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "project.prjDescription": {
+                $regex: project,
+              },
+              "equipment.eqOwner": vendorName,
             },
-            "equipment.plateNumber": {
-              $regex: searchText.toUpperCase(),
-            },
-            "equipment.eqOwner": vendorName,
-          },
+          ],
+        };
+      } else if (searchByPlateNumber && searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
 
-          {
-            siteWork: false,
-            workStartDate: {
-              $gte: moment(startDate),
-              $lte: moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds"),
+              "project.prjDescription": {
+                $regex: project,
+              },
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+              "equipment.eqOwner": vendorName,
             },
-            "project.prjDescription": {
-              $regex: project,
+
+
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "project.prjDescription": {
+                $regex: project,
+              },
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+              "equipment.eqOwner": vendorName,
             },
-            "equipment.plateNumber": {
-              $regex: searchText.toUpperCase(),
+          ],
+        };
+      }
+      break;
+
+    case "customer-admin":
+      if (!searchByPlateNumber && !searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+              "project.customer": companyName,
             },
-            "equipment.eqOwner": vendorName,
-          },
-        ],
-      };
-    }
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "project.customer": companyName,
+            },
+          ],
+        };
+      } else if (searchByPlateNumber && !searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+              "project.customer": companyName,
+            },
+
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+              "project.customer": companyName,
+            },
+          ],
+        };
+      } else if (!searchByPlateNumber && searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+
+              "project.prjDescription": {
+                $regex: project,
+              },
+              "project.customer": companyName,
+            },
+
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "project.prjDescription": {
+                $regex: project,
+              },
+              "project.customer": companyName,
+            },
+          ],
+        };
+      } else if (searchByPlateNumber && searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+
+              "project.prjDescription": {
+                $regex: project,
+              },
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+              "project.customer": companyName,
+            },
+
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "project.prjDescription": {
+                $regex: project,
+              },
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+              "project.customer": companyName,
+            },
+          ],
+        };
+      }
+      break;
+
+    case "customer-project-manager":
+      if (!searchByPlateNumber && !searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+
+              "project.prjDescription": { $in: prjs },
+            },
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+
+              "project.prjDescription": { $in: prjs },
+            },
+          ],
+        };
+      } else if (searchByPlateNumber && !searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+
+              "project.prjDescription": { $in: prjs },
+            },
+
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+
+              "project.prjDescription": { $in: prjs },
+            },
+          ],
+        };
+      } else if (!searchByPlateNumber && searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+
+              "project.prjDescription": {
+                $regex: project,
+              },
+
+              "project.prjDescription": { $in: prjs },
+            },
+
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "project.prjDescription": {
+                $regex: project,
+              },
+
+              "project.prjDescription": { $in: prjs },
+            },
+          ],
+        };
+      } else if (searchByPlateNumber && searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+
+              "project.prjDescription": {
+                $regex: project,
+              },
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+
+              "project.prjDescription": { $in: prjs },
+            },
+
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "project.prjDescription": {
+                $regex: project,
+              },
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+
+              "project.prjDescription": { $in: prjs },
+            },
+          ],
+        };
+      }
+      break;
+
+    case "customer-site-manager":
+      if (!searchByPlateNumber && !searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+
+              "project.prjDescription": { $in: prjs },
+            },
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+
+              "project.prjDescription": { $in: prjs },
+            },
+          ],
+        };
+      } else if (searchByPlateNumber && !searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+
+              "project.prjDescription": { $in: prjs },
+            },
+
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+
+              "project.prjDescription": { $in: prjs },
+            },
+          ],
+        };
+      } else if (!searchByPlateNumber && searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+
+              "project.prjDescription": {
+                $regex: project,
+              },
+
+              "project.prjDescription": { $in: prjs },
+            },
+
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "project.prjDescription": {
+                $regex: project,
+              },
+
+              "project.prjDescription": { $in: prjs },
+            },
+          ],
+        };
+      } else if (searchByPlateNumber && searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+
+              "project.prjDescription": {
+                $regex: project,
+              },
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+
+              "project.prjDescription": { $in: prjs },
+            },
+
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "project.prjDescription": {
+                $regex: project,
+              },
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+
+              "project.prjDescription": { $in: prjs },
+            },
+          ],
+        };
+      }
+      break;
+
+    default:
+      if (!searchByPlateNumber && !searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+            },
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+            },
+          ],
+        };
+      } else if (searchByPlateNumber && !searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+            },
+
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+            },
+          ],
+        };
+      } else if (!searchByPlateNumber && searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+
+              "project.prjDescription": {
+                $regex: project,
+              },
+            },
+
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "project.prjDescription": {
+                $regex: project,
+              },
+            },
+          ],
+        };
+      } else if (searchByPlateNumber && searchByProject) {
+        query = {
+          $or: [
+            {
+              siteWork: true,
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+
+              "project.prjDescription": {
+                $regex: project,
+              },
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+            },
+
+            {
+              siteWork: false,
+              workStartDate: {
+                $gte: moment(startDate).toDate(),
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+                  .toDate(),
+              },
+              "project.prjDescription": {
+                $regex: project,
+              },
+              "equipment.plateNumber": {
+                $regex: searchText.toUpperCase(),
+              },
+            },
+          ],
+        };
+      }
+      break;
   }
 
   try {
@@ -1854,26 +2290,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       },
     ];
 
-    if (userType === "customer-site-manager") {
-      pipeline.push({
-        $match: {
-          "project.prjDescription": userProject,
-        },
-      });
-    }
-
-    if (userType === "customer-project-manager") {
-      let projects = JSON.parse(userProjects);
-      let prjs = projects?.map((p) => {
-        return p?.prjDescription;
-      });
-      pipeline.push({
-        $match: {
-          "project.prjDescription": { $in: prjs },
-        },
-      });
-    }
-
     let pipelineNoTurnBoys = [
       {
         $match: query,
@@ -1907,9 +2323,9 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       },
       {
         $lookup: {
-          from: "users",
+          from: "drivers",
           localField: "driver",
-          foreignField: "_id",
+          foreignField: "user",
           as: "driver",
         },
       },
@@ -1967,6 +2383,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
     let listToSend = workList;
 
     let siteWorkList = [];
+
+    console.log(listToSend);
 
     let l = listToSend.map((w, index) => {
       let work = null;
@@ -2053,12 +2471,33 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     ? dP.duration * w?.equipment?.rate
                     : (dP.duration > 0 ? 1 : 0) * dP.rate,
                 "Vendor payment": dP.expenditure,
-              }),
+                // "Vendor payment":
+                //   w.equipment?.uom === "hour"
+                //     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
+                //       w?.equipment?.supplierRate
+                //     : (dP.duration > 0 ? 1 : 0) * w?.equipment?.supplierRate,
+                "Driver Names": w.driver
+                  ? w?.driver?.firstName + " " + w?.driver?.lastName
+                  : w.equipment?.eqOwner,
 
-              "Driver Names": w.driver
-                ? w?.driver?.firstName + " " + w?.driver?.lastName
-                : "",
-              "Driver contacts": w.driver?.phone,
+                "Turn boy 1":
+                  w?.turnBoy?.length >= 1
+                    ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
+                    : "",
+                "Turn boy 2":
+                  w?.turnBoy?.length >= 2
+                    ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
+                    : "",
+                "Turn boy 3":
+                  w?.turnBoy?.length >= 3
+                    ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
+                    : "",
+                "Turn boy 4":
+                  w?.turnBoy?.length >= 4
+                    ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
+                    : "",
+                "Driver contacts": w.driver?.phone,
+              }),
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
                 : 0,
@@ -2068,12 +2507,14 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 : " ",
               Customer: w.project?.customer,
               Status: dP.status || "stopped",
-              "Project Admin":
-                (w.projectAdmin?.firstName || "") +
-                " " +
-                (w.projectAdmin?.lastName || ""),
-              "Start index": w?.startIndex || 0,
-              "End index": w?.endIndex || 0,
+              ...((canViewRevenues === "true" || canViewRevenues === true) && {
+                "Project Admin":
+                  (w.projectAdmin?.firstName || "") +
+                  " " +
+                  (w.projectAdmin?.lastName || ""),
+                "Start index": w?.startIndex || 0,
+                "End index": w?.endIndex || 0,
+              }),
             });
           }
         });
@@ -2093,7 +2534,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Posted On": "",
               "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
               "Site work?": w.siteWork,
-              "Project Description": w.project?.prjDescription,
+              "Project Description": w?.project?.prjDescription,
               "Equipment Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
               Owner: w.equipment?.eqOwner,
@@ -2108,30 +2549,49 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     : w.equipment?.rate,
                 "Actual Revenue": 0,
                 "Vendor payment": 0,
+                "Driver Names": w.driver
+                  ? w?.driver?.firstName + " " + w?.driver?.lastName
+                  : w.equipment?.eqOwner,
+                "Turn boy 1":
+                  w?.turnBoy?.length >= 1
+                    ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
+                    : "",
+                "Turn boy 2":
+                  w?.turnBoy?.length >= 2
+                    ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
+                    : "",
+                "Turn boy 3":
+                  w?.turnBoy?.length >= 3
+                    ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
+                    : "",
+                "Turn boy 4":
+                  w?.turnBoy?.length >= 4
+                    ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
+                    : "",
+                "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
+                "Target trips": w.dispatch?.targetTrips
+                  ? w.dispatch?.targetTrips
+                  : 0,
+                "Trips done": 0,
               }),
-
-              "Driver Names": w.driver
-                ? w?.driver?.firstName + " " + w?.driver?.lastName
-                : "",
-              "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
-              "Target trips": w.dispatch?.targetTrips
-                ? w.dispatch?.targetTrips
-                : 0,
-              "Trips done": 0,
               "Driver's/Operator's Comment": dNP.comment
                 ? dNP.comment + " - " + (dNP.moreComment ? dNP.moreComment : "")
                 : " ",
               Customer: w.project?.customer,
               Status: "created",
-              "Project Admin":
-                (w.projectAdmin?.firstName || "") +
-                " " +
-                (w.projectAdmin?.lastName || ""),
-              "Start index": w?.startIndex || 0,
-              "End index": w?.endIndex || 0,
+
+              ...((canViewRevenues === "true" || canViewRevenues === true) && {
+                "Project Admin":
+                  (w.projectAdmin?.firstName || "") +
+                  " " +
+                  (w.projectAdmin?.lastName || ""),
+                "Start index": w?.startIndex || 0,
+                "End index": w?.endIndex || 0,
+              }),
             });
           }
         });
+
         datesPendingPosted.map((dPP) => {
           if (
             moment(Date.parse(dPP)).isSameOrAfter(moment(startDate)) &&
@@ -2150,11 +2610,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Project Description": w.project.prjDescription,
               "Equipment Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
-              Owner: w.equipment?.eqOwner,
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)": 0,
               "Duration (DAYS)": 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
+              "Other work description": w.dispatch?.otherJobType,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
                 "Projected Revenue":
                   w.equipment?.uom === "hour"
@@ -2162,12 +2622,27 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     : w.equipment?.rate,
                 "Actual Revenue": 0,
                 "Vendor payment": 0,
+                "Driver Names": w.driver
+                  ? w?.driver?.firstName + " " + w?.driver?.lastName
+                  : w.equipment?.eqOwner,
+                "Turn boy 1":
+                  w?.turnBoy?.length >= 1
+                    ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
+                    : "",
+                "Turn boy 2":
+                  w?.turnBoy?.length >= 2
+                    ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
+                    : "",
+                "Turn boy 3":
+                  w?.turnBoy?.length >= 3
+                    ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
+                    : "",
+                "Turn boy 4":
+                  w?.turnBoy?.length >= 4
+                    ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
+                    : "",
+                "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
               }),
-
-              "Driver Names": w.driver
-                ? w?.driver?.firstName + " " + w?.driver?.lastName
-                : "",
-              "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
                 : 0,
@@ -2177,12 +2652,15 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 : " ",
               Customer: w.project?.customer,
               Status: "in progress",
-              "Project Admin":
-                (w.projectAdmin?.firstName || "") +
-                " " +
-                (w.projectAdmin?.lastName || ""),
-              "Start index": w?.startIndex || 0,
-              "End index": w?.endIndex || 0,
+
+              ...((canViewRevenues === "true" || canViewRevenues === true) && {
+                "Project Admin":
+                  (w.projectAdmin?.firstName || "") +
+                  " " +
+                  (w.projectAdmin?.lastName || ""),
+                "Start index": w?.startIndex || 0,
+                "End index": w?.endIndex || 0,
+              }),
             });
           }
         });
@@ -2270,12 +2748,27 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
                       w?.equipment?.supplierRate
                     : (dP.duration > 0 ? 1 : 0) * w?.equipment?.supplierRate,
+                "Driver Names": w.driver
+                  ? w?.driver?.firstName + " " + w?.driver?.lastName
+                  : w.equipment?.eqOwner,
+                "Turn boy 1":
+                  w?.turnBoy?.length >= 1
+                    ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
+                    : "",
+                "Turn boy 2":
+                  w?.turnBoy?.length >= 2
+                    ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
+                    : "",
+                "Turn boy 3":
+                  w?.turnBoy?.length >= 3
+                    ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
+                    : "",
+                "Turn boy 4":
+                  w?.turnBoy?.length >= 4
+                    ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
+                    : "",
+                "Driver contacts": w.driver?.phone,
               }),
-
-              "Driver Names": w.driver
-                ? w?.driver?.firstName + " " + w?.driver?.lastName
-                : "",
-              "Driver contacts": w.driver?.phone,
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
                 : 0,
@@ -2285,12 +2778,15 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 : " ",
               Customer: w.project?.customer,
               Status: "stopped",
-              "Project Admin":
-                (w.projectAdmin?.firstName || "") +
-                " " +
-                (w.projectAdmin?.lastName || ""),
-              "Start index": w?.startIndex || 0,
-              "End index": w?.endIndex || 0,
+
+              ...((canViewRevenues === "true" || canViewRevenues === true) && {
+                "Project Admin":
+                  (w.projectAdmin?.firstName || "") +
+                  " " +
+                  (w.projectAdmin?.lastName || ""),
+                "Start index": w?.startIndex || 0,
+                "End index": w?.endIndex || 0,
+              }),
             });
           }
         });
@@ -2335,12 +2831,27 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   : w.equipment?.rate,
               "Actual Revenue": w.totalRevenue,
               "Vendor payment": w.totalExpenditure,
+              "Driver Names": w.driver
+                ? w?.driver?.firstName + " " + w?.driver?.lastName
+                : w.equipment?.eqOwner,
+              "Turn boy 1":
+                w?.turnBoy?.length >= 1
+                  ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
+                  : "",
+              "Turn boy 2":
+                w?.turnBoy?.length >= 2
+                  ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
+                  : "",
+              "Turn boy 3":
+                w?.turnBoy?.length >= 3
+                  ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
+                  : "",
+              "Turn boy 4":
+                w?.turnBoy?.length >= 4
+                  ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
+                  : "",
+              "Driver contacts": w.driver?.phone,
             }),
-
-            "Driver Names": w.driver
-              ? w?.driver?.firstName + " " + w?.driver?.lastName
-              : "",
-            "Driver contacts": w.driver?.phone,
             "Target trips": w.dispatch?.targetTrips,
             "Trips done": w?.tripsDone,
             "Driver's/Operator's Comment": w.comment
@@ -2348,12 +2859,14 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               : "" + " - " + (w.moreComment ? w.moreComment : ""),
             Customer: w.project?.customer,
             Status: w.status,
-            "Project Admin":
-              (w.projectAdmin?.firstName || "") +
-              " " +
-              (w.projectAdmin?.lastName || ""),
-            "Start index": w?.startIndex || 0,
-            "End index": w?.endIndex || 0,
+            ...((canViewRevenues === "true" || canViewRevenues === true) && {
+              "Project Admin":
+                (w.projectAdmin?.firstName || "") +
+                " " +
+                (w.projectAdmin?.lastName || ""),
+              "Start index": w?.startIndex || 0,
+              "End index": w?.endIndex || 0,
+            }),
           };
         }
       }
@@ -2675,6 +3188,34 @@ router.get(
     }
   }
 );
+
+router.get("/monthlyNotPosted/:vendorId", async (req, res) => {
+  let { vendorId } = req.params;
+  // let result = await getNotPostedRevenuedByProject(vendorId);
+  let result = await getNotPostedRevenuedByVendor(vendorId);
+
+  res.send(result);
+});
+
+router.get("/notPostedByDay/:userId", async (req, res) => {
+  let { userId } = req.params;
+  let { transactionDate } = req.query;
+  let result = await getNotPostedListByDay(userId, transactionDate);
+
+  res.send(result);
+});
+
+router.get("/dailyNotPostedRevenues/:userId", async (req, res) => {
+  let { userId } = req.params;
+  let { month, year } = req.query;
+
+  try {
+    let result = await getDailyNotPostedRevenues(month, year, userId);
+    res.send(result);
+  } catch (error) {
+    console.log("####err", error);
+  }
+});
 
 router.post("/", async (req, res) => {
   const isExist = await helper.checkExistDispatch(req.body);
@@ -3519,7 +4060,8 @@ router.put("/approveDailyWork/:id", async (req, res) => {
 
     return res.status(201).send(work);
   } catch (err) {
-    return res.status(500).send({
+    console.log(err);
+    res.status(500).send({
       error: err,
     });
   }
@@ -3713,9 +4255,66 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
   }
 });
 
+router.put("/reject/:id", async (req, res) => {
+  let { id } = req.params;
+  let { reasonForRejection } = req.body;
+  try {
+    let work = await workData.model
+      .findById(id)
+      .populate("project")
+      .populate("equipment")
+      .populate("driver")
+      .populate("dispatch")
+      .populate("appovedBy")
+      .populate("workDone");
+
+    work.status = "rejected";
+    // work.reasonForRejection = reasonForRejection;
+    work.reasonForRejection = "Reason";
+    work.rejectedRevenue = work.totalRevenue;
+    work.rejectedDuration = work.duration;
+    work.rejectedExpenditure = work.totalExpenditure;
+    // work.projectedRevenue = 0;
+
+    let savedRecord = await work.save();
+
+    let log = {
+      action: "DISPATCH REJECTED",
+      doneBy: req.body.rejectedBy,
+      payload: work,
+    };
+    let logTobeSaved = new logData.model(log);
+    await logTobeSaved.save();
+
+    let receipts = await getProjectAdminEmail(work.project.prjDescription);
+    // let receipts = ["bhigiro@cvl.co.rw"];
+
+    if (receipts.length > 0) {
+      await sendEmail(
+        "appinfo@construck.rw",
+        receipts,
+        "Work Rejected",
+        "workRejected",
+        "",
+        {
+          equipment: work?.equipment,
+          project: work?.project,
+          postingDate: moment(work?.workStartDate).format("DD-MMM-YYYY"),
+          reasonForRejection: reasonForRejection,
+        }
+      );
+    }
+    res.status(201).send(savedRecord);
+  } catch (err) {
+    console.log(err);
+    res.send("Error occured!!");
+  }
+});
+
 router.put("/releaseValidated/:projectName", async (req, res) => {
   let { month, year } = req.query;
   let { projectName } = req.params;
+  // month = month - 1;
   try {
     if (month < 10) month = "0" + month;
     const startOfMonth = moment()
@@ -3727,21 +4326,21 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
         `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
       );
 
-    console.log(startOfMonth, endOfMonth);
-    let q1 = await workData.model.updateMany(
-      {
-        siteWork: false,
-        "project.prjDescription": projectName,
-        status: "validated",
-        workStartDate: { $gte: startOfMonth },
-        workStartDate: { $lte: endOfMonth },
-      },
-      {
-        $set: {
-          status: "released",
-        },
-      }
-    );
+    console.log(moment(`${year}-${month}-01`));
+    // let q1 = await workData.model.updateMany(
+    //   {
+    //     siteWork: false,
+    //     "project.prjDescription": projectName,
+    //     status: "validated",
+    //     workStartDate: { $gte: startOfMonth },
+    //     workStartDate: { $lte: endOfMonth },
+    //   },
+    //   {
+    //     $set: {
+    //       status: "released",
+    //     },
+    //   }
+    // );
 
     let q2 = await workData.model.updateMany(
       {
@@ -3750,23 +4349,23 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
       },
       {
         $set: {
-          "dailyWork.$[elemX].status": "released",
+          "dailyWork.$[elem].status": "released",
         },
       },
       {
         arrayFilters: [
           {
-            $or: [
-              { "elemX.date": { $gte: startOfMonth } },
-              { "elemX.date": { $lte: endOfMonth } },
-            ],
-            "elemX.status": "validated",
+            "elem.date": {
+              $gte: new Date(year, month - 1, 1),
+              $lt: new Date(year, month, 1),
+            },
           },
         ],
+        multi: true,
       }
     );
 
-    res.send({ q2 });
+    res.send({q2});
   } catch (err) {
     console.log(err);
     err;
@@ -3805,28 +4404,28 @@ router.put("/rejectValidated/:projectName", async (req, res) => {
       }
     );
 
-    let q2 = await workData.model.updateMany(
-      {
-        siteWork: true,
-        "project.prjDescription": projectName,
-      },
-      {
-        $set: {
-          "dailyWork.$[elemX].status": "rejected",
-          "dailyWork.$[elemX].rejectedReason": reason,
-        },
-      },
-      {
-        arrayFilters: [
-          {
-            "elemX.date": new RegExp(`${monthHelper(month)}-${year}`),
-            "elemX.status": "validated",
-          },
-        ],
-      }
-    );
+    // let q2 = await workData.model.updateMany(
+    //   {
+    //     siteWork: true,
+    //     "project.prjDescription": projectName,
+    //   },
+    //   {
+    //     $set: {
+    //       "dailyWork.$[elemX].status": "rejected",
+    //       "dailyWork.$[elemX].rejectedReason": reason,
+    //     },
+    //   },
+    //   {
+    //     arrayFilters: [
+    //       {
+    //         "elemX.date": new RegExp(`${monthHelper(month)}-${year}`),
+    //         "elemX.status": "validated",
+    //       },
+    //     ],
+    //   }
+    // );
 
-    res.send({ q2 });
+    res.send({  });
   } catch (err) {
     err;
     res.send(err);
@@ -3936,64 +4535,6 @@ router.put("/recall/:id", async (req, res) => {
 
     res.status(201).send(savedRecord);
   } catch (err) {}
-});
-
-router.put("/reject/:id", async (req, res) => {
-  let { id } = req.params;
-  let { reasonForRejection } = req.body;
-  try {
-    let work = await workData.model
-      .findById(id)
-      .populate("project")
-      .populate("equipment")
-      .populate("driver")
-      .populate("dispatch")
-      .populate("appovedBy")
-      .populate("workDone");
-
-    work.status = "rejected";
-    // work.reasonForRejection = reasonForRejection;
-    work.reasonForRejection = "Reason";
-    work.rejectedRevenue = work.totalRevenue;
-    work.rejectedDuration = work.duration;
-    work.rejectedExpenditure = work.totalExpenditure;
-    // work.projectedRevenue = 0;
-
-    let savedRecord = await work.save();
-
-    let log = {
-      action: "DISPATCH REJECTED",
-      doneBy: req.body.rejectedBy,
-      payload: work,
-    };
-    let logTobeSaved = new logData.model(log);
-    await logTobeSaved.save();
-    const { NODE_ENV } = process.env;
-    console.log("process.env.NODE_ENV", NODE_ENV);
-    let receipts =
-      NODE_ENV === "production"
-        ? await getProjectAdminEmail(work.project.prjDescription)
-        : [];
-    if (receipts.length > 0) {
-      await sendEmail(
-        "appinfo@construck.rw",
-        "receipts",
-        "Work Rejected",
-        "workRejected",
-        "",
-        {
-          equipment: work?.equipment,
-          project: work?.project,
-          postingDate: moment(work?.workStartDate).format("DD-MMM-YYYY"),
-          reasonForRejection: reasonForRejection,
-        }
-      );
-    }
-    res.status(201).send(savedRecord);
-  } catch (err) {
-    console.log(err);
-    res.send("Error occured!!");
-  }
 });
 
 router.put("/start/:id", async (req, res) => {
@@ -4113,8 +4654,16 @@ router.put("/start/:id", async (req, res) => {
 router.put("/stop/:id", async (req, res) => {
   let { id } = req.params;
 
-  let { endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy } =
-    req.body;
+  let {
+    endIndex,
+    tripsDone,
+    comment,
+    moreComment,
+    postingDate,
+    stoppedBy,
+    fuel,
+    startIndex,
+  } = req.body;
 
   console.log(
     endIndex,
@@ -4146,6 +4695,8 @@ router.put("/stop/:id", async (req, res) => {
 
     //You can only stop jobs in progress
     if (
+      work?.status === "created" ||
+      work?.status === "on going" ||
       work?.status === "in progress" ||
       (work?.siteWork &&
         moment(postingDate).isSameOrAfter(moment(work?.workStartDate), "day") &&
@@ -4248,9 +4799,7 @@ router.put("/stop/:id", async (req, res) => {
         }
         dailyWork.rate = rate;
         dailyWork.uom = uom;
-        dailyWork.date = moment(postingDate).isValid()
-          ? moment(postingDate).format("DD-MMM-YYYY")
-          : moment(postingDate, "DD.MM.YYYY").format("DD-MMM-YYYY");
+        dailyWork.date = postingDate;
         dailyWork.totalRevenue = revenue ? revenue : 0;
         dailyWork.totalExpenditure = expenditure ? expenditure : 0;
 
@@ -4259,14 +4808,19 @@ router.put("/stop/:id", async (req, res) => {
         dailyWork.pending = false;
 
         let dailyWorks = [...work.dailyWork];
-
         let indexToUpdate = -1;
         let workToUpdate = dailyWorks.find((d, index) => {
           d.day == moment().diff(moment(work.workStartDate), "days");
           indexToUpdate = index;
         });
 
-        dailyWorks[indexToUpdate] = dailyWork;
+        // if (indexToUpdate === -1) {
+        // } else {
+        //   dailyWorks[indexToUpdate] = dailyWork;
+        //   // dailyWorks.splice(indexToUpdate, 0, dailyWork);
+        // }
+        dailyWorks.push(dailyWork);
+
         work.startIndex =
           endIndex || startIndex !== 0
             ? parseInt(endIndex)
@@ -4279,6 +4833,8 @@ router.put("/stop/:id", async (req, res) => {
         work.equipment = equipment;
         work.moreComment = moreComment;
         work.status = workEnded ? "stopped" : "on going";
+        work.fuel = parseFloat(fuel);
+        work.startIndex = parseInt(startIndex);
         await equipment.save();
         if (employee) await employee.save();
         let savedRecord = await work.save();
@@ -4332,6 +4888,7 @@ router.put("/stop/:id", async (req, res) => {
             ? parseInt(endIndex)
             : parseInt(startIndex);
         work.startIndex = parseInt(startIndex);
+        work.fuel = fuel;
         work.tripsDone = parseInt(tripsDone);
         let uom = equipment?.uom;
 
@@ -5350,140 +5907,6 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
   }
 }
 
-async function getNotPostedRevenuedByVendor(userId) {
-  let pipeline = [
-    {
-      $match: {
-        "equipment.vendor": new Types.ObjectId(userId),
-        status: {
-          $nin: ["approved", "released", "validated", "recalled"],
-        },
-      },
-    },
-    {
-      $unwind: {
-        path: "$dailyWork",
-        includeArrayIndex: "string",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: false,
-    //         },
-    //         siteWork: true,
-    //       },
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: true,
-    //           $eq: "",
-    //         },
-    //         siteWork: true,
-    //       },
-    //       {
-    //         status: "stopped",
-    //         siteWork: false,
-    //       },
-    //     ],
-    //   },
-    // }
-    {
-      $addFields: {
-        transactionDate: {
-          $cond: {
-            if: {
-              $eq: ["$siteWork", false],
-            },
-            then: "$workStartDate",
-            else: "$dailyWork.date",
-          },
-        },
-      },
-    },
-    {
-      $addFields: {
-        newTotalRevenue: {
-          $cond: {
-            if: {
-              $eq: ["$siteWork", false],
-            },
-            then: "$totalRevenue",
-            else: "$dailyWork.totalRevenue",
-          },
-        },
-      },
-    },
-    {
-      $group: {
-        _id: {
-          month: {
-            $month: "$transactionDate",
-          },
-          year: {
-            $year: "$transactionDate",
-          },
-        },
-        totalRevenue: {
-          $sum: "$newTotalRevenue",
-        },
-      },
-    },
-    {
-      $match: {
-        $or: [
-          {
-            "_id.month": {
-              $gt: 4,
-            },
-            "_id.year": {
-              $gte: 2023,
-            },
-          },
-          {
-            "_id.year": {
-              $gt: 2023,
-            },
-          },
-        ],
-      },
-    },
-    {
-      $sort: {
-        "_id.year": 1,
-      },
-    },
-    {
-      $sort: {
-        "_id.month": 1,
-      },
-    },
-    // {
-    //   $limit: 5,
-    // }
-  ];
-
-  try {
-    let nonValidatedJobs = await workData.model.aggregate(pipeline);
-    let list = nonValidatedJobs
-      .filter(($) => $?._id.month)
-      .map(($) => {
-        return {
-          monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
-          totalRevenue: $?.totalRevenue.toLocaleString(),
-          id: $?._id,
-        };
-      });
-    console.log(list);
-    return list;
-  } catch (err) {
-    err;
-    return err;
-  }
-}
-
 async function getDailyValidatedRevenues(prjDescription, month, year) {
   let pipeline = [
     {
@@ -5680,113 +6103,6 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
         id: $?._id,
       };
     });
-    return list;
-  } catch (err) {
-    console.log("%%%%", err);
-    err;
-    return err;
-  }
-}
-
-async function getDailyNotPostedRevenues(month, year, userId) {
-  let pipeline = [
-    {
-      $match: {
-        // "project.prjDescription": prjDescription,
-        "equipment.vendor": new mongoose.Types.ObjectId(userId),
-      },
-    },
-    {
-      $unwind: {
-        path: "$dailyWork",
-        includeArrayIndex: "string",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: false,
-    //         },
-    //         siteWork: true,
-    //       },
-    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
-    //       {
-    //         status: "stopped",
-    //         siteWork: false,
-    //       },
-    //     ],
-    //   },
-    // },
-    {
-      $addFields: {
-        transactionDate: {
-          $cond: {
-            if: {
-              $eq: ["$siteWork", false],
-            },
-            then: "$workStartDate",
-            else: "$dailyWork.date",
-          },
-        },
-      },
-    },
-    {
-      $addFields: {
-        newTotalRevenue: {
-          $cond: {
-            if: {
-              $eq: ["$siteWork", false],
-            },
-            then: "$totalRevenue",
-            else: "$dailyWork.totalRevenue",
-          },
-        },
-        month: {
-          $month: "$transactionDate",
-        },
-        year: {
-          $year: "$transactionDate",
-        },
-      },
-    },
-    {
-      $match: {
-        month: parseInt(month),
-        year: parseInt(year),
-      },
-    },
-    {
-      $group: {
-        _id: {
-          date: {
-            $dateToString: { format: "%Y-%m-%d", date: "$transactionDate" },
-          },
-        },
-        totalRevenue: {
-          $sum: "$newTotalRevenue",
-        },
-      },
-    },
-    {
-      $sort: {
-        _id: 1,
-      },
-    },
-  ];
-
-  try {
-    let validatedJobs = await workData.model.aggregate(pipeline);
-
-    let list = validatedJobs.map(($) => {
-      return {
-        totalRevenue: $?.totalRevenue.toLocaleString(),
-        id: $?._id,
-      };
-    });
-    // console.log(list);
     return list;
   } catch (err) {
     console.log("%%%%", err);
@@ -6063,6 +6379,34 @@ async function getValidatedListByDay(prjDescription, transactionDate) {
         transactionDate: new Date(transactionDate),
       },
     },
+    {
+      $lookup: {
+        from: "drivers",
+        localField: "driver",
+        foreignField: "user",
+        as: "driver",
+      },
+    },
+    {
+      $unwind: {
+        path: "$driver",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "driver.user",
+        foreignField: "_id",
+        as: "driver",
+      },
+    },
+    {
+      $unwind: {
+        path: "$driver",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
   ];
 
   try {
@@ -6076,6 +6420,8 @@ async function getValidatedListByDay(prjDescription, transactionDate) {
       return v;
     });
 
+    console.log(__jobs);
+
     return __jobs;
   } catch (err) {
     err;
@@ -6088,6 +6434,821 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
     {
       $match: {
         "project.prjDescription": prjDescription,
+      },
+    },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    // {
+    //   $match: {
+    //     $or: [
+    //       {
+    //         "dailyWork.status": {
+    //           $exists: false,
+    //         },
+    //         siteWork: true,
+    //       },
+    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
+    //       {
+    //         status: "stopped",
+    //         siteWork: false,
+    //       },
+    //     ],
+    //   },
+    // },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: "$dailyWork.date",
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+        month: {
+          $month: "$transactionDate",
+        },
+        year: {
+          $year: "$transactionDate",
+        },
+      },
+    },
+    {
+      $match: {
+        transactionDate: new Date(transactionDate),
+      },
+    },
+
+    {
+      $lookup: {
+        from: "users",
+        localField: "driver.user",
+        foreignField: "_id",
+        as: "driver",
+      },
+    },
+    {
+      $unwind: {
+        path: "$driver",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $sort: {
+        "equipment.eqDescription": 1,
+      },
+    },
+  ];
+
+  try {
+    let jobs = await workData.model.aggregate(pipeline);
+
+    let _jobs = [...jobs];
+
+    let __jobs = _jobs.map((v) => {
+      let strRevenue = v.newTotalRevenue.toLocaleString();
+      v.strRevenue = strRevenue;
+      return v;
+    });
+
+    console.log(__jobs);
+
+    return __jobs;
+  } catch (err) {
+    err;
+    return err;
+  }
+}
+
+async function getNotPostedListByDay(userId, transactionDate) {
+  let pipeline = [
+    {
+      $match: {
+        "equipment.vendor": new mongoose.Types.ObjectId(userId),
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        originalWorkEndDate: "$workEndDate",
+        workEndDate: {
+          $cond: {
+            if: { $gt: ["$workEndDate", new Date()] },
+            then: new Date(),
+            else: "$workEndDate",
+          },
+        },
+        dailyWork: 1,
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        allDates: {
+          $map: {
+            input: {
+              $range: [
+                0,
+                {
+                  $add: [
+                    {
+                      $dateDiff: {
+                        startDate: "$workStartDate",
+                        endDate: "$workEndDate",
+                        unit: "day",
+                      },
+                    },
+                    1,
+                  ],
+                },
+              ],
+            },
+            as: "dayOffset",
+            in: {
+              $add: [
+                "$workStartDate",
+                {
+                  $multiply: ["$$dayOffset", 24 * 60 * 60 * 1000],
+                },
+              ],
+            },
+          },
+        },
+        existingDates: {
+          $map: {
+            input: "$dailyWork",
+            as: "dw",
+            in: "$$dw.date",
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        missingDates: {
+          $filter: {
+            input: "$allDates",
+            as: "date",
+            cond: {
+              $not: {
+                $in: ["$$date", "$existingDates"],
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        dailyWork: {
+          $concatArrays: [
+            "$dailyWork",
+            {
+              $map: {
+                input: "$missingDates",
+                as: "missingDate",
+                in: {
+                  date: "$$missingDate",
+                  totalRevenue: 0,
+                  pending: false,
+                  duration: 0,
+                  tripsDone: 0,
+                  totalExpenditure: 0,
+                  projectedRevenue: 0,
+                  startIndex: 0,
+                  endIndex: 0,
+                  status: "created",
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $project:
+        /**
+         * specifications: The fields to
+         *   include or exclude.
+         */
+        {
+          _id: 1,
+          workStartDate: 1,
+          equipment: 1,
+          workEndDate: 1,
+          dailyWork: 1,
+          // status: "$dailyWork.status",
+          status: {
+            $cond: {
+              if: { $eq: ["$siteWork", true] }, // Check if status is "pending"
+              then: "$dailyWork.status", // Keep status as "pending"
+              else: "$status", // Change status to "approved"
+            },
+          },
+          dispatch: 1,
+          driver: 1,
+          duration: {
+            $cond: {
+              if: { $eq: ["$siteWork", true] }, // Check if status is "pending"
+              then: "$dailyWork.duration", // Keep status as "pending"
+              else: "$duration", // Change status to "approved"
+            },
+          },
+          tripsDone: {
+            $cond: {
+              if: { $eq: ["$siteWork", true] }, // Check if status is "pending"
+              then: "$dailyWork.tripsDone", // Keep status as "pending"
+              else: "$tripsDone", // Change status to "approved"
+            },
+          },
+          totalExpenditure: 1,
+          totalRevenue: {
+            $cond: {
+              if: { $eq: ["$siteWork", true] }, // Check if status is "pending"
+              then: "$dailyWork.totalRevenue", // Keep status as "pending"
+              else: "$totalRevenue", // Change status to "approved"
+            },
+          },
+          projectedRevenue: {
+            $cond: {
+              if: { $eq: ["$siteWork", true] }, // Check if status is "pending"
+              then: "$dailyWork.projectedRevenue", // Keep status as "pending"
+              else: "$projectedRevenue", // Change status to "approved"
+            },
+          },
+          startIndex: {
+            $cond: {
+              if: { $eq: ["$siteWork", true] }, // Check if status is "pending"
+              then: "$dailyWork.startIndex", // Keep status as "pending"
+              else: "$startIndex", // Change status to "approved"
+            },
+          },
+          endIndex: {
+            $cond: {
+              if: { $eq: ["$siteWork", true] }, // Check if status is "pending"
+              then: "$dailyWork.endIndex", // Keep status as "pending"
+              else: "$endIndex", // Change status to "approved"
+            },
+          },
+          siteWork: 1,
+          dailyWork: 1,
+        },
+    },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: "$dailyWork.date",
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+        month: {
+          $month: "$transactionDate",
+        },
+        year: {
+          $year: "$transactionDate",
+        },
+      },
+    },
+    {
+      $match: {
+        transactionDate: moment(transactionDate, "UTC").toDate(),
+      },
+    },
+    {
+      $lookup: {
+        from: "drivers",
+        localField: "driver",
+        foreignField: "user",
+        as: "driver",
+      },
+    },
+    {
+      $unwind: {
+        path: "$driver",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "driver.user",
+        foreignField: "_id",
+        as: "driver",
+      },
+    },
+    {
+      $unwind: {
+        path: "$driver",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $addFields: {
+        status: {
+          $ifNull: ["$status", "stopped"],
+        },
+      },
+    },
+    {
+      $sort: {
+        "equipment.eqDescription": 1,
+      },
+    },
+  ];
+
+  try {
+    let jobs = await workData.model.aggregate(pipeline);
+
+    let _jobs = [...jobs];
+
+    let __jobs = _jobs.map((v) => {
+      let strRevenue = v.newTotalRevenue.toLocaleString();
+      v.strRevenue = strRevenue;
+      return v;
+    });
+
+    console.log(__jobs);
+    return __jobs;
+  } catch (err) {
+    err;
+    return err;
+  }
+}
+
+async function getDailyNotPostedRevenues(month, year, userId) {
+  let pipeline = [
+    {
+      $match: {
+        "equipment.vendor": new mongoose.Types.ObjectId(userId),
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        originalWorkEndDate: "$workEndDate",
+        workEndDate: {
+          $cond: {
+            if: { $gt: ["$workEndDate", new Date()] },
+            then: new Date(),
+            else: "$workEndDate",
+          },
+        },
+        dailyWork: 1,
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        allDates: {
+          $map: {
+            input: {
+              $range: [
+                0,
+                {
+                  $add: [
+                    {
+                      $dateDiff: {
+                        startDate: "$workStartDate",
+                        endDate: "$workEndDate",
+                        unit: "day",
+                      },
+                    },
+                    1,
+                  ],
+                },
+              ],
+            },
+            as: "dayOffset",
+            in: {
+              $add: [
+                "$workStartDate",
+                {
+                  $multiply: ["$$dayOffset", 24 * 60 * 60 * 1000],
+                },
+              ],
+            },
+          },
+        },
+        existingDates: {
+          $map: {
+            input: "$dailyWork",
+            as: "dw",
+            in: "$$dw.date",
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        missingDates: {
+          $filter: {
+            input: "$allDates",
+            as: "date",
+            cond: {
+              $not: {
+                $in: ["$$date", "$existingDates"],
+              },
+            },
+          },
+        },
+      },
+    },
+
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        dailyWork: {
+          $concatArrays: [
+            "$dailyWork",
+            {
+              $map: {
+                input: "$missingDates",
+                as: "missingDate",
+                in: {
+                  date: "$$missingDate",
+                  details: "No details yet",
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: "$dailyWork.date",
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+        month: {
+          $month: "$transactionDate",
+        },
+        year: {
+          $year: "$transactionDate",
+        },
+      },
+    },
+    {
+      $match: {
+        month: parseInt(month),
+        year: parseInt(year),
+      },
+    },
+    {
+      $group: {
+        _id: {
+          date: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$transactionDate",
+            },
+          },
+        },
+        totalRevenue: {
+          $sum: "$newTotalRevenue",
+        },
+      },
+    },
+    {
+      $sort: {
+        _id: 1,
+      },
+    },
+  ];
+  try {
+    let validatedJobs = await workData.model.aggregate(pipeline);
+
+    let list = validatedJobs.map(($) => {
+      return {
+        totalRevenue: $?.totalRevenue.toLocaleString(),
+        id: $?._id,
+      };
+    });
+    // console.log(list);
+    return list;
+  } catch (err) {
+    console.log("%%%%", err);
+    err;
+    return err;
+  }
+}
+
+async function getNotPostedRevenuedByVendor(userId) {
+  //get vendor from name
+
+  let pipeline = [
+    {
+      $match: {
+        "equipment.vendor": new ObjectId("62bc84d10a8ded52cc67ef79"),
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        originalWorkEndDate: "$workEndDate",
+        workEndDate: {
+          $cond: {
+            if: { $gt: ["$workEndDate", new Date()] },
+            then: new Date(),
+            else: "$workEndDate",
+          },
+        },
+        dailyWork: 1,
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        allDates: {
+          $map: {
+            input: {
+              $range: [
+                0,
+                {
+                  $add: [
+                    {
+                      $dateDiff: {
+                        startDate: "$workStartDate",
+                        endDate: "$workEndDate",
+                        unit: "day",
+                      },
+                    },
+                    1,
+                  ],
+                },
+              ],
+            },
+            as: "dayOffset",
+            in: {
+              $add: [
+                "$workStartDate",
+                {
+                  $multiply: ["$$dayOffset", 24 * 60 * 60 * 1000],
+                },
+              ],
+            },
+          },
+        },
+        existingDates: {
+          $map: {
+            input: "$dailyWork",
+            as: "dw",
+            in: "$$dw.date",
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        workEndDate: 1,
+        equipment: 1,
+        dailyWork: 1,
+        missingDates: {
+          $filter: {
+            input: "$allDates",
+            as: "date",
+            cond: {
+              $not: {
+                $in: ["$$date", "$existingDates"],
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        workEndDate: 1,
+        equipment: 1,
+        dailyWork: {
+          $concatArrays: [
+            "$dailyWork",
+            {
+              $map: {
+                input: "$missingDates",
+                as: "missingDate",
+                in: {
+                  date: "$$missingDate",
+                  details: "No details yet",
+                },
+              },
+            },
+          ],
+        },
       },
     },
 
@@ -6215,23 +7376,6 @@ async function getNotPostedListByDay(userId, transactionDate) {
         preserveNullAndEmptyArrays: true,
       },
     },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: false,
-    //         },
-    //         siteWork: true,
-    //       },
-    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
-    //       {
-    //         status: "stopped",
-    //         siteWork: false,
-    //       },
-    //     ],
-    //   },
-    // },
     {
       $addFields: {
         transactionDate: {
@@ -6256,38 +7400,57 @@ async function getNotPostedListByDay(userId, transactionDate) {
             else: "$dailyWork.totalRevenue",
           },
         },
-        month: {
-          $month: "$transactionDate",
+      },
+    },
+    {
+      $group: {
+        _id: {
+          month: {
+            $month: "$transactionDate",
+          },
+          year: {
+            $year: "$transactionDate",
+          },
         },
-        year: {
-          $year: "$transactionDate",
+        totalRevenue: {
+          $sum: "$newTotalRevenue",
         },
       },
     },
     {
       $match: {
-        transactionDate: new Date(transactionDate),
-      },
-    },
-    {
-      $sort: {
-        "equipment.eqDescription": 1,
+        $or: [
+          {
+            "_id.month": {
+              $gt: 4,
+            },
+            "_id.year": {
+              $gte: 2023,
+            },
+          },
+          {
+            "_id.year": {
+              $gt: 2023,
+            },
+          },
+        ],
       },
     },
   ];
 
   try {
-    let jobs = await workData.model.aggregate(pipeline);
-
-    let _jobs = [...jobs];
-
-    let __jobs = _jobs.map((v) => {
-      let strRevenue = v.newTotalRevenue.toLocaleString();
-      v.strRevenue = strRevenue;
-      return v;
-    });
-
-    return __jobs;
+    let nonValidatedJobs = await workData.model.aggregate(pipeline);
+    let list = nonValidatedJobs
+      .filter(($) => $?._id.month)
+      .map(($) => {
+        return {
+          monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
+          totalRevenue: $?.totalRevenue.toLocaleString(),
+          id: $?._id,
+        };
+      });
+    console.log(list);
+    return list;
   } catch (err) {
     err;
     return err;
