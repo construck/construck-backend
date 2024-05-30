@@ -4173,16 +4173,12 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
     reason,
   } = req.body;
 
-  console.log(
-    postingDate,
-    rejectedRevenue,
-    rejectedDuration,
-    rejectedExpenditure,
-    reason
-  );
-
   try {
     let workRec = await workData.model.findById(id);
+    let ownedByConstruck = workRec.equipment.eqOwner == "Construck";
+
+    let _totalRevenue = workRec.totalRevenue || 0;
+    let _totalExpenditure = workRec.totalExpenditure || 0;
 
     let _rejectedRevenue = workRec.rejectedRevenue
       ? workRec.rejectedRevenue
@@ -4211,6 +4207,10 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
         $set: {
           "dailyWork.$.status": "rejected",
           "dailyWork.$.rejectedReason": reason,
+          totalRevenue: _totalRevenue - parseFloat(rejectedRevenue),
+          totalExpenditure: !ownedByConstruck
+            ? _totalExpenditure - parseFloat(rejectedExpenditure)
+            : 0,
           rejectedRevenue: _rejectedRevenue + parseFloat(rejectedRevenue),
           rejectedDuration: _rejectedDuration + parseFloat(rejectedDuration),
           rejectedExpenditure:
@@ -4535,6 +4535,68 @@ router.put("/recall/:id", async (req, res) => {
 
     res.status(201).send(savedRecord);
   } catch (err) {}
+});
+
+router.put("/reject/:id", async (req, res) => {
+  let { id } = req.params;
+  let { reasonForRejection } = req.body;
+  try {
+    let work = await workData.model
+      .findById(id)
+      .populate("project")
+      .populate("equipment")
+      .populate("driver")
+      .populate("dispatch")
+      .populate("appovedBy")
+      .populate("workDone");
+
+    let ownedByConstruck = workRec.equipment.eqOwner == "Construck";
+
+    work.status = "rejected";
+    // work.reasonForRejection = reasonForRejection;
+    work.reasonForRejection = "Reason";
+    work.rejectedRevenue = work.totalRevenue;
+    work.totalRevenue = 0;
+    work.totalExpenditure = 0;
+    work.rejectedDuration = work.duration;
+    work.rejectedExpenditure = work.totalExpenditure;
+    // work.projectedRevenue = 0;
+
+    let savedRecord = await work.save();
+
+    let log = {
+      action: "DISPATCH REJECTED",
+      doneBy: req.body.rejectedBy,
+      payload: work,
+    };
+    let logTobeSaved = new logData.model(log);
+    await logTobeSaved.save();
+    const { NODE_ENV } = process.env;
+    console.log("process.env.NODE_ENV", NODE_ENV);
+    let receipts =
+      NODE_ENV === "production"
+        ? await getProjectAdminEmail(work.project.prjDescription)
+        : [];
+    if (receipts.length > 0) {
+      await sendEmail(
+        "appinfo@construck.rw",
+        "receipts",
+        "Work Rejected",
+        "workRejected",
+        "",
+        {
+          equipment: work?.equipment,
+          project: work?.project,
+          postingDate: moment(work?.workStartDate).format("DD-MMM-YYYY"),
+          reasonForRejection: reasonForRejection,
+        }
+      );
+    }
+    res.status(201).send(savedRecord);
+  } catch (err) {
+    console.log(err);
+    res.send("Error occured!!");
+  }
 });
 
 router.put("/start/:id", async (req, res) => {
