@@ -1269,7 +1269,6 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
         .populate("workDone")
         .sort([["_id", "descending"]]);
 
-      console.log("workList", workList.length);
       let listToSend = workList;
 
       let siteWorkList = [];
@@ -1615,7 +1614,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               },
               "equipment.eqOwner": vendorName,
             },
-
 
             {
               siteWork: false,
@@ -2384,8 +2382,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     let siteWorkList = [];
 
-    console.log(listToSend);
-
     let l = listToSend.map((w, index) => {
       let work = null;
 
@@ -2879,14 +2875,12 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     return res.status(200).send(orderedList.filter((w) => w !== null));
   } catch (err) {
-    console.log("yes", err);
     return res.send(err);
   }
 });
 
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
-  // console.log('id', id)
   // return;
   try {
     let work = await workData.model
@@ -3004,13 +2998,10 @@ router.get("/monthlyRevenuePerProject/:projectName", async (req, res) => {
 
 router.get("/monthlyValidatedRevenues/:projectName", async (req, res) => {
   let { projectName } = req.params;
-  console.log("projectName", projectName);
   try {
     let result = await getValidatedRevenuesByProject(projectName);
     res.send(result);
-  } catch (error) {
-    console.log("what??", error);
-  }
+  } catch (error) {}
 });
 
 router.get("/monthlyNonValidatedRevenues/:projectName", async (req, res) => {
@@ -3042,14 +3033,11 @@ router.get("/dailyValidatedRevenues/:projectName", async (req, res) => {
 router.get("/dailyNonValidatedRevenues/:projectName", async (req, res) => {
   let { projectName } = req.params;
   let { month, year } = req.query;
-  console.log("@@@", projectName, month, year);
   try {
     let result = await getDailyNonValidatedRevenues(projectName, month, year);
 
     res.send(result);
-  } catch (error) {
-    console.log("####err", error);
-  }
+  } catch (error) {}
 });
 
 router.get("/dailyNotPostedRevenues/:userId", async (req, res) => {
@@ -3059,9 +3047,7 @@ router.get("/dailyNotPostedRevenues/:userId", async (req, res) => {
   try {
     let result = await getDailyNotPostedRevenues(month, year, userId);
     res.send(result);
-  } catch (error) {
-    console.log("####err", error);
-  }
+  } catch (error) {}
 });
 
 router.get("/validatedList/:projectName", async (req, res) => {
@@ -3212,9 +3198,7 @@ router.get("/dailyNotPostedRevenues/:userId", async (req, res) => {
   try {
     let result = await getDailyNotPostedRevenues(month, year, userId);
     res.send(result);
-  } catch (error) {
-    console.log("####err", error);
-  }
+  } catch (error) {}
 });
 
 router.post("/", async (req, res) => {
@@ -3346,7 +3330,6 @@ router.post("/", async (req, res) => {
 
     res.status(201).send(workCreated);
   } catch (err) {
-    console.log("err", err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
@@ -3853,11 +3836,7 @@ router.post("/getAnalytics", async (req, res) => {
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    console.log({
-      err,
-      key,
-    });
-    res.send({
+    return res.send({
       error,
       key,
     });
@@ -3935,7 +3914,6 @@ router.put("/:id", async (req, res) => {
 
     res.send({ message: "done" });
   } catch (err) {
-    console.log(err);
     return res.send({
       error: true,
     });
@@ -3993,15 +3971,6 @@ router.put("/approveDailyWork/:id", async (req, res) => {
     approvedExpenditure,
   } = req.body;
 
-  console.log(
-    "##",
-    postingDate,
-    approvedBy,
-    approvedRevenue,
-    approvedDuration,
-    approvedExpenditure
-  );
-
   try {
     let workRec = await workData.model.findById(id);
 
@@ -4014,13 +3983,6 @@ router.put("/approveDailyWork/:id", async (req, res) => {
     let _approvedDuration = workRec.approvedDuration
       ? workRec.approvedDuration
       : 0;
-
-    console.log(
-      "Gucanganyikirwa tu",
-      _approvedDuration,
-      _approvedRevenue,
-      _approvedExpenditure
-    );
 
     let work = await workData.model.findOneAndUpdate(
       {
@@ -4060,7 +4022,6 @@ router.put("/approveDailyWork/:id", async (req, res) => {
 
     return res.status(201).send(work);
   } catch (err) {
-    console.log(err);
     res.status(500).send({
       error: err,
     });
@@ -4173,6 +4134,7 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
     reason,
   } = req.body;
 
+  // return
   try {
     let workRec = await workData.model.findById(id);
     let ownedByConstruck = workRec.equipment.eqOwner == "Construck";
@@ -4207,7 +4169,8 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
         $set: {
           "dailyWork.$.status": "rejected",
           "dailyWork.$.rejectedReason": reason,
-          totalRevenue: _totalRevenue - parseFloat(rejectedRevenue),
+          "dailyWork.$.totalRevenue": 0,
+          totalRevenue: parseFloat(_totalRevenue) - parseFloat(rejectedRevenue),
           totalExpenditure: !ownedByConstruck
             ? _totalExpenditure - parseFloat(rejectedExpenditure)
             : 0,
@@ -4250,7 +4213,7 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
     }
     return res.status(200).send(work);
   } catch (err) {
-    console.log("@@err", err);
+    console.log("err", err);
     return res.status(503).send(err);
   }
 });
@@ -4306,7 +4269,6 @@ router.put("/reject/:id", async (req, res) => {
     }
     res.status(201).send(savedRecord);
   } catch (err) {
-    console.log(err);
     res.send("Error occured!!");
   }
 });
@@ -4326,7 +4288,6 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
         `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
       );
 
-    console.log(moment(`${year}-${month}-01`));
     // let q1 = await workData.model.updateMany(
     //   {
     //     siteWork: false,
@@ -4365,10 +4326,8 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
       }
     );
 
-    res.send({q2});
+    res.send({ q2 });
   } catch (err) {
-    console.log(err);
-    err;
     res.send(err);
   }
 });
@@ -4425,7 +4384,7 @@ router.put("/rejectValidated/:projectName", async (req, res) => {
     //   }
     // );
 
-    res.send({  });
+    res.send({});
   } catch (err) {
     err;
     res.send(err);
@@ -4572,7 +4531,6 @@ router.put("/reject/:id", async (req, res) => {
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
     const { NODE_ENV } = process.env;
-    console.log("process.env.NODE_ENV", NODE_ENV);
     let receipts =
       NODE_ENV === "production"
         ? await getProjectAdminEmail(work.project.prjDescription)
@@ -4594,7 +4552,6 @@ router.put("/reject/:id", async (req, res) => {
     }
     res.status(201).send(savedRecord);
   } catch (err) {
-    console.log(err);
     res.send("Error occured!!");
   }
 });
@@ -4726,15 +4683,6 @@ router.put("/stop/:id", async (req, res) => {
     fuel,
     startIndex,
   } = req.body;
-
-  console.log(
-    endIndex,
-    tripsDone,
-    comment,
-    moreComment,
-    postingDate,
-    stoppedBy
-  );
 
   let duration = Math.abs(req.body.duration);
 
@@ -5458,7 +5406,6 @@ router.put("/swamend/:id", async (req, res) => {
 
     res.status(201).send(savedRecord);
   } catch (err) {
-    console.log("##", err);
     return res.status(503).send({
       error: err,
     });
@@ -5508,7 +5455,6 @@ router.put("/swreverse/:id", async (req, res) => {
 
     res.send(work).status(201);
   } catch (err) {
-    console.log("@@@er", err);
     res.send(err);
   }
 });
@@ -6167,8 +6113,6 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
     });
     return list;
   } catch (err) {
-    console.log("%%%%", err);
-    err;
     return err;
   }
 }
@@ -6482,8 +6426,6 @@ async function getValidatedListByDay(prjDescription, transactionDate) {
       return v;
     });
 
-    console.log(__jobs);
-
     return __jobs;
   } catch (err) {
     err;
@@ -6591,8 +6533,6 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
       v.strRevenue = strRevenue;
       return v;
     });
-
-    console.log(__jobs);
 
     return __jobs;
   } catch (err) {
@@ -6933,7 +6873,6 @@ async function getNotPostedListByDay(userId, transactionDate) {
       return v;
     });
 
-    console.log(__jobs);
     return __jobs;
   } catch (err) {
     err;
@@ -7177,11 +7116,8 @@ async function getDailyNotPostedRevenues(month, year, userId) {
         id: $?._id,
       };
     });
-    // console.log(list);
     return list;
   } catch (err) {
-    console.log("%%%%", err);
-    err;
     return err;
   }
 }
@@ -7511,7 +7447,6 @@ async function getNotPostedListByDay(userId, transactionDate) {
           id: $?._id,
         };
       });
-    console.log(list);
     return list;
   } catch (err) {
     err;
@@ -8054,9 +7989,6 @@ async function stopWork(
             return i;
           }
         });
-
-        console.log(indexToUpdate);
-
         dailyWorks[indexToUpdate] = dailyWork;
         work.startIndex =
           endIndex || startIndex !== 0
