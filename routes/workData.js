@@ -2474,24 +2474,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 //     : (dP.duration > 0 ? 1 : 0) * w?.equipment?.supplierRate,
                 "Driver Names": w.driver
                   ? w?.driver?.firstName + " " + w?.driver?.lastName
-                  : w.equipment?.eqOwner,
-
-                "Turn boy 1":
-                  w?.turnBoy?.length >= 1
-                    ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
-                    : "",
-                "Turn boy 2":
-                  w?.turnBoy?.length >= 2
-                    ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
-                    : "",
-                "Turn boy 3":
-                  w?.turnBoy?.length >= 3
-                    ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
-                    : "",
-                "Turn boy 4":
-                  w?.turnBoy?.length >= 4
-                    ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
-                    : "",
+                  : "",
                 "Driver contacts": w.driver?.phone,
               }),
               "Target trips": w.dispatch?.targetTrips
@@ -2547,23 +2530,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 "Vendor payment": 0,
                 "Driver Names": w.driver
                   ? w?.driver?.firstName + " " + w?.driver?.lastName
-                  : w.equipment?.eqOwner,
-                "Turn boy 1":
-                  w?.turnBoy?.length >= 1
-                    ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
-                    : "",
-                "Turn boy 2":
-                  w?.turnBoy?.length >= 2
-                    ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
-                    : "",
-                "Turn boy 3":
-                  w?.turnBoy?.length >= 3
-                    ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
-                    : "",
-                "Turn boy 4":
-                  w?.turnBoy?.length >= 4
-                    ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
-                    : "",
+                  : "",
                 "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
                 "Target trips": w.dispatch?.targetTrips
                   ? w.dispatch?.targetTrips
@@ -2610,7 +2577,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Duration (HRS)": 0,
               "Duration (DAYS)": 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-              "Other work description": w.dispatch?.otherJobType,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
                 "Projected Revenue":
                   w.equipment?.uom === "hour"
@@ -2620,23 +2586,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 "Vendor payment": 0,
                 "Driver Names": w.driver
                   ? w?.driver?.firstName + " " + w?.driver?.lastName
-                  : w.equipment?.eqOwner,
-                "Turn boy 1":
-                  w?.turnBoy?.length >= 1
-                    ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
-                    : "",
-                "Turn boy 2":
-                  w?.turnBoy?.length >= 2
-                    ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
-                    : "",
-                "Turn boy 3":
-                  w?.turnBoy?.length >= 3
-                    ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
-                    : "",
-                "Turn boy 4":
-                  w?.turnBoy?.length >= 4
-                    ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
-                    : "",
+                  : "",
                 "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
               }),
               "Target trips": w.dispatch?.targetTrips
@@ -2746,23 +2696,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     : (dP.duration > 0 ? 1 : 0) * w?.equipment?.supplierRate,
                 "Driver Names": w.driver
                   ? w?.driver?.firstName + " " + w?.driver?.lastName
-                  : w.equipment?.eqOwner,
-                "Turn boy 1":
-                  w?.turnBoy?.length >= 1
-                    ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
-                    : "",
-                "Turn boy 2":
-                  w?.turnBoy?.length >= 2
-                    ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
-                    : "",
-                "Turn boy 3":
-                  w?.turnBoy?.length >= 3
-                    ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
-                    : "",
-                "Turn boy 4":
-                  w?.turnBoy?.length >= 4
-                    ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
-                    : "",
+                  : "",
                 "Driver contacts": w.driver?.phone,
               }),
               "Target trips": w.dispatch?.targetTrips
@@ -2829,23 +2763,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Vendor payment": w.totalExpenditure,
               "Driver Names": w.driver
                 ? w?.driver?.firstName + " " + w?.driver?.lastName
-                : w.equipment?.eqOwner,
-              "Turn boy 1":
-                w?.turnBoy?.length >= 1
-                  ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
-                  : "",
-              "Turn boy 2":
-                w?.turnBoy?.length >= 2
-                  ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
-                  : "",
-              "Turn boy 3":
-                w?.turnBoy?.length >= 3
-                  ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
-                  : "",
-              "Turn boy 4":
-                w?.turnBoy?.length >= 4
-                  ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
-                  : "",
+                : "",
               "Driver contacts": w.driver?.phone,
             }),
             "Target trips": w.dispatch?.targetTrips,
@@ -2885,14 +2803,6 @@ router.get("/:id", async (req, res) => {
   try {
     let work = await workData.model
       .findById(id)
-      // .populate("project")
-      // .populate({
-      //   path: "project",
-      //   populate: {
-      //     path: "customer",
-      //     model: "customers",
-      //   },
-      // })
       .populate("equipment")
       .populate("driver")
       .populate("dispatch")
@@ -2900,9 +2810,9 @@ router.get("/:id", async (req, res) => {
       .populate("createdBy")
       .populate("workDone");
 
-    res.status(200).send(work);
+    return res.status(200).send(work);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
