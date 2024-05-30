@@ -3631,16 +3631,10 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
     reason,
   } = req.body;
 
-  console.log(
-    postingDate,
-    rejectedRevenue,
-    rejectedDuration,
-    rejectedExpenditure,
-    reason
-  );
-
   try {
     let workRec = await workData.model.findById(id);
+
+    let _totalRevenue = workRec.totalRevenue || 0;
 
     let _rejectedRevenue = workRec.rejectedRevenue
       ? workRec.rejectedRevenue
@@ -3669,6 +3663,7 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
         $set: {
           "dailyWork.$.status": "rejected",
           "dailyWork.$.rejectedReason": reason,
+          totalRevenue: _totalRevenue - parseFloat(rejectedRevenue),
           rejectedRevenue: _rejectedRevenue + parseFloat(rejectedRevenue),
           rejectedDuration: _rejectedDuration + parseFloat(rejectedDuration),
           rejectedExpenditure:
