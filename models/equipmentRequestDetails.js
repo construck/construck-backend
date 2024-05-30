@@ -28,6 +28,7 @@ const EquipmentRequestDetailsSchema = new mongoose.Schema({
   },
   approvedQuantity: {
     type: Number,
+    default: 0,
   },
 });
 

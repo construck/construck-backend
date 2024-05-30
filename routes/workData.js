@@ -965,22 +965,21 @@ router.get("/v3/driver/:driverId", async (req, res) => {
       .populate("workDone")
       .sort([["_id", "descending"]]);
 
-    let listToSend = workList
-      .filter(
-        (w) =>
-          w.siteWork === false ||
-          (w.siteWork === true &&
-            (w.status === "in progress" || w.status === "on going")) ||
-          (w.siteWork === true &&
-            _.filter(w.dailyWork, (dW) => {
-              return dW.date === moment().format("DD-MMM-YYYY");
-            }).length === 0)
-      )
-      .filter(
-        (w) =>
-          // !_.isNull(w.driver) &&
-          !_.isNull(w.workDone) && w.status !== "recalled"
-      );
+    let listToSend = workList.filter(
+      (w) =>
+        w.siteWork === false ||
+        (w.siteWork === true &&
+          (w.status === "in progress" || w.status === "on going")) ||
+        (w.siteWork === true &&
+          _.filter(w.dailyWork, (dW) => {
+            return dW.date === moment().format("DD-MMM-YYYY");
+          }).length === 0)
+    );
+    // .filter(
+    //   (w) =>
+    //     // !_.isNull(w.driver) &&
+    //     !_.isNull(w.workDone) && w.status !== "recalled"
+    // );
 
     let siteWorkList = [];
 
@@ -4015,7 +4014,7 @@ router.put("/approveDailyWork/:id", async (req, res) => {
 
     res.status(201).send(work);
   } catch (err) {
-    console.log(err)
+    console.log(err);
     res.status(500).send({
       error: err,
     });
@@ -4201,9 +4200,66 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
   }
 });
 
+router.put("/reject/:id", async (req, res) => {
+  let { id } = req.params;
+  let { reasonForRejection } = req.body;
+  try {
+    let work = await workData.model
+      .findById(id)
+      .populate("project")
+      .populate("equipment")
+      .populate("driver")
+      .populate("dispatch")
+      .populate("appovedBy")
+      .populate("workDone");
+
+    work.status = "rejected";
+    // work.reasonForRejection = reasonForRejection;
+    work.reasonForRejection = "Reason";
+    work.rejectedRevenue = work.totalRevenue;
+    work.rejectedDuration = work.duration;
+    work.rejectedExpenditure = work.totalExpenditure;
+    // work.projectedRevenue = 0;
+
+    let savedRecord = await work.save();
+
+    let log = {
+      action: "DISPATCH REJECTED",
+      doneBy: req.body.rejectedBy,
+      payload: work,
+    };
+    let logTobeSaved = new logData.model(log);
+    await logTobeSaved.save();
+
+    let receipts = await getProjectAdminEmail(work.project.prjDescription);
+    // let receipts = ["bhigiro@cvl.co.rw"];
+
+    if (receipts.length > 0) {
+      await sendEmail(
+        "appinfo@construck.rw",
+        receipts,
+        "Work Rejected",
+        "workRejected",
+        "",
+        {
+          equipment: work?.equipment,
+          project: work?.project,
+          postingDate: moment(work?.workStartDate).format("DD-MMM-YYYY"),
+          reasonForRejection: reasonForRejection,
+        }
+      );
+    }
+    res.status(201).send(savedRecord);
+  } catch (err) {
+    console.log(err);
+    res.send("Error occured!!");
+  }
+});
+
 router.put("/releaseValidated/:projectName", async (req, res) => {
   let { month, year } = req.query;
   let { projectName } = req.params;
+  // month = month - 1;
   try {
     if (month < 10) month = "0" + month;
     const startOfMonth = moment()
@@ -4214,20 +4270,22 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
       .format(
         `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
       );
-    let q1 = await workData.model.updateMany(
-      {
-        siteWork: false,
-        "project.prjDescription": projectName,
-        status: "validated",
-        workStartDate: { $gte: startOfMonth },
-        workStartDate: { $lte: endOfMonth },
-      },
-      {
-        $set: {
-          status: "released",
-        },
-      }
-    );
+
+    console.log(moment(`${year}-${month}-01`));
+    // let q1 = await workData.model.updateMany(
+    //   {
+    //     siteWork: false,
+    //     "project.prjDescription": projectName,
+    //     status: "validated",
+    //     workStartDate: { $gte: startOfMonth },
+    //     workStartDate: { $lte: endOfMonth },
+    //   },
+    //   {
+    //     $set: {
+    //       status: "released",
+    //     },
+    //   }
+    // );
 
     let q2 = await workData.model.updateMany(
       {
@@ -4236,23 +4294,23 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
       },
       {
         $set: {
-          "dailyWork.$[elemX].status": "released",
+          "dailyWork.$[elem].status": "released",
         },
       },
       {
         arrayFilters: [
           {
-            $or: [
-              { "elemX.date": { $gte: startOfMonth } },
-              { "elemX.date": { $lte: endOfMonth } },
-            ],
-            "elemX.status": "validated",
+            "elem.date": {
+              $gte: new Date(year, month - 1, 1),
+              $lt: new Date(year, month, 1),
+            },
           },
         ],
+        multi: true,
       }
     );
 
-    res.send({ q2 });
+    res.send({q2});
   } catch (err) {
     console.log(err);
     err;
@@ -4291,28 +4349,28 @@ router.put("/rejectValidated/:projectName", async (req, res) => {
       }
     );
 
-    let q2 = await workData.model.updateMany(
-      {
-        siteWork: true,
-        "project.prjDescription": projectName,
-      },
-      {
-        $set: {
-          "dailyWork.$[elemX].status": "rejected",
-          "dailyWork.$[elemX].rejectedReason": reason,
-        },
-      },
-      {
-        arrayFilters: [
-          {
-            "elemX.date": new RegExp(`${monthHelper(month)}-${year}`),
-            "elemX.status": "validated",
-          },
-        ],
-      }
-    );
+    // let q2 = await workData.model.updateMany(
+    //   {
+    //     siteWork: true,
+    //     "project.prjDescription": projectName,
+    //   },
+    //   {
+    //     $set: {
+    //       "dailyWork.$[elemX].status": "rejected",
+    //       "dailyWork.$[elemX].rejectedReason": reason,
+    //     },
+    //   },
+    //   {
+    //     arrayFilters: [
+    //       {
+    //         "elemX.date": new RegExp(`${monthHelper(month)}-${year}`),
+    //         "elemX.status": "validated",
+    //       },
+    //     ],
+    //   }
+    // );
 
-    res.send({ q2 });
+    res.send({  });
   } catch (err) {
     err;
     res.send(err);
@@ -4422,62 +4480,6 @@ router.put("/recall/:id", async (req, res) => {
 
     res.status(201).send(savedRecord);
   } catch (err) {}
-});
-
-router.put("/reject/:id", async (req, res) => {
-  let { id } = req.params;
-  let { reasonForRejection } = req.body;
-  try {
-    let work = await workData.model
-      .findById(id)
-      .populate("project")
-      .populate("equipment")
-      .populate("driver")
-      .populate("dispatch")
-      .populate("appovedBy")
-      .populate("workDone");
-
-    work.status = "rejected";
-    // work.reasonForRejection = reasonForRejection;
-    work.reasonForRejection = "Reason";
-    work.rejectedRevenue = work.totalRevenue;
-    work.rejectedDuration = work.duration;
-    work.rejectedExpenditure = work.totalExpenditure;
-    // work.projectedRevenue = 0;
-
-    let savedRecord = await work.save();
-
-    let log = {
-      action: "DISPATCH REJECTED",
-      doneBy: req.body.rejectedBy,
-      payload: work,
-    };
-    let logTobeSaved = new logData.model(log);
-    await logTobeSaved.save();
-
-    let receipts = await getProjectAdminEmail(work.project.prjDescription);
-    // let receipts = ["bhigiro@cvl.co.rw"];
-
-    if (receipts.length > 0) {
-      await sendEmail(
-        "appinfo@construck.rw",
-        receipts,
-        "Work Rejected",
-        "workRejected",
-        "",
-        {
-          equipment: work?.equipment,
-          project: work?.project,
-          postingDate: moment(work?.workStartDate).format("DD-MMM-YYYY"),
-          reasonForRejection: reasonForRejection,
-        }
-      );
-    }
-    res.status(201).send(savedRecord);
-  } catch (err) {
-    console.log(err);
-    res.send("Error occured!!");
-  }
 });
 
 router.put("/start/:id", async (req, res) => {
@@ -4597,8 +4599,16 @@ router.put("/start/:id", async (req, res) => {
 router.put("/stop/:id", async (req, res) => {
   let { id } = req.params;
 
-  let { endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy } =
-    req.body;
+  let {
+    endIndex,
+    tripsDone,
+    comment,
+    moreComment,
+    postingDate,
+    stoppedBy,
+    fuel,
+    startIndex,
+  } = req.body;
 
   let duration = Math.abs(req.body.duration);
 
@@ -4621,6 +4631,8 @@ router.put("/stop/:id", async (req, res) => {
 
     //You can only stop jobs in progress
     if (
+      work?.status === "created" ||
+      work?.status === "on going" ||
       work?.status === "in progress" ||
       (work?.siteWork &&
         moment(postingDate).isSameOrAfter(moment(work?.workStartDate), "day") &&
@@ -4723,9 +4735,7 @@ router.put("/stop/:id", async (req, res) => {
         }
         dailyWork.rate = rate;
         dailyWork.uom = uom;
-        dailyWork.date = moment(postingDate).isValid()
-          ? moment(postingDate).format("DD-MMM-YYYY")
-          : moment(postingDate, "DD.MM.YYYY").format("DD-MMM-YYYY");
+        dailyWork.date = postingDate;
         dailyWork.totalRevenue = revenue ? revenue : 0;
         dailyWork.totalExpenditure = expenditure ? expenditure : 0;
 
@@ -4734,14 +4744,19 @@ router.put("/stop/:id", async (req, res) => {
         dailyWork.pending = false;
 
         let dailyWorks = [...work.dailyWork];
-
         let indexToUpdate = -1;
         let workToUpdate = dailyWorks.find((d, index) => {
           d.day == moment().diff(moment(work.workStartDate), "days");
           indexToUpdate = index;
         });
 
-        dailyWorks[indexToUpdate] = dailyWork;
+        // if (indexToUpdate === -1) {
+        // } else {
+        //   dailyWorks[indexToUpdate] = dailyWork;
+        //   // dailyWorks.splice(indexToUpdate, 0, dailyWork);
+        // }
+        dailyWorks.push(dailyWork);
+
         work.startIndex =
           endIndex || startIndex !== 0
             ? parseInt(endIndex)
@@ -4754,6 +4769,8 @@ router.put("/stop/:id", async (req, res) => {
         work.equipment = equipment;
         work.moreComment = moreComment;
         work.status = workEnded ? "stopped" : "on going";
+        work.fuel = parseFloat(fuel);
+        work.startIndex = parseInt(startIndex);
         await equipment.save();
         if (employee) await employee.save();
         let savedRecord = await work.save();
@@ -4807,6 +4824,7 @@ router.put("/stop/:id", async (req, res) => {
             ? parseInt(endIndex)
             : parseInt(startIndex);
         work.startIndex = parseInt(startIndex);
+        work.fuel = fuel;
         work.tripsDone = parseInt(tripsDone);
         let uom = equipment?.uom;
 
@@ -6338,7 +6356,7 @@ async function getValidatedListByDay(prjDescription, transactionDate) {
       return v;
     });
 
-    console.log(__jobs)
+    console.log(__jobs);
 
     return __jobs;
   } catch (err) {
@@ -6415,7 +6433,7 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
         transactionDate: new Date(transactionDate),
       },
     },
-    
+
     {
       $lookup: {
         from: "users",
@@ -6465,29 +6483,240 @@ async function getNotPostedListByDay(userId, transactionDate) {
       },
     },
     {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        originalWorkEndDate: "$workEndDate",
+        workEndDate: {
+          $cond: {
+            if: { $gt: ["$workEndDate", new Date()] },
+            then: new Date(),
+            else: "$workEndDate",
+          },
+        },
+        dailyWork: 1,
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        allDates: {
+          $map: {
+            input: {
+              $range: [
+                0,
+                {
+                  $add: [
+                    {
+                      $dateDiff: {
+                        startDate: "$workStartDate",
+                        endDate: "$workEndDate",
+                        unit: "day",
+                      },
+                    },
+                    1,
+                  ],
+                },
+              ],
+            },
+            as: "dayOffset",
+            in: {
+              $add: [
+                "$workStartDate",
+                {
+                  $multiply: ["$$dayOffset", 24 * 60 * 60 * 1000],
+                },
+              ],
+            },
+          },
+        },
+        existingDates: {
+          $map: {
+            input: "$dailyWork",
+            as: "dw",
+            in: "$$dw.date",
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        missingDates: {
+          $filter: {
+            input: "$allDates",
+            as: "date",
+            cond: {
+              $not: {
+                $in: ["$$date", "$existingDates"],
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        dailyWork: {
+          $concatArrays: [
+            "$dailyWork",
+            {
+              $map: {
+                input: "$missingDates",
+                as: "missingDate",
+                in: {
+                  date: "$$missingDate",
+                  totalRevenue: 0,
+                  pending: false,
+                  duration: 0,
+                  tripsDone: 0,
+                  totalExpenditure: 0,
+                  projectedRevenue: 0,
+                  startIndex: 0,
+                  endIndex: 0,
+                  status: "created",
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+    {
       $unwind: {
         path: "$dailyWork",
-        includeArrayIndex: "string",
         preserveNullAndEmptyArrays: true,
       },
     },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: false,
-    //         },
-    //         siteWork: true,
-    //       },
-    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
-    //       {
-    //         status: "stopped",
-    //         siteWork: false,
-    //       },
-    //     ],
-    //   },
-    // },
+    {
+      $project:
+        /**
+         * specifications: The fields to
+         *   include or exclude.
+         */
+        {
+          _id: 1,
+          workStartDate: 1,
+          equipment: 1,
+          workEndDate: 1,
+          dailyWork: 1,
+          // status: "$dailyWork.status",
+          status: {
+            $cond: {
+              if: { $eq: ["$siteWork", true] }, // Check if status is "pending"
+              then: "$dailyWork.status", // Keep status as "pending"
+              else: "$status", // Change status to "approved"
+            },
+          },
+          dispatch: 1,
+          driver: 1,
+          duration: {
+            $cond: {
+              if: { $eq: ["$siteWork", true] }, // Check if status is "pending"
+              then: "$dailyWork.duration", // Keep status as "pending"
+              else: "$duration", // Change status to "approved"
+            },
+          },
+          tripsDone: {
+            $cond: {
+              if: { $eq: ["$siteWork", true] }, // Check if status is "pending"
+              then: "$dailyWork.tripsDone", // Keep status as "pending"
+              else: "$tripsDone", // Change status to "approved"
+            },
+          },
+          totalExpenditure: 1,
+          totalRevenue: {
+            $cond: {
+              if: { $eq: ["$siteWork", true] }, // Check if status is "pending"
+              then: "$dailyWork.totalRevenue", // Keep status as "pending"
+              else: "$totalRevenue", // Change status to "approved"
+            },
+          },
+          projectedRevenue: {
+            $cond: {
+              if: { $eq: ["$siteWork", true] }, // Check if status is "pending"
+              then: "$dailyWork.projectedRevenue", // Keep status as "pending"
+              else: "$projectedRevenue", // Change status to "approved"
+            },
+          },
+          startIndex: {
+            $cond: {
+              if: { $eq: ["$siteWork", true] }, // Check if status is "pending"
+              then: "$dailyWork.startIndex", // Keep status as "pending"
+              else: "$startIndex", // Change status to "approved"
+            },
+          },
+          endIndex: {
+            $cond: {
+              if: { $eq: ["$siteWork", true] }, // Check if status is "pending"
+              then: "$dailyWork.endIndex", // Keep status as "pending"
+              else: "$endIndex", // Change status to "approved"
+            },
+          },
+          siteWork: 1,
+          dailyWork: 1,
+        },
+    },
     {
       $addFields: {
         transactionDate: {
@@ -6522,7 +6751,7 @@ async function getNotPostedListByDay(userId, transactionDate) {
     },
     {
       $match: {
-        transactionDate: new Date(transactionDate),
+        transactionDate: moment(transactionDate, "UTC").toDate(),
       },
     },
     {
@@ -6554,6 +6783,13 @@ async function getNotPostedListByDay(userId, transactionDate) {
       },
     },
     {
+      $addFields: {
+        status: {
+          $ifNull: ["$status", "stopped"],
+        },
+      },
+    },
+    {
       $sort: {
         "equipment.eqDescription": 1,
       },
@@ -6571,7 +6807,7 @@ async function getNotPostedListByDay(userId, transactionDate) {
       return v;
     });
 
-    console.log(__jobs)
+    console.log(__jobs);
     return __jobs;
   } catch (err) {
     err;
@@ -6583,10 +6819,163 @@ async function getDailyNotPostedRevenues(month, year, userId) {
   let pipeline = [
     {
       $match: {
-        // "project.prjDescription": prjDescription,
         "equipment.vendor": new mongoose.Types.ObjectId(userId),
       },
     },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        originalWorkEndDate: "$workEndDate",
+        workEndDate: {
+          $cond: {
+            if: { $gt: ["$workEndDate", new Date()] },
+            then: new Date(),
+            else: "$workEndDate",
+          },
+        },
+        dailyWork: 1,
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        allDates: {
+          $map: {
+            input: {
+              $range: [
+                0,
+                {
+                  $add: [
+                    {
+                      $dateDiff: {
+                        startDate: "$workStartDate",
+                        endDate: "$workEndDate",
+                        unit: "day",
+                      },
+                    },
+                    1,
+                  ],
+                },
+              ],
+            },
+            as: "dayOffset",
+            in: {
+              $add: [
+                "$workStartDate",
+                {
+                  $multiply: ["$$dayOffset", 24 * 60 * 60 * 1000],
+                },
+              ],
+            },
+          },
+        },
+        existingDates: {
+          $map: {
+            input: "$dailyWork",
+            as: "dw",
+            in: "$$dw.date",
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        missingDates: {
+          $filter: {
+            input: "$allDates",
+            as: "date",
+            cond: {
+              $not: {
+                $in: ["$$date", "$existingDates"],
+              },
+            },
+          },
+        },
+      },
+    },
+
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        dailyWork: {
+          $concatArrays: [
+            "$dailyWork",
+            {
+              $map: {
+                input: "$missingDates",
+                as: "missingDate",
+                in: {
+                  date: "$$missingDate",
+                  details: "No details yet",
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+
     {
       $unwind: {
         path: "$dailyWork",
@@ -6594,23 +6983,6 @@ async function getDailyNotPostedRevenues(month, year, userId) {
         preserveNullAndEmptyArrays: true,
       },
     },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: false,
-    //         },
-    //         siteWork: true,
-    //       },
-    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
-    //       {
-    //         status: "stopped",
-    //         siteWork: false,
-    //       },
-    //     ],
-    //   },
-    // },
     {
       $addFields: {
         transactionDate: {
@@ -6653,7 +7025,10 @@ async function getDailyNotPostedRevenues(month, year, userId) {
       $group: {
         _id: {
           date: {
-            $dateToString: { format: "%Y-%m-%d", date: "$transactionDate" },
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$transactionDate",
+            },
           },
         },
         totalRevenue: {
@@ -6667,7 +7042,6 @@ async function getDailyNotPostedRevenues(month, year, userId) {
       },
     },
   ];
-
   try {
     let validatedJobs = await workData.model.aggregate(pipeline);
 
@@ -6685,13 +7059,131 @@ async function getDailyNotPostedRevenues(month, year, userId) {
     return err;
   }
 }
+
 async function getNotPostedRevenuedByVendor(userId) {
+  //get vendor from name
+
   let pipeline = [
     {
       $match: {
-        "equipment.vendor": mongoose.Types.ObjectId(userId),
-        status: {
-          $nin: ["approved", "released", "validated", "recalled"],
+        "equipment.vendor": new ObjectId("62bc84d10a8ded52cc67ef79"),
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        status: 1,
+        dispatch: 1,
+        driver: 1,
+        duration: 1,
+        tripsDone: 1,
+        totalExpenditure: 1,
+        totalRevenue: 1,
+        projectedRevenue: 1,
+        startIndex: 1,
+        endIndex: 1,
+        siteWork: 1,
+        originalWorkEndDate: "$workEndDate",
+        workEndDate: {
+          $cond: {
+            if: { $gt: ["$workEndDate", new Date()] },
+            then: new Date(),
+            else: "$workEndDate",
+          },
+        },
+        dailyWork: 1,
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        equipment: 1,
+        workEndDate: 1,
+        dailyWork: 1,
+        allDates: {
+          $map: {
+            input: {
+              $range: [
+                0,
+                {
+                  $add: [
+                    {
+                      $dateDiff: {
+                        startDate: "$workStartDate",
+                        endDate: "$workEndDate",
+                        unit: "day",
+                      },
+                    },
+                    1,
+                  ],
+                },
+              ],
+            },
+            as: "dayOffset",
+            in: {
+              $add: [
+                "$workStartDate",
+                {
+                  $multiply: ["$$dayOffset", 24 * 60 * 60 * 1000],
+                },
+              ],
+            },
+          },
+        },
+        existingDates: {
+          $map: {
+            input: "$dailyWork",
+            as: "dw",
+            in: "$$dw.date",
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        workEndDate: 1,
+        equipment: 1,
+        dailyWork: 1,
+        missingDates: {
+          $filter: {
+            input: "$allDates",
+            as: "date",
+            cond: {
+              $not: {
+                $in: ["$$date", "$existingDates"],
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        workStartDate: 1,
+        workEndDate: 1,
+        equipment: 1,
+        dailyWork: {
+          $concatArrays: [
+            "$dailyWork",
+            {
+              $map: {
+                input: "$missingDates",
+                as: "missingDate",
+                in: {
+                  date: "$$missingDate",
+                  details: "No details yet",
+                },
+              },
+            },
+          ],
         },
       },
     },
@@ -6702,29 +7194,6 @@ async function getNotPostedRevenuedByVendor(userId) {
         preserveNullAndEmptyArrays: true,
       },
     },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: false,
-    //         },
-    //         siteWork: true,
-    //       },
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: true,
-    //           $eq: "",
-    //         },
-    //         siteWork: true,
-    //       },
-    //       {
-    //         status: "stopped",
-    //         siteWork: false,
-    //       },
-    //     ],
-    //   },
-    // }
     {
       $addFields: {
         transactionDate: {
@@ -6785,19 +7254,6 @@ async function getNotPostedRevenuedByVendor(userId) {
         ],
       },
     },
-    {
-      $sort: {
-        "_id.year": 1,
-      },
-    },
-    {
-      $sort: {
-        "_id.month": 1,
-      },
-    },
-    // {
-    //   $limit: 5,
-    // }
   ];
 
   try {

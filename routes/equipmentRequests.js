@@ -1,9 +1,13 @@
 const router = require("express").Router();
 const { Types } = require("mongoose");
-const { createEquipmentRequest } = require("../controllers/equipmentRequests");
+const {
+  createEquipmentRequest,
+  createEquipmentRequestDetails,
+} = require("../controllers/equipmentRequests");
 const requestData = require("../models/equipmentRequest");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
+const equipmentRequestDetails = require("../models/equipmentRequestDetails");
 
 router.get("/", async (req, res) => {
   try {
@@ -248,6 +252,24 @@ router.post("/", async (req, res) => {
 
     let created = await createEquipmentRequest(req.body);
 
+    res.status(201).send({ _id: created?._id });
+  } catch (err) {
+    let error = findError(err.code);
+    let keyPattern = err.keyPattern;
+    let key = _.findKey(keyPattern, function (key) {
+      return key === 1;
+    });
+    res.send({
+      error,
+      key,
+    });
+  }
+});
+
+router.post("/details", async (req, res) => {
+  try {
+    let created = await createEquipmentRequestDetails(req.body);
+
     res.status(201).send({ created });
   } catch (err) {
     let error = findError(err.code);
@@ -266,18 +288,20 @@ router.put("/assignQuantity/:id", async (req, res) => {
   let { quantity } = req.body;
   let { id } = req.params;
 
+  console.log(id);
   try {
-    let updatedRequest = await requestData.model.findByIdAndUpdate(
+    let updatedRequest = await equipmentRequestDetails.model.findByIdAndUpdate(
       id,
       {
         approvedQuantity: quantity,
-        status: "approved",
+        // status: "approved",
       },
       { new: true }
     );
 
     res.status(201).send(updatedRequest);
   } catch (err) {
+    console.log(err)
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
