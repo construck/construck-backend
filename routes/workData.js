@@ -3633,8 +3633,10 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
 
   try {
     let workRec = await workData.model.findById(id);
+    let ownedByConstruck = workRec.equipment.eqOwner == "Construck";
 
     let _totalRevenue = workRec.totalRevenue || 0;
+    let _totalExpenditure = workRec.totalExpenditure || 0;
 
     let _rejectedRevenue = workRec.rejectedRevenue
       ? workRec.rejectedRevenue
@@ -3664,6 +3666,9 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
           "dailyWork.$.status": "rejected",
           "dailyWork.$.rejectedReason": reason,
           totalRevenue: _totalRevenue - parseFloat(rejectedRevenue),
+          totalExpenditure: !ownedByConstruck
+            ? _totalExpenditure - parseFloat(rejectedExpenditure)
+            : 0,
           rejectedRevenue: _rejectedRevenue + parseFloat(rejectedRevenue),
           rejectedDuration: _rejectedDuration + parseFloat(rejectedDuration),
           rejectedExpenditure:
@@ -3946,10 +3951,14 @@ router.put("/reject/:id", async (req, res) => {
       .populate("appovedBy")
       .populate("workDone");
 
+    let ownedByConstruck = workRec.equipment.eqOwner == "Construck";
+
     work.status = "rejected";
     // work.reasonForRejection = reasonForRejection;
     work.reasonForRejection = "Reason";
     work.rejectedRevenue = work.totalRevenue;
+    work.totalRevenue = 0;
+    work.totalExpenditure = 0;
     work.rejectedDuration = work.duration;
     work.rejectedExpenditure = work.totalExpenditure;
     // work.projectedRevenue = 0;
