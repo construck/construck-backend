@@ -748,11 +748,12 @@ async function getReleasedPerMonth(prjDescription, month, year) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: {
-              $dateFromString: {
-                dateString: "$dailyWork.date",
-              },
-            },
+            // else: {
+            //   $dateFromString: {
+            //     dateString: "$dailyWork.date",
+            //   },
+            // },
+            else: "$dailyWork.date",
           },
         },
       },
@@ -824,6 +825,7 @@ async function getReleasedPerMonth(prjDescription, month, year) {
     });
     return list;
   } catch (err) {
+    console.log(err);
     err;
     return err;
   }
