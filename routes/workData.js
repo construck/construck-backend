@@ -3008,6 +3008,7 @@ router.get("/nonValidatedByDay/:projectName", async (req, res) => {
 router.get("/notPostedByDay/:userId", async (req, res) => {
   let { userId } = req.params;
   let { transactionDate } = req.query;
+
   let result = await getNotPostedListByDay(userId, transactionDate);
 
   res.send(result);
@@ -3089,14 +3090,6 @@ router.get("/monthlyNotPosted/:vendorId", async (req, res) => {
   let { vendorId } = req.params;
   // let result = await getNotPostedRevenuedByProject(vendorId);
   let result = await getNotPostedRevenuedByVendor(vendorId);
-
-  res.send(result);
-});
-
-router.get("/notPostedByDay/:userId", async (req, res) => {
-  let { userId } = req.params;
-  let { transactionDate } = req.query;
-  let result = await getNotPostedListByDay(userId, transactionDate);
 
   res.send(result);
 });
@@ -6452,6 +6445,7 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
 }
 
 async function getNotPostedListByDay(userId, transactionDate) {
+  
   let pipeline = [
     {
       $match: {
@@ -6727,7 +6721,7 @@ async function getNotPostedListByDay(userId, transactionDate) {
     },
     {
       $match: {
-        transactionDate: moment(transactionDate, "UTC").toDate(),
+        transactionDate: new Date(transactionDate),
       },
     },
     {
@@ -6777,15 +6771,16 @@ async function getNotPostedListByDay(userId, transactionDate) {
 
     let _jobs = [...jobs];
 
+    console.log(_jobs);
     let __jobs = _jobs.map((v) => {
-      let strRevenue = v.newTotalRevenue.toLocaleString();
+      let strRevenue = v?.newTotalRevenue?.toLocaleString() || "0";
       v.strRevenue = strRevenue;
       return v;
     });
 
     return __jobs;
   } catch (err) {
-    err;
+    console.log(err);
     return err;
   }
 }
@@ -7038,7 +7033,7 @@ async function getNotPostedRevenuedByVendor(userId) {
   let pipeline = [
     {
       $match: {
-        "equipment.vendor": new ObjectId("62bc84d10a8ded52cc67ef79"),
+        "equipment.vendor": new ObjectId(userId),
       },
     },
     {
@@ -7235,11 +7230,11 @@ async function getNotPostedRevenuedByVendor(userId) {
         },
       },
     },
-    {
-      $match: {
-        transactionDate: new Date(transactionDate),
-      },
-    },
+    // {
+    //   $match: {
+    //     transactionDate: new Date(transactionDate),
+    //   },
+    // },
     {
       $project: {
         "driver.password": 0,
@@ -7248,66 +7243,6 @@ async function getNotPostedRevenuedByVendor(userId) {
     {
       $sort: {
         "equipment.eqDescription": 1,
-      },
-    },
-  ];
-
-  try {
-    let jobs = await workData.model.aggregate(pipeline);
-
-    let _jobs = [...jobs];
-
-    let __jobs = _jobs.map((v) => {
-      let strRevenue = v.newTotalRevenue.toLocaleString();
-      v.strRevenue = strRevenue;
-      return v;
-    });
-
-    return __jobs;
-  } catch (err) {
-    err;
-    return err;
-  }
-}
-
-async function getNotPostedListByDay(userId, transactionDate) {
-  let pipeline = [
-    {
-      $match: {
-        "equipment.vendor": new Types.ObjectId(userId),
-      },
-    },
-    {
-      $unwind: {
-        path: "$dailyWork",
-        includeArrayIndex: "string",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $addFields: {
-        transactionDate: {
-          $cond: {
-            if: {
-              $eq: ["$siteWork", false],
-            },
-            then: "$workStartDate",
-            else: "$dailyWork.date",
-          },
-        },
-      },
-    },
-    {
-      $addFields: {
-        newTotalRevenue: {
-          $cond: {
-            if: {
-              $eq: ["$siteWork", false],
-            },
-            then: "$totalRevenue",
-            else: "$dailyWork.totalRevenue",
-          },
-        },
       },
     },
     {
@@ -7347,22 +7282,25 @@ async function getNotPostedListByDay(userId, transactionDate) {
   ];
 
   try {
-    let nonValidatedJobs = await workData.model.aggregate(pipeline);
-    let list = nonValidatedJobs
-      .filter(($) => $?._id.month)
-      .map(($) => {
-        return {
-          monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
-          totalRevenue: $?.totalRevenue.toLocaleString(),
-          id: $?._id,
-        };
-      });
-    return list;
+    let jobs = await workData.model.aggregate(pipeline);
+
+    let _jobs = [...jobs];
+    let __jobs = _jobs.map((v) => {
+      let strRevenue = v?.newTotalRevenue?.toLocaleString() || "0";
+      v.strRevenue = strRevenue;
+      v.monthYear = monthHelper(v?._id.month) + "-" + v?._id.year;
+      v.id = v?._id;
+      console.log(v);
+      return v;
+    });
+
+    return __jobs;
   } catch (err) {
-    err;
+    console.log(err);
     return err;
   }
 }
+
 
 function monthHelper(mon) {
   switch (parseInt(mon)) {
