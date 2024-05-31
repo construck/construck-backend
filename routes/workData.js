@@ -6415,7 +6415,7 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
     {
       $lookup: {
         from: "users",
-        localField: "driver.user",
+        localField: "driver",
         foreignField: "_id",
         as: "driver",
       },
