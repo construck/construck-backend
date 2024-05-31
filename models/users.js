@@ -18,10 +18,7 @@ const UserSchema = mongoose.Schema(
     },
     email: {
       type: String,
-      // required: true,
-      sparse: true,
-      unique: true,
-      dropDups: true,
+      default: null,
     },
     phone: {
       type: String,
