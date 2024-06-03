@@ -27,6 +27,7 @@ const {
 } = require("../helpers/availability/equipment");
 
 const MaintenanceController = require("./../controllers/maintenance");
+const { sendPushNotification } = require("../utils/sendNotification");
 
 const DURATION_LIMIT = 16;
 
@@ -3227,8 +3228,13 @@ router.post("/", async (req, res) => {
 
     let driverToken = await getDeviceToken(driver);
 
+    // let driverToken =
+    //   "eVgurVnpRpSfYTQ2Cgw51N:APA91bE_HQ6gtS9nGiF0q6T0o3BeZ1wj0yNFrg4bJer2Do3zcsXuQWYJRZExueW5Omqe9dQwCYO1H1g12KilWZsq2jrbBL36PJjxvrPZMLemaPkLDnD-CtjXo0B3uQmbYt-i2q7TgGH9";
     if (driverToken !== "none") {
-      // sendPushNotification(driverToken, "New Dispatch!", driverNotification);
+      sendPushNotification(driverToken, {
+        title: "New Dispatch!",
+        body: driverNotification,
+      });
     }
 
     res.status(201).send(workCreated);
@@ -6445,7 +6451,6 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
 }
 
 async function getNotPostedListByDay(userId, transactionDate) {
-  
   let pipeline = [
     {
       $match: {
@@ -7300,7 +7305,6 @@ async function getNotPostedRevenuedByVendor(userId) {
     return err;
   }
 }
-
 
 function monthHelper(mon) {
   switch (parseInt(mon)) {

@@ -69,6 +69,9 @@ const UserSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    deviceToken: {
+      type: String,
+    },
   },
 
   { timestamps: true }

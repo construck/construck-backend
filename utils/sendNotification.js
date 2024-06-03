@@ -1,31 +1,28 @@
-var admin = require("firebase-admin");
-var fcm = require("fcm-notification");
-var serviceAccount = require("../config/service-acount-file.json");
-const certPath = admin.credential.cert(serviceAccount);
-var FCM = new fcm(certPath);
+const admin = require("firebase-admin");
+const serviceAccount = require("../config/service-acount-file.json");
+// var serviceAccount = require("../config/service-acount-file.json");
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
-function sendPushNotification(fcm_token, title, body) {
-  try {
-    let message = {
-      android: {
-        notification: {
-          title: title,
-          body: body,
-        },
-      },
-      token: fcm_token,
-    };
+const sendPushNotification = (token, message) => {
+  const payload = {
+    notification: {
+      title: message.title,
+      body: message.body,
+    },
+    token: token,
+  };
 
-    FCM.send(message, function (err, resp) {
-      if (err) {
-        throw err;
-      } else {
-        // console.log("Successfully sent notification");
-      }
+  admin
+    .messaging()
+    .send(payload)
+    .then((response) => {
+      console.log("Successfully sent message:", response);
+    })
+    .catch((error) => {
+      console.log("Error sending message:", error);
     });
-  } catch (err) {
-    throw err;
-  }
-}
+};
 
-module.exports = { sendPushNotification };
+module.exports = {sendPushNotification};
