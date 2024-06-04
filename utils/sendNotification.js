@@ -12,6 +12,17 @@ const sendPushNotification = (token, message) => {
       body: message.body,
     },
     token: token,
+    apns: {
+      payload: {
+        aps: {
+          alert: {
+            title: message.title,
+            body: message.body,
+          },
+          sound: "default",
+        },
+      },
+    },
   };
 
   admin
@@ -22,7 +33,8 @@ const sendPushNotification = (token, message) => {
     })
     .catch((error) => {
       console.log("Error sending message:", error);
+      console.log("Error sending message:", error.stack);
     });
 };
 
-module.exports = {sendPushNotification};
+module.exports = { sendPushNotification };
