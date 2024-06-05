@@ -116,6 +116,7 @@ router.put("/status", async (req, res) => {
     });
   }
 });
+
 router.put("/:id/assign-projects", async (req, res) => {
   try {
     const { id } = req.params;
@@ -277,6 +278,23 @@ router.put("/resetPassword/:id", async (req, res) => {
     res.status(500).send({
       message: `${err}`,
       error: true,
+    });
+  }
+});
+
+router.put("/token/:id", async (req, res) => {
+  try {
+    let { token } = req.body;
+    let { id } = req.params;
+    let userD = await userData.model.findById(id);
+    userD.deviceToken = token;
+    await userD.save();
+    res.status(201).send({ tokenUpdated: true });
+  } catch (err) {
+    res.status(500).send({
+      message: `${err}`,
+      error: true,
+      tokenUpdated: false,
     });
   }
 });
