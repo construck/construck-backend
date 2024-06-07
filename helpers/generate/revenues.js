@@ -36,14 +36,14 @@ function generateRevenues(dispatch, duration, comment) {
         totalExpenditure =
           dispatch.equipment.eqOwner === "Construck"
             ? 0
-            : (supplierRate * duration) / 3600000;
+            : (dispatch.equipment.supplierRate * duration) / 3600000;
       } else {
         duration = duration > 0 ? duration : 0;
         totalRevenue = (dispatch.equipment.rate * duration) / 3600000;
         totalExpenditure =
           dispatch.equipment.eqOwner === "Construck"
             ? 0
-            : (supplierRate * duration) / 3600000;
+            : (dispatch.equipment.supplierRate * duration) / 3600000;
       }
     } else {
       if (comment === "Should neve happen") {

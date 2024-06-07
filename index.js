@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const morgan = require('morgan')
+const morgan = require("morgan");
 const app = express();
 const bodyParser = require("body-parser");
 const cron = require("node-cron");
@@ -36,11 +36,11 @@ const fun = require("./utils/cron-functions");
 const dispatchCronjobs = require("./cronjobs/works");
 const equipmentCronjobs = require("./cronjobs/equipments");
 
-const { NODE_ENV, CONS_MONGO_DB } = process.env;
+const { NODE_ENV, CONS_MONGO_DB, PLATFORM_TOKEN } = process.env;
 
 mongoDB = CONS_MONGO_DB;
 
-console.log('CONS_MONGO_DB', mongoDB)
+console.log("CONS_MONGO_DB", mongoDB);
 
 mongoose.connect(mongoDB, { useNewUrlParser: true });
 //Get the default connection
@@ -51,10 +51,21 @@ db.on("error", console.error.bind(console, "MongoDB connection error:"));
 
 db.once("open", () => console.log("connected to db"));
 
-app.use(morgan('tiny'))
+app.use(morgan("tiny"));
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+
+// CHECK IF THE APP OR WEB IS ALLOWED TO MAKE CALLS ON BACKEND:
+app.use((req, res, next) => {
+  const apiSecret = req.headers["x-api-secret"];
+  // ONLY ALLOWING CLIENTS APPS WITH SUPPLIED PLATFORM TOKEN
+  // NOTE: THIS SHOULD BE ENABLE WHEN MOBILE APP IS ROLLED OUT
+  // if (!apiSecret || apiSecret !== PLATFORM_TOKEN) {
+  //   return res.status(401).json({ error: "Invalid API secret" });
+  // }
+  next();
+});
 
 //Basic Authorization
 let auth = (req, res, next) => {
@@ -116,6 +127,6 @@ app.listen(PORT, async () => {
   equipmentCronjobs.equipmentCronjobs();
   equipmentCronjobs.equipmentStatus();
   cron.schedule("0 0 * * *", () => {
-    console.log('') // run every hour
-  })
+    console.log(''); // run every hour
+  });
 });

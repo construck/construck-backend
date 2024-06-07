@@ -860,7 +860,7 @@ router.get("/filtered/:page", async (req, res) => {
         `dispatch.targetTrips dispatch.drivers dispatch.astDriver dispatch.shift dispatch.date dispatch.otherJobType
         project.prjDescription project.customer project._id
         equipment._id equipment.plateNumber equipment.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
-        equipment.eqStatus equipment.millage equipment.rate equipment.supplieRate equipment.uom
+        equipment.eqStatus equipment.millage equipment.rate equipment.supplierRate equipment.uom
         startTime endTime duration tripsDone totalRevenue totalExpenditure projectedRevenue status siteWork workStartDate workEndDate
         workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id driver
         `
@@ -2938,7 +2938,7 @@ router.get("/dailyValidatedRevenues/:projectName", async (req, res) => {
   let { month, year } = req.query;
   let result = await getDailyValidatedRevenues(projectName, month, year);
 
-  res.send(result);
+  return res.send(result);
 });
 
 router.get("/dailyNonValidatedRevenues/:projectName", async (req, res) => {
@@ -2947,7 +2947,7 @@ router.get("/dailyNonValidatedRevenues/:projectName", async (req, res) => {
   try {
     let result = await getDailyNonValidatedRevenues(projectName, month, year);
 
-    res.send(result);
+    return res.send(result);
   } catch (error) {}
 });
 
@@ -2957,7 +2957,7 @@ router.get("/dailyNotPostedRevenues/:userId", async (req, res) => {
 
   try {
     let result = await getDailyNotPostedRevenues(month, year, userId);
-    res.send(result);
+    return res.send(result);
   } catch (error) {}
 });
 
@@ -5651,11 +5651,11 @@ async function getValidatedRevenuesByProject(prjDescription) {
       $match: {
         $or: [
           {
-            "_id.month": { $gt: 4 },
-            "_id.year": { $gte: 2023 },
+            "_id.month": { $gte: 5 },
+            "_id.year": { $gte: 2024 },
           },
           {
-            "_id.year": { $gt: 2023 },
+            "_id.year": { $gt: 2024 },
           },
         ],
       },
@@ -5708,29 +5708,6 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
         preserveNullAndEmptyArrays: true,
       },
     },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: false,
-    //         },
-    //         siteWork: true,
-    //       },
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: true,
-    //           $eq: "",
-    //         },
-    //         siteWork: true,
-    //       },
-    //       {
-    //         status: "stopped",
-    //         siteWork: false,
-    //       },
-    //     ],
-    //   },
-    // }
     {
       $addFields: {
         transactionDate: {
@@ -5777,15 +5754,15 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
         $or: [
           {
             "_id.month": {
-              $gt: 4,
+              $gte: 6,
             },
             "_id.year": {
-              $gte: 2023,
+              $gte: 2024,
             },
           },
           {
             "_id.year": {
-              $gt: 2023,
+              $gt: 2024,
             },
           },
         ],
@@ -5801,9 +5778,6 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
         "_id.month": 1,
       },
     },
-    // {
-    //   $limit: 5,
-    // }
   ];
 
   try {
@@ -5817,6 +5791,13 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
           id: $?._id,
         };
       });
+    // SORT RESULTS BASED ON RECENT MONTHS AND YEAR
+    list.sort((a, b) => {
+      if (b.id.year !== a.id.year) {
+        return b.id.year - a.id.year;
+      }
+      return b.id.month - a.id.month;
+    });
     return list;
   } catch (err) {
     err;
@@ -6114,13 +6095,13 @@ async function getValidatedListByProjectAndMonth(prjDescription, month, year) {
 
     let _validated = [...validatedJobs];
 
-    let __val = _validated.map((v) => {
-      let strRevenue = v.newTotalRevenue.toLocaleString();
-      v.strRevenue = strRevenue;
-      return v;
-    });
+    // let __val = _validated.map((v) => {
+    //   let strRevenue = v.newTotalRevenue.toLocaleString();
+    //   v.strRevenue = strRevenue;
+    //   return v;
+    // });
 
-    return __val;
+    return _validated;
   } catch (err) {
     return err;
   }
@@ -6216,13 +6197,13 @@ async function getNonValidatedListByProjectAndMonth(
 
     let _jobs = [...jobs];
 
-    let __jobs = _jobs.map((v) => {
-      let strRevenue = v.newTotalRevenue.toLocaleString();
-      v.strRevenue = strRevenue;
-      return v;
-    });
+    // let __jobs = _jobs.map((v) => {
+    //   let strRevenue = v.newTotalRevenue.toLocaleString();
+    //   v.strRevenue = strRevenue;
+    //   return v;
+    // });
 
-    return __jobs;
+    return _jobs;
   } catch (err) {
     err;
     return err;
@@ -6329,13 +6310,13 @@ async function getValidatedListByDay(prjDescription, transactionDate) {
 
     let _jobs = [...jobs];
 
-    let __jobs = _jobs.map((v) => {
-      let strRevenue = v.newTotalRevenue.toLocaleString();
-      v.strRevenue = strRevenue;
-      return v;
-    });
+    // let __jobs = _jobs.map((v) => {
+    //   let strRevenue = v.newTotalRevenue.toLocaleString();
+    //   v.strRevenue = strRevenue;
+    //   return v;
+    // });
 
-    return __jobs;
+    return _jobs;
   } catch (err) {
     err;
     return err;
@@ -6356,23 +6337,6 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
         preserveNullAndEmptyArrays: true,
       },
     },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: false,
-    //         },
-    //         siteWork: true,
-    //       },
-    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
-    //       {
-    //         status: "stopped",
-    //         siteWork: false,
-    //       },
-    //     ],
-    //   },
-    // },
     {
       $addFields: {
         transactionDate: {
@@ -6434,16 +6398,14 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
 
   try {
     let jobs = await workData.model.aggregate(pipeline);
-
     let _jobs = [...jobs];
 
-    let __jobs = _jobs.map((v) => {
-      let strRevenue = v.newTotalRevenue.toLocaleString();
-      v.strRevenue = strRevenue;
-      return v;
-    });
-
-    return __jobs;
+    // let __jobs = _jobs.map((v) => {
+    //   let strRevenue = `${v?.newTotalRevenue.toLocaleString()}`;
+    //   v.strRevenue = strRevenue;
+    //   return v;
+    // });
+    return _jobs;
   } catch (err) {
     err;
     return err;
@@ -6451,7 +6413,6 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
 }
 
 async function getNotPostedListByDay(userId, transactionDate) {
-  
   let pipeline = [
     {
       $match: {
@@ -6777,14 +6738,13 @@ async function getNotPostedListByDay(userId, transactionDate) {
 
     let _jobs = [...jobs];
 
-    console.log(_jobs);
-    let __jobs = _jobs.map((v) => {
-      let strRevenue = v?.newTotalRevenue?.toLocaleString() || "0";
-      v.strRevenue = strRevenue;
-      return v;
-    });
+    // let __jobs = _jobs.map((v) => {
+    //   let strRevenue = v?.newTotalRevenue?.toLocaleString() || "0";
+    //   v.strRevenue = strRevenue;
+    //   return v;
+    // });
 
-    return __jobs;
+    return _jobs;
   } catch (err) {
     console.log(err);
     return err;
@@ -7175,11 +7135,6 @@ async function getNotPostedRevenuedByVendor(userId) {
         preserveNullAndEmptyArrays: true,
       },
     },
-    // {
-    //   $project: {
-    //     "driver.password": 0,
-    //   },
-    // },
     {
       $unwind: {
         path: "$dailyWork",
@@ -7187,23 +7142,6 @@ async function getNotPostedRevenuedByVendor(userId) {
         preserveNullAndEmptyArrays: true,
       },
     },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: false,
-    //         },
-    //         siteWork: true,
-    //       },
-    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
-    //       {
-    //         status: "stopped",
-    //         siteWork: false,
-    //       },
-    //     ],
-    //   },
-    // },
     {
       $addFields: {
         transactionDate: {
@@ -7236,11 +7174,6 @@ async function getNotPostedRevenuedByVendor(userId) {
         },
       },
     },
-    // {
-    //   $match: {
-    //     transactionDate: new Date(transactionDate),
-    //   },
-    // },
     {
       $project: {
         "driver.password": 0,
@@ -7271,15 +7204,15 @@ async function getNotPostedRevenuedByVendor(userId) {
         $or: [
           {
             "_id.month": {
-              $gt: 4,
+              $gte: 6,
             },
             "_id.year": {
-              $gte: 2023,
+              $gte: 2024,
             },
           },
           {
             "_id.year": {
-              $gt: 2023,
+              $gt: 2024,
             },
           },
         ],
@@ -7291,22 +7224,25 @@ async function getNotPostedRevenuedByVendor(userId) {
     let jobs = await workData.model.aggregate(pipeline);
 
     let _jobs = [...jobs];
-    let __jobs = _jobs.map((v) => {
-      let strRevenue = v?.newTotalRevenue?.toLocaleString() || "0";
-      v.strRevenue = strRevenue;
+    let list = _jobs.map((v) => {
+      // let strRevenue = v?.newTotalRevenue?.toLocaleString() || "0";
+      // v.strRevenue = strRevenue;
       v.monthYear = monthHelper(v?._id.month) + "-" + v?._id.year;
       v.id = v?._id;
-      console.log(v);
       return v;
     });
-
-    return __jobs;
+    list.sort((a, b) => {
+      if (b.id.year !== a.id.year) {
+        return b.id.year - a.id.year;
+      }
+      return b.id.month - a.id.month;
+    });
+    return list;
   } catch (err) {
     console.log(err);
     return err;
   }
 }
-
 
 function monthHelper(mon) {
   switch (parseInt(mon)) {
