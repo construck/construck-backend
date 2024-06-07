@@ -66,7 +66,6 @@ router.post("/login", async (req, res) => {
       .populate("company")
       .populate("driver")
       .populate("vendor");
-    console.log("user", user);
     // IMPLEMENT NEW LOGIN: SERVING ALL USER TYPES
     // CHECK IF PASSWORD IF CORRECT
     // GENERATE JWT TOKEN AND SEND IT TO CLIENT
