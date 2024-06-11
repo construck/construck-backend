@@ -1486,12 +1486,14 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
     $or: [
       {
         siteWork: true,
+        status: { $ne: "recalled" },
         workEndDate: {
           $gte: new Date(startDate),
         },
       },
       {
         siteWork: false,
+        status: { $ne: "recalled" },
         workStartDate: {
           $gte: new Date(startDate),
           $lte: new Date(endDate),
@@ -1515,6 +1517,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1522,6 +1525,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             },
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -1539,6 +1543,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1551,6 +1556,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1571,6 +1577,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1583,6 +1590,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -1603,6 +1611,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1618,6 +1627,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1645,6 +1655,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1652,6 +1663,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             },
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1669,6 +1681,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1681,6 +1694,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1701,6 +1715,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1713,6 +1728,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1733,6 +1749,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1748,6 +1765,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1775,6 +1793,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1783,6 +1802,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             },
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1801,6 +1821,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1814,6 +1835,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1835,6 +1857,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1848,6 +1871,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1869,6 +1893,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1885,6 +1910,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1913,6 +1939,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1921,6 +1948,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             },
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1939,6 +1967,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1952,6 +1981,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1973,6 +2003,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1986,6 +2017,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -2007,6 +2039,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -2023,6 +2056,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -2049,14 +2083,16 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       if (!searchByPlateNumber && !searchByProject) {
         query = {
           $or: [
-            {
-              siteWork: true,
-              workEndDate: {
-                $gte: moment(startDate).toDate(),
-              },
-            },
+            // {
+            //   siteWork: true,
+            //   status: { $ne: "recalled" },
+            //   workEndDate: {
+            //     $gte: moment(startDate).toDate(),
+            //   },
+            // },
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -2073,6 +2109,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -2084,6 +2121,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -2103,6 +2141,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -2133,6 +2172,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
+              status: { $ne: "recalled" },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -2147,6 +2187,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
+              status: { $ne: "recalled" },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -2289,94 +2330,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       },
     ];
 
-    let pipelineNoTurnBoys = [
-      {
-        $match: query,
-      },
-      {
-        $unwind: {
-          path: "$dispatch.astDriver",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $addFields: {
-          turnboy: {
-            $toObjectId: "$dispatch.astDriver",
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: "employees",
-          localField: "turnboy",
-          foreignField: "_id",
-          as: "turnboy",
-        },
-      },
-      {
-        $unwind: {
-          path: "$turnboy",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "drivers",
-          localField: "driver",
-          foreignField: "user",
-          as: "driver",
-        },
-      },
-      {
-        $unwind: {
-          path: "$driver",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "jobtypes",
-          localField: "workDone",
-          foreignField: "_id",
-          as: "workDone",
-        },
-      },
-      {
-        $unwind: {
-          path: "$workDone",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "createdBy",
-          foreignField: "_id",
-          as: "createdBy",
-        },
-      },
-      {
-        $unwind: {
-          path: "$createdBy",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "project.projectAdmin",
-          foreignField: "_id",
-          as: "projectAdmin",
-        },
-      },
-      {
-        $unwind: {
-          path: "$projectAdmin",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-    ];
     let workList = await workData.model.aggregate(pipeline);
 
     let listToSend = workList;
@@ -2386,7 +2339,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
     let l = listToSend.map((w, index) => {
       let work = null;
 
-      if (w.siteWork && w.status !== "stopped" && w.status !== "recalled") {
+      if (w.siteWork && w.status !== "stopped") {
         let dailyWorks = w.dailyWork;
 
         let datesPosted = dailyWorks
@@ -2443,13 +2396,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             siteWorkList.push({
               "Dispatch date": moment(Date.parse(dP.date)).format("M/D/YYYY"),
               "Posted On": moment(Date.parse(dP.date)).format("M/D/YYYY"),
-              "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
-              "Site work?": w.siteWork,
-              "Project Description": w.project?.prjDescription,
-              "Equipment Plate number": w.equipment.plateNumber,
+              Shift: w.dispatch.shift === "nightShift" ? "N" : "D",
+              "Site work": w.siteWork,
+              Project: w.project?.prjDescription,
+              "Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
               Owner: w.equipment?.eqOwner,
-              "Unit of measurement": w.equipment?.uom,
+              UOM: w.equipment?.uom,
               "Duration (HRS)":
                 w.equipment?.uom === "hour"
                   ? _.round(dP.duration / (60 * 60 * 1000), 2)
@@ -2468,32 +2421,27 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     ? dP.duration * w?.equipment?.rate
                     : (dP.duration > 0 ? 1 : 0) * dP.rate,
                 "Vendor payment": dP.expenditure,
-                // "Vendor payment":
-                //   w.equipment?.uom === "hour"
-                //     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
-                //       w?.equipment?.supplierRate
-                //     : (dP.duration > 0 ? 1 : 0) * w?.equipment?.supplierRate,
                 "Driver Names": w.driver
                   ? w?.driver?.firstName + " " + w?.driver?.lastName
                   : "",
-                "Driver contacts": w.driver?.phone,
+                "Driver contacts": w.driver ? w.driver.phone : "",
               }),
+              Comment: dP.comment
+                ? dP.comment + " - " + (dP.moreComment ? dP.moreComment : "")
+                : " ",
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
                 : 0,
               "Trips done": w?.tripsDone ? w?.tripsDone : 0,
-              "Driver's/Operator's Comment": dP.comment
-                ? dP.comment + " - " + (dP.moreComment ? dP.moreComment : "")
-                : " ",
               Customer: w.project?.customer,
               Status: dP.status || "stopped",
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
+                "Start index": w?.startIndex || 0,
+                "End index": w?.endIndex || 0,
                 "Project Admin":
                   (w.projectAdmin?.firstName || "") +
                   " " +
                   (w.projectAdmin?.lastName || ""),
-                "Start index": w?.startIndex || 0,
-                "End index": w?.endIndex || 0,
               }),
             });
           }
@@ -2512,13 +2460,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             siteWorkList.push({
               "Dispatch date": moment(Date.parse(dNP)).format("M/D/YYYY"),
               "Posted On": "",
-              "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
-              "Site work?": w.siteWork,
-              "Project Description": w?.project?.prjDescription,
-              "Equipment Plate number": w.equipment.plateNumber,
+              Shift: w.dispatch.shift === "nightShift" ? "N" : "D",
+              "Site work": w.siteWork,
+              Project: w?.project?.prjDescription,
+              "Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
               Owner: w.equipment?.eqOwner,
-              "Unit of measurement": w.equipment?.uom,
+              UOM: w.equipment?.uom,
               "Duration (HRS)": 0,
               "Duration (DAYS)": 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
@@ -2533,24 +2481,24 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   ? w?.driver?.firstName + " " + w?.driver?.lastName
                   : "",
                 "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
-                "Target trips": w.dispatch?.targetTrips
-                  ? w.dispatch?.targetTrips
-                  : 0,
-                "Trips done": 0,
               }),
-              "Driver's/Operator's Comment": dNP.comment
+              Comment: dNP.comment
                 ? dNP.comment + " - " + (dNP.moreComment ? dNP.moreComment : "")
                 : " ",
+              "Target trips": w.dispatch?.targetTrips
+                ? w.dispatch?.targetTrips
+                : 0,
+              "Trips done": 0,
               Customer: w.project?.customer,
               Status: "created",
 
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
+                "Start index": w?.startIndex || 0,
+                "End index": w?.endIndex || 0,
                 "Project Admin":
                   (w.projectAdmin?.firstName || "") +
                   " " +
                   (w.projectAdmin?.lastName || ""),
-                "Start index": w?.startIndex || 0,
-                "End index": w?.endIndex || 0,
               }),
             });
           }
@@ -2569,12 +2517,12 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             siteWorkList.push({
               "Dispatch date": moment(Date.parse(dPP)).format("M/D/YYYY"),
               "Posted On": "",
-              "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
-              "Site work?": w.siteWork,
-              "Project Description": w.project.prjDescription,
-              "Equipment Plate number": w.equipment.plateNumber,
+              Shift: w.dispatch.shift === "nightShift" ? "N" : "D",
+              "Site work": w.siteWork,
+              Project: w.project.prjDescription,
+              "Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
-              "Unit of measurement": w.equipment?.uom,
+              UOM: w.equipment?.uom,
               "Duration (HRS)": 0,
               "Duration (DAYS)": 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
@@ -2594,19 +2542,19 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 ? w.dispatch?.targetTrips
                 : 0,
               "Trips done": 0,
-              "Driver's/Operator's Comment": dPP.comment
+              Comment: dPP.comment
                 ? dPP.comment + " - " + (dPP.moreComment ? dPP.moreComment : "")
                 : " ",
               Customer: w.project?.customer,
               Status: "in progress",
 
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
+                "Start index": w?.startIndex || 0,
+                "End index": w?.endIndex || 0,
                 "Project Admin":
                   (w.projectAdmin?.firstName || "") +
                   " " +
                   (w.projectAdmin?.lastName || ""),
-                "Start index": w?.startIndex || 0,
-                "End index": w?.endIndex || 0,
               }),
             });
           }
@@ -2666,13 +2614,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             siteWorkList.push({
               "Dispatch date": moment(Date.parse(dP.date)).format("M/D/YYYY"),
               "Posted On": moment(Date.parse(dP.date)).format("M/D/YYYY"),
-              "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
-              "Site work?": w.siteWork,
-              "Project Description": w.project?.prjDescription,
-              "Equipment Plate number": w.equipment.plateNumber,
-              "Equipment Type": w.equipment?.eqDescription,
+              Shift: w.dispatch.shift === "nightShift" ? "N" : "D",
+              "Site work": w.siteWork,
+              Project: w.project?.prjDescription,
+              "Plate number": w.equipment.plateNumber,
+              "Equipment type": w.equipment?.eqDescription,
               Owner: w.equipment?.eqOwner,
-              "Unit of measurement": w.equipment?.uom,
+              UOM: w.equipment?.uom,
               "Duration (HRS)":
                 w.equipment?.uom === "hour"
                   ? _.round(dP.duration / (60 * 60 * 1000), 2)
@@ -2704,27 +2652,24 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 ? w.dispatch?.targetTrips
                 : 0,
               "Trips done": w?.tripsDone ? w?.tripsDone : 0,
-              "Driver's/Operator's Comment": dP.comment
+              Comment: dP.comment
                 ? dP.comment + " - " + (dP.moreComment ? dP.moreComment : "")
                 : " ",
               Customer: w.project?.customer,
               Status: "stopped",
 
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
+                "Start index": w?.startIndex || 0,
+                "End index": w?.endIndex || 0,
                 "Project Admin":
                   (w.projectAdmin?.firstName || "") +
                   " " +
                   (w.projectAdmin?.lastName || ""),
-                "Start index": w?.startIndex || 0,
-                "End index": w?.endIndex || 0,
               }),
             });
           }
         });
-      } else if (
-        w.siteWork === false ||
-        (w.siteWork && w.status === "recalled")
-      ) {
+      } else if (w.siteWork === false) {
         if (
           moment(Date.parse(w.dispatch.date)).isSameOrAfter(
             moment(startDate)
@@ -2741,13 +2686,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               ? moment().format("M/D/YYYY")
               : moment(Date.parse(w.dispatch.date)).format("M/D/YYYY"),
             "Posted On": moment(Date.parse(w.createdOn)).format("M/D/YYYY"),
-            "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
-            "Site work?": w.siteWork,
-            "Project Description": w.project.prjDescription,
-            "Equipment Plate number": w.equipment.plateNumber,
+            Shift: w.dispatch.shift === "nightShift" ? "N" : "D",
+            "Site work": w.siteWork,
+            Project: w.project.prjDescription,
+            "Plate number": w.equipment.plateNumber,
             "Equipment Type": w.equipment?.eqDescription,
             Owner: w.equipment?.eqOwner,
-            "Unit of measurement": w.equipment?.uom,
+            UOM: w.equipment?.uom,
             "Duration (HRS)":
               w.equipment?.uom === "hour"
                 ? _.round(w.duration / (60 * 60 * 1000), 2)
@@ -2769,18 +2714,18 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             }),
             "Target trips": w.dispatch?.targetTrips,
             "Trips done": w?.tripsDone,
-            "Driver's/Operator's Comment": w.comment
+            Comment: w.comment
               ? w.comment
               : "" + " - " + (w.moreComment ? w.moreComment : ""),
             Customer: w.project?.customer,
             Status: w.status,
             ...((canViewRevenues === "true" || canViewRevenues === true) && {
+              "Start index": w?.startIndex || 0,
+              "End index": w?.endIndex || 0,
               "Project Admin":
                 (w.projectAdmin?.firstName || "") +
                 " " +
                 (w.projectAdmin?.lastName || ""),
-              "Start index": w?.startIndex || 0,
-              "End index": w?.endIndex || 0,
             }),
           };
         }
@@ -3107,7 +3052,7 @@ router.get("/dailyNotPostedRevenues/:userId", async (req, res) => {
 
 router.post("/", async (req, res) => {
   const isExist = await helper.checkExistDispatch(req.body);
-  console.log('init:1', isExist)
+  console.log("init:1", isExist);
   if (isExist.length > 0) {
     let message = [];
     isExist.map((e) => {
@@ -3128,7 +3073,7 @@ router.post("/", async (req, res) => {
     });
   }
   try {
-    console.log('init:2:try')
+    console.log("init:2:try");
     // start creating a dispatch
     let workToCreate = new workData.model(req.body);
     // IF EQUIPMENT IS STANDBY OR DISPATCHED, PROCEED
@@ -3153,9 +3098,9 @@ router.post("/", async (req, res) => {
     );
     equipment.assignedShift = req.body?.dispatch?.shift;
     let driver = req.body?.driver === "NA" ? null : req.body?.driver;
-    console.log('init:2', driver)
+    console.log("init:2", driver);
     let driverData = await userData.model.findById(driver);
-    console.log('@@driverData', driverData)
+    console.log("@@driverData", driverData);
     // if (employee) {
     //   employee.status = "dispatched";
     //   employee.assignedToSiteWork = req.body?.siteWork;
@@ -3229,7 +3174,7 @@ router.post("/", async (req, res) => {
     } ${workToCreate?.equipment?.plateNumber}`;
 
     let driverToken = await getDeviceToken(driver);
-    console.log('driverNotification', driverNotification)
+    console.log("driverNotification", driverNotification);
 
     if (driverToken !== "none") {
       sendPushNotification(driverToken, {
@@ -3240,7 +3185,7 @@ router.post("/", async (req, res) => {
 
     return res.status(201).send(workCreated);
   } catch (err) {
-    console.log('err', err)
+    console.log("err", err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
@@ -4199,21 +4144,6 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
         `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
       );
 
-    // let q1 = await workData.model.updateMany(
-    //   {
-    //     siteWork: false,
-    //     "project.prjDescription": projectName,
-    //     status: "validated",
-    //     workStartDate: { $gte: startOfMonth },
-    //     workStartDate: { $lte: endOfMonth },
-    //   },
-    //   {
-    //     $set: {
-    //       status: "released",
-    //     },
-    //   }
-    // );
-
     let q2 = await workData.model.updateMany(
       {
         siteWork: true,
@@ -4274,31 +4204,10 @@ router.put("/rejectValidated/:projectName", async (req, res) => {
       }
     );
 
-    // let q2 = await workData.model.updateMany(
-    //   {
-    //     siteWork: true,
-    //     "project.prjDescription": projectName,
-    //   },
-    //   {
-    //     $set: {
-    //       "dailyWork.$[elemX].status": "rejected",
-    //       "dailyWork.$[elemX].rejectedReason": reason,
-    //     },
-    //   },
-    //   {
-    //     arrayFilters: [
-    //       {
-    //         "elemX.date": new RegExp(`${monthHelper(month)}-${year}`),
-    //         "elemX.status": "validated",
-    //       },
-    //     ],
-    //   }
-    // );
-
-    res.send({});
+    return res.send({});
   } catch (err) {
     err;
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -4735,11 +4644,6 @@ router.put("/stop/:id", async (req, res) => {
           indexToUpdate = index;
         });
 
-        // if (indexToUpdate === -1) {
-        // } else {
-        //   dailyWorks[indexToUpdate] = dailyWork;
-        //   // dailyWorks.splice(indexToUpdate, 0, dailyWork);
-        // }
         dailyWorks.push(dailyWork);
 
         work.startIndex =
@@ -5442,7 +5346,7 @@ router.post("/gethoursperdriver/", async (req, res) => {
             w._id.uom === "day"
               ? w.totalDuration
               : w.totalDuration / (1000 * 60 * 60),
-          "Unit of measurement": w._id.uom,
+          UOM: w._id.uom,
         };
       })
       .filter((w) => w["Main Driver"] !== "undefined undefined");
