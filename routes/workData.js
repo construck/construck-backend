@@ -937,11 +937,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           $or: [
             {
               "equipment.vendor": Types.ObjectId(driverId),
-              status: { $ne: "released" },
+              status: { $nin: ["recalled", "released"] },
             },
             {
               driver: isValidObjectId(driverId) ? driverId : "123456789011",
-              status: { $ne: "released" },
+              status: { $nin: ["recalled", "released"] },
             },
           ],
         },
@@ -3107,6 +3107,7 @@ router.get("/dailyNotPostedRevenues/:userId", async (req, res) => {
 
 router.post("/", async (req, res) => {
   const isExist = await helper.checkExistDispatch(req.body);
+  console.log('init:1', isExist)
   if (isExist.length > 0) {
     let message = [];
     isExist.map((e) => {
@@ -3126,8 +3127,8 @@ router.post("/", async (req, res) => {
       error: `We can not create a dispatch when there is one or more dispatches with same equipment, shift and date: Please check the following dates: ${message.toString()}`,
     });
   }
-  // return;
   try {
+    console.log('init:2:try')
     // start creating a dispatch
     let workToCreate = new workData.model(req.body);
     // IF EQUIPMENT IS STANDBY OR DISPATCHED, PROCEED
@@ -3152,14 +3153,15 @@ router.post("/", async (req, res) => {
     );
     equipment.assignedShift = req.body?.dispatch?.shift;
     let driver = req.body?.driver === "NA" ? null : req.body?.driver;
-
-    let employee = await employeeData.model.findById(driver);
-    if (employee) {
-      employee.status = "dispatched";
-      employee.assignedToSiteWork = req.body?.siteWork;
-      employee.assignedDate = moment(req.body?.dispatch?.date);
-      employee.assignedShift = req.body?.dispatch?.shift;
-    }
+    console.log('init:2', driver)
+    let driverData = await userData.model.findById(driver);
+    console.log('@@driverData', driverData)
+    // if (employee) {
+    //   employee.status = "dispatched";
+    //   employee.assignedToSiteWork = req.body?.siteWork;
+    //   employee.assignedDate = moment(req.body?.dispatch?.date);
+    //   employee.assignedShift = req.body?.dispatch?.shift;
+    // }
 
     let rate = parseInt(equipment.rate);
     let uom = equipment.uom;
@@ -3168,7 +3170,7 @@ router.post("/", async (req, res) => {
     let workDurationDays = req.body?.workDurationDays;
 
     await equipment.save();
-    if (employee) await employee.save();
+    // if (employee) await employee.save();
 
     workToCreate.equipment = equipment;
     if (uom === "hour") revenue = rate * 5;
@@ -3219,7 +3221,7 @@ router.post("/", async (req, res) => {
     }
 
     let driverNotification = `${
-      employee?.firstName + " " + employee?.lastName
+      driverData?.firstName + " " + driverData?.lastName
     } Muhawe akazi kuri ${req.body?.project?.prjDescription} taliki ${moment(
       req.body?.workStartDate
     ).format("DD-MMM-YYYY")} - ${req.body?.dispatch?.shift}, muzakoresha ${
@@ -3227,9 +3229,8 @@ router.post("/", async (req, res) => {
     } ${workToCreate?.equipment?.plateNumber}`;
 
     let driverToken = await getDeviceToken(driver);
+    console.log('driverNotification', driverNotification)
 
-    // let driverToken =
-    //   "eVgurVnpRpSfYTQ2Cgw51N:APA91bE_HQ6gtS9nGiF0q6T0o3BeZ1wj0yNFrg4bJer2Do3zcsXuQWYJRZExueW5Omqe9dQwCYO1H1g12KilWZsq2jrbBL36PJjxvrPZMLemaPkLDnD-CtjXo0B3uQmbYt-i2q7TgGH9";
     if (driverToken !== "none") {
       sendPushNotification(driverToken, {
         title: "New Dispatch!",
@@ -3237,14 +3238,15 @@ router.post("/", async (req, res) => {
       });
     }
 
-    res.status(201).send(workCreated);
+    return res.status(201).send(workCreated);
   } catch (err) {
+    console.log('err', err)
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.send({
+    return res.send({
       error,
       key,
     });
