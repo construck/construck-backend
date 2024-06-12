@@ -2083,13 +2083,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       if (!searchByPlateNumber && !searchByProject) {
         query = {
           $or: [
-            // {
-            //   siteWork: true,
-            //   status: { $ne: "recalled" },
-            //   workEndDate: {
-            //     $gte: moment(startDate).toDate(),
-            //   },
-            // },
+            {
+              siteWork: true,
+              status: { $ne: "recalled" },
+              workEndDate: {
+                $gte: moment(startDate).toDate(),
+              },
+            },
             {
               siteWork: false,
               status: { $ne: "recalled" },
