@@ -5075,13 +5075,14 @@ router.put("/amend/:id", async (req, res) => {
             let durationRation =
               duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
             work.duration = duration / HOURS_IN_A_DAY;
-            revenue = rate * (duration >= 1 ? rate : 0);
+            revenue =  rate || 0;
+            // revenue = rate * (duration >= 1 ? rate : 0);
+
             expenditure = supplierRate;
           }
         }
       }
     }
-
     work.rate = rate;
     work.uom = uom;
     work.totalRevenue = revenue ? revenue : 0;
