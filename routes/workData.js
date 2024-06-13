@@ -2400,7 +2400,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Site work": w.siteWork,
               Project: w.project?.prjDescription,
               "Plate number": w.equipment.plateNumber,
-              "Equipment Type": w.equipment?.eqDescription,
+              "Equipment type": w.equipment?.eqDescription,
               Owner: w.equipment?.eqOwner,
               UOM: w.equipment?.uom,
               "Duration (HRS)":
@@ -2464,7 +2464,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Site work": w.siteWork,
               Project: w?.project?.prjDescription,
               "Plate number": w.equipment.plateNumber,
-              "Equipment Type": w.equipment?.eqDescription,
+              "Equipment type": w.equipment?.eqDescription,
               Owner: w.equipment?.eqOwner,
               UOM: w.equipment?.uom,
               "Duration (HRS)": 0,
@@ -2521,7 +2521,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Site work": w.siteWork,
               Project: w.project.prjDescription,
               "Plate number": w.equipment.plateNumber,
-              "Equipment Type": w.equipment?.eqDescription,
+              "Equipment type": w.equipment?.eqDescription,
               UOM: w.equipment?.uom,
               "Duration (HRS)": 0,
               "Duration (DAYS)": 0,
@@ -2536,7 +2536,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 "Driver Names": w.driver
                   ? w?.driver?.firstName + " " + w?.driver?.lastName
                   : "",
-                "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
+                "Driver contacts": w.driver ? w.driver?.phone : " ",
               }),
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
@@ -2646,7 +2646,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 "Driver Names": w.driver
                   ? w?.driver?.firstName + " " + w?.driver?.lastName
                   : "",
-                "Driver contacts": w.driver?.phone,
+                "Driver contacts": w.driver ? w.driver?.phone : "",
               }),
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
@@ -2690,7 +2690,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             "Site work": w.siteWork,
             Project: w.project.prjDescription,
             "Plate number": w.equipment.plateNumber,
-            "Equipment Type": w.equipment?.eqDescription,
+            "Equipment type": w.equipment?.eqDescription,
             Owner: w.equipment?.eqOwner,
             UOM: w.equipment?.uom,
             "Duration (HRS)":
@@ -2710,7 +2710,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Driver Names": w.driver
                 ? w?.driver?.firstName + " " + w?.driver?.lastName
                 : "",
-              "Driver contacts": w.driver?.phone,
+              "Driver contacts": w.driver ? w.driver?.phone : "",
             }),
             "Target trips": w.dispatch?.targetTrips,
             "Trips done": w?.tripsDone,

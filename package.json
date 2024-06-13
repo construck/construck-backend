@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon --env-file=.env index.js",
-    "dev:staging": "nodemon index.js",
-    "dev:production": "nodemon index.js",
+    "dev:staging": "nodemon --env-file=.env.staging  index.js",
+    "dev:production": "nodemon --env-file=.env.production index.js",
     "deploy:staging": "git push staging dev:master",
     "deploy:production": "git push production dev:master",
     "deploy:playground": "git push playground dev:master"
