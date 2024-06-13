@@ -6307,11 +6307,6 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
     let jobs = await workData.model.aggregate(pipeline);
     let _jobs = [...jobs];
 
-    // let __jobs = _jobs.map((v) => {
-    //   let strRevenue = `${v?.newTotalRevenue.toLocaleString()}`;
-    //   v.strRevenue = strRevenue;
-    //   return v;
-    // });
     return _jobs;
   } catch (err) {
     err;
