@@ -6244,6 +6244,23 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
         preserveNullAndEmptyArrays: true,
       },
     },
+    //  {
+    //   $match: {
+    //     $or: [
+    //       {
+    //         "dailyWork.status": {
+    //           $exists: false,
+    //         },
+    //         siteWork: true,
+    //       },
+    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
+    //       {
+    //         status: "stopped",
+    //         siteWork: false,
+    //       },
+    //     ],
+    //   },
+    // },
     {
       $addFields: {
         transactionDate: {
