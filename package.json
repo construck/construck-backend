@@ -30,6 +30,7 @@
     "moment": "^2.29.3",
     "mongoose": "^6.2.10",
     "morgan": "^1.10.0",
+    "node-cache": "^5.1.2",
     "node-cron": "^3.0.2",
     "nodemailer": "^6.7.6",
     "nodemon": "^3.1.0"

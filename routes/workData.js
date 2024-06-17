@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const NodeCache = require("node-cache");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const workData = require("../models/workData");
@@ -30,6 +31,7 @@ const MaintenanceController = require("./../controllers/maintenance");
 const { sendPushNotification } = require("../utils/sendNotification");
 
 const DURATION_LIMIT = 16;
+const cache = new NodeCache({ stdTTL: 7200 });
 
 function isValidObjectId(id) {
   if (ObjectId.isValid(id)) {
@@ -3281,6 +3283,15 @@ router.post("/mobileData", async (req, res) => {
 });
 
 router.post("/getAnalytics", async (req, res) => {
+  let { ignoreCache } = req.query;
+  ignoreCache = parseInt(ignoreCache);
+  const cacheKey = "dispatches-analytics-cache-key";
+  const cachedData = cache.get(cacheKey);
+  // IF ignoreCache is 0, then can cache the data, otherwise, skip
+  if (ignoreCache === 0 && cachedData) {
+    return res.json(cachedData);
+  }
+
   let { startDate, endDate, status, customer, project, equipment, owner } =
     req.body;
 
@@ -3680,12 +3691,14 @@ router.post("/getAnalytics", async (req, res) => {
     listDays.map((w) => {
       totalDays = totalDays + w.duration;
     });
-
-    res.status(200).send({
+    const data = {
       totalRevenue: totalRevenue ? _.round(totalRevenue, 0).toFixed(2) : "0.00",
       projectedRevenue: projectedRevenue ? projectedRevenue.toFixed(2) : "0.00",
       totalDays: totalDays ? _.round(totalDays, 1).toFixed(1) : "0.0",
-    });
+    };
+    // IF ignoreCache is 0, then cache the data, otherwise, skip
+    ignoreCache === 0 ? cache.set(cacheKey, data) : null;
+    return res.status(200).send(data);
   } catch (err) {
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
@@ -5075,7 +5088,7 @@ router.put("/amend/:id", async (req, res) => {
             let durationRation =
               duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
             work.duration = duration / HOURS_IN_A_DAY;
-            revenue =  rate || 0;
+            revenue = rate || 0;
             // revenue = rate * (duration >= 1 ? rate : 0);
 
             expenditure = supplierRate;
