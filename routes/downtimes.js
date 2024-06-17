@@ -1,3 +1,4 @@
+const NodeCache = require("node-cache");
 const router = require("express").Router();
 const downTimeData = require("../models/downtimes");
 const findError = require("../utils/errorCodes");
@@ -5,84 +6,103 @@ const _ = require("lodash");
 const moment = require("moment");
 const workData = require("../models/workData");
 const equipments = require("../models/equipments");
-const {Maintenance} = require("../models/maintenance");
+const { Maintenance } = require("../models/maintenance");
+
+const cache = new NodeCache({ stdTTL: 7200 });
 
 router.get("/", async (req, res) => {
+  // const cacheKey = "downtime-cache-key";
+  // const cachedData = cache.get(cacheKey);
+  // if (cachedData) {
+  //   console.log("Serving cached data");
+  //   return res.json(cachedData);
+  // }
   try {
-    let pipeline= [
+    let pipeline = [
       {
-        '$addFields': {
-          'downtime': {
-            '$dateDiff': {
-              'startDate': {
-                '$cond': {
-                  'if': {
-                    '$lte': [
-                      '$entryDate', new Date('Mon, 01 May 2023 00:00:00 GMT')
-                    ]
-                  }, 
-                  'then': new Date('Mon, 01 May 2023 00:00:00 GMT'), 
-                  'else': '$entryDate'
-                }
-              }, 
-              'endDate': {
-                '$cond': {
-                  'if': {
-                    '$lte': [
-                      '$endRepair', null
-                    ]
-                  }, 
-                  'then': new Date(), 
-                  'else': '$endRepair'
-                }
-              }, 
-              'unit': 'hour'
-            }
-          }
-        }
-      }, {
-        '$addFields': {
-          'downtimeInDays': {
-            '$divide': [
-              '$downtime', 24
-            ]
-          }
-        }
-      }, {
-        '$addFields': {
-          'equipment': {
-            '$toObjectId': '$plate.value'
-          }
-        }
-      }, {
-        '$lookup': {
-          'from': 'equipments', 
-          'localField': 'equipment', 
-          'foreignField': '_id', 
-          'as': 'equipment'
-        }
-      }, {
-        '$unwind': {
-          'path': '$equipment', 
-          'preserveNullAndEmptyArrays': true
-        }
-      }, {
-        '$group': {
-          '_id': '$equipment.eqtype', 
-          'fieldN': {
-            '$avg': '$downtimeInDays'
-          }
-        }
-      }
-    ]
+        $addFields: {
+          downtime: {
+            $dateDiff: {
+              startDate: {
+                $cond: {
+                  if: {
+                    $lte: [
+                      "$entryDate",
+                      new Date("Mon, 01 May 2023 00:00:00 GMT"),
+                    ],
+                  },
+                  then: new Date("Mon, 01 May 2023 00:00:00 GMT"),
+                  else: "$entryDate",
+                },
+              },
+              endDate: {
+                $cond: {
+                  if: {
+                    $lte: ["$endRepair", null],
+                  },
+                  then: new Date(),
+                  else: "$endRepair",
+                },
+              },
+              unit: "hour",
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          downtimeInDays: {
+            $divide: ["$downtime", 24],
+          },
+        },
+      },
+      {
+        $addFields: {
+          equipment: {
+            $toObjectId: "$plate.value",
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "equipments",
+          localField: "equipment",
+          foreignField: "_id",
+          as: "equipment",
+        },
+      },
+      {
+        $unwind: {
+          path: "$equipment",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: "$equipment.eqtype",
+          fieldN: {
+            $avg: "$downtimeInDays",
+          },
+        },
+      },
+    ];
     // let downtimes = await downTimeData.model.find().populate("equipment");
-    let downtimes = await Maintenance.aggregate(pipeline)
-
-    res.send(downtimes);
-  } catch (err) {}
+    // let downtimes = await Maintenance.aggregate(pipeline);
+    // console.log('downtimes', downtimes)
+    // cache.set(cacheKey, data);
+    return res.status(400).send({});
+  } catch (err) {
+    // return res.status(500).send(err);
+  }
 });
 
 router.post("/getAnalytics", async (req, res) => {
+  const cacheKey = "downtime-analytics-cache-key";
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    return res.json(cachedData);
+  }
+
   let { startDate, endDate } = req.body;
   let avgFromWorkshop = 0;
   let avgInWorkshop = 0;
@@ -91,7 +111,6 @@ router.post("/getAnalytics", async (req, res) => {
     let downtimes = await downTimeData.model.find({
       $or: [
         {
-          //   dateToWorkshop: { $gte: startDate },
           dateFromWorkshop: { $gte: startDate },
         },
         {
@@ -122,8 +141,7 @@ router.post("/getAnalytics", async (req, res) => {
       avgInWorkshop =
         avgInWorkshop + moment().diff(moment(r.dateToWorkshop), "hours");
     });
-
-    res.send({
+    const data = {
       avgInWorkshop: (avgInWorkshop / len_stillInWorkshop).toFixed(2),
       avgFromWorkshop: _.round(
         avgFromWorkshop / len_moveFromWorkshop,
@@ -136,7 +154,9 @@ router.post("/getAnalytics", async (req, res) => {
         ]),
         1
       ).toFixed(2),
-    });
+    };
+    cache.set(cacheKey, data);
+    return res.send(data);
   } catch (err) {}
 });
 
@@ -248,4 +268,3 @@ async function getAvgDowntime(startDate, eqType) {
 }
 
 module.exports = router;
-

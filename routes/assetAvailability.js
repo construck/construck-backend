@@ -1,8 +1,11 @@
+const NodeCache = require("node-cache");
+
 const router = require("express").Router();
 const assetAvblty = require("../models/assetAvailability");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const moment = require("moment");
+const cache = new NodeCache({ stdTTL: 7200 });
 
 router.get("/", async (req, res) => {
   try {
@@ -15,6 +18,11 @@ router.get("/", async (req, res) => {
 
 router.post("/getAnalytics", async (req, res) => {
   let { startDate, endDate } = req.body;
+  const cacheKey = "asset-availability-cache-key";
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    return res.json(cachedData);
+  }
   try {
     let avblties = await assetAvblty.model.find({
       date: { $gte: startDate, $lte: endDate },
@@ -53,7 +61,7 @@ router.post("/getAnalytics", async (req, res) => {
     if (totAssets === 0) totAssets = 1;
     if (totAvailable === 0) totAvailable = 1;
 
-    res.send({
+    const data = {
       assetAvailability:
         _.round((totAvailable / totAssets) * 100, 2).toFixed(2) <= 100
           ? _.round((totAvailable / totAssets) * 100, 2).toFixed(2)
@@ -62,7 +70,9 @@ router.post("/getAnalytics", async (req, res) => {
         _.round((totDispatched / totAvailable) * 100, 2).toFixed(2) <= 100
           ? _.round((totDispatched / totAvailable) * 100, 2).toFixed(2)
           : 100,
-    });
+    };
+    cache.set(cacheKey, data);
+    return res.status(200).send(data);
   } catch (err) {}
 });
 

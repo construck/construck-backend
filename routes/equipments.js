@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const NodeCache = require("node-cache");
 const User = require("../models/users");
 const eqData = require("../models/equipments");
 const assetAvblty = require("../models/assetAvailability");
@@ -11,14 +12,21 @@ const { eq } = require("lodash");
 const { default: mongoose, Types } = require("mongoose");
 const { getListOfEquipmentOnDuty, stopWork } = require("./workData");
 const EquipmentController = require("./../controllers/equipments");
+const cache = new NodeCache({ stdTTL: 7200 });
 
 router.get("/", async (req, res) => {
+  const cacheKey = "equipment-types-cache-key";
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    return res.json(cachedData);
+  }
   try {
     const equipments = await eqData.model
       .find()
       .populate("vendor")
       .populate("equipmentType");
-    res.status(200).send({
+
+    const data = {
       equipments,
       nrecords: equipments.length,
       available: equipments.filter((w) => {
@@ -42,7 +50,9 @@ router.get("/", async (req, res) => {
       ct: equipments.filter((w) => {
         return w.eqStatus === "ct" && w.eqOwner === "Construck";
       }).length,
-    });
+    };
+    cache.set(cacheKey, data);
+    return res.status(200).send(data);
   } catch (err) {}
 });
 router.get("/enter-workshop", async (req, res) => {

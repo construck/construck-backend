@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
+const NodeCache = require("node-cache");
 const userData = require("../models/users");
 const Driver = require("../models/drivers");
 const Vendor = require("../models/vendors");
@@ -8,8 +9,16 @@ const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const token = require("../tokens/tokenGenerator");
 const UserController = require("./../controllers/users");
+const cache = new NodeCache({ stdTTL: 7200 });
 
 router.get("/", async (req, res) => {
+  let { ignoreCache } = req.query;
+  ignoreCache = parseInt(ignoreCache);
+  const cacheKey = "get-users-cache-key";
+  const cachedData = cache.get(cacheKey);
+  if (ignoreCache === 0 && cachedData) {
+    return res.json(cachedData);
+  }
   try {
     let users = await userData.model.find(
       {},
@@ -17,10 +26,10 @@ router.get("/", async (req, res) => {
         password: 0,
       }
     );
-    // .populate("company");
-    res.status(200).send(users);
+    ignoreCache === 0 ? cache.set(cacheKey, users) : null;
+    return res.status(200).send(users);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
