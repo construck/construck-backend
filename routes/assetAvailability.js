@@ -73,7 +73,9 @@ router.post("/getAnalytics", async (req, res) => {
     };
     cache.set(cacheKey, data);
     return res.status(200).send(data);
-  } catch (err) {}
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 router.post("/", async (req, res) => {

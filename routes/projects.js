@@ -1,17 +1,26 @@
 const router = require("express").Router();
+const NodeCache = require("node-cache");
 const prjData = require("../models/projects");
 const custData = require("../models/customers");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const workData = require("../models/workData");
 const { default: mongoose } = require("mongoose");
+const cache = new NodeCache({ stdTTL: 7200 });
 
 router.get("/", async (req, res) => {
+  const cacheKey = "get-projects-customers-cache-key";
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    return res.json(cachedData);
+  }
   try {
     let projects = await prjData.model.find().populate("customer");
-    res.status(200).send(projects);
+
+    cache.set(cacheKey, projects);
+    return res.status(200).send(projects);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -36,9 +45,9 @@ router.get("/v2", async (req, res) => {
         });
       }
     });
-    res.send(projects);
+    return res.send(projects);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -46,9 +55,9 @@ router.get("/:id", async (req, res) => {
   let { id } = req.params;
   try {
     let project = await prjData.model.find(id).populate("customer");
-    res.status(200).send(project);
+    return res.status(200).send(project);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 

@@ -2423,11 +2423,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     ? dP.duration * w?.equipment?.rate
                     : (dP.duration > 0 ? 1 : 0) * dP.rate,
                 "Vendor payment": dP.expenditure,
-                "Driver Names": w.driver
-                  ? w?.driver?.firstName + " " + w?.driver?.lastName
-                  : "",
-                "Driver contacts": w.driver ? w.driver.phone : "",
               }),
+              "Driver Names": w.driver
+                ? w?.driver?.firstName + " " + w?.driver?.lastName
+                : "",
+              "Driver contacts": w.driver ? w.driver.phone : "",
               Comment: dP.comment
                 ? dP.comment + " - " + (dP.moreComment ? dP.moreComment : "")
                 : " ",
@@ -2479,11 +2479,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     : w.equipment?.rate,
                 "Actual Revenue": 0,
                 "Vendor payment": 0,
-                "Driver Names": w.driver
-                  ? w?.driver?.firstName + " " + w?.driver?.lastName
-                  : "",
-                "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
               }),
+              "Driver Names": w.driver
+                ? w?.driver?.firstName + " " + w?.driver?.lastName
+                : "",
+              "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
               Comment: dNP.comment
                 ? dNP.comment + " - " + (dNP.moreComment ? dNP.moreComment : "")
                 : " ",
@@ -2535,11 +2535,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     : w.equipment?.rate,
                 "Actual Revenue": 0,
                 "Vendor payment": 0,
-                "Driver Names": w.driver
-                  ? w?.driver?.firstName + " " + w?.driver?.lastName
-                  : "",
-                "Driver contacts": w.driver ? w.driver?.phone : " ",
               }),
+              "Driver Names": w.driver
+                ? w?.driver?.firstName + " " + w?.driver?.lastName
+                : "",
+              "Driver contacts": w.driver ? w.driver?.phone : " ",
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
                 : 0,
@@ -2645,11 +2645,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
                       w?.equipment?.supplierRate
                     : (dP.duration > 0 ? 1 : 0) * w?.equipment?.supplierRate,
-                "Driver Names": w.driver
-                  ? w?.driver?.firstName + " " + w?.driver?.lastName
-                  : "",
-                "Driver contacts": w.driver ? w.driver?.phone : "",
-              }),
+                  }),
+                  "Driver Names": w.driver
+                    ? w?.driver?.firstName + " " + w?.driver?.lastName
+                    : "",
+                  "Driver contacts": w.driver ? w.driver?.phone : "",
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
                 : 0,
@@ -2709,11 +2709,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   : w.equipment?.rate,
               "Actual Revenue": w.totalRevenue,
               "Vendor payment": w.totalExpenditure,
-              "Driver Names": w.driver
-                ? w?.driver?.firstName + " " + w?.driver?.lastName
-                : "",
-              "Driver contacts": w.driver ? w.driver?.phone : "",
             }),
+            "Driver Names": w.driver
+              ? w?.driver?.firstName + " " + w?.driver?.lastName
+              : "",
+            "Driver contacts": w.driver ? w.driver?.phone : "",
             "Target trips": w.dispatch?.targetTrips,
             "Trips done": w?.tripsDone,
             Comment: w.comment
@@ -6257,7 +6257,7 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
         preserveNullAndEmptyArrays: true,
       },
     },
-     {
+    {
       $match: {
         $or: [
           {

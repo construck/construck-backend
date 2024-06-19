@@ -114,9 +114,9 @@ router.get("/", async (req, res) => {
       .aggregate(pipeline)
       .sort({ startDate: 1 });
 
-    res.status(200).send(requests);
+    return res.status(200).send(requests);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -128,9 +128,9 @@ router.get("/:id", async (req, res) => {
       .findById(id)
       .populate("equipmentType")
       .populate("workToBeDone");
-    res.status(200).send(jobType);
+    return res.status(200).send(jobType);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -239,9 +239,9 @@ router.get("/byOwner/:id", async (req, res) => {
       .aggregate(pipeline)
       .sort({ startDate: 1 });
 
-    res.status(200).send(requests);
+    return res.status(200).send(requests);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
