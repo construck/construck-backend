@@ -79,6 +79,13 @@ router.post("/login", async (req, res) => {
       .populate("vendor");
     // IMPLEMENT NEW LOGIN: SERVING ALL USER TYPES
     // CHECK IF PASSWORD IF CORRECT
+    let allowed = await bcrypt.compare(password, user?.password);
+    if (!allowed) {
+      return res.status(401).send({
+        message: "Wrong email/phone or password",
+        error: true,
+      });
+    }
     // GENERATE JWT TOKEN AND SEND IT TO CLIENT
     if (user) {
       const payload = {
@@ -262,8 +269,11 @@ router.put("/:id", async (req, res) => {
 });
 
 router.put("/resetPassword/:id", async (req, res) => {
-  let newPassword = "12345";
+  // let newPassword = "12345";
   let { id } = req.params;
+  const { password } = req.body;
+  console.log("id", id);
+  console.log("password", password);
 
   try {
     let user = await userData.model.findById(id);
@@ -273,19 +283,20 @@ router.put("/resetPassword/:id", async (req, res) => {
         error: true,
       });
     } else {
-      let hashedPassword = await bcrypt.hash(newPassword, 10);
+      let hashedPassword = await bcrypt.hash(password, 10);
       user.password = hashedPassword;
       await user.save();
 
-      res.send({
+      return res.send({
         message: "Allowed",
         error: false,
-        newPassword,
+        // password,
         user,
       });
     }
   } catch (err) {
-    res.status(500).send({
+    console.log("err", err);
+    return res.status(500).send({
       message: `${err}`,
       error: true,
     });
