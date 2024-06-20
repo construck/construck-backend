@@ -57,7 +57,7 @@ router.get("/:id", async (req, res) => {
     let project = await prjData.model.find(id).populate("customer");
     return res.status(200).send(project);
   } catch (err) {
-    return res.send(err);
+    return res.status(500).send(err);
   }
 });
 
@@ -683,10 +683,13 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
 router.get("/releasedRevenue/:projectName", async (req, res) => {
   let { projectName } = req.params;
   let { month, year } = req.query;
+  try {
+    let result = await getReleasedPerMonth(projectName, month, year);
 
-  let result = await getReleasedPerMonth(projectName, month, year);
-
-  res.send(result);
+    return res.send(result);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 router.post("/", async (req, res) => {
@@ -700,14 +703,14 @@ router.post("/", async (req, res) => {
       status,
     });
     let prjCreated = await prjToCreate.save();
-    res.status(201).send(prjCreated);
+    return res.status(201).send(prjCreated);
   } catch (err) {
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.send({
+    return res.send({
       error,
       key,
     });
@@ -716,9 +719,13 @@ router.post("/", async (req, res) => {
 
 router.get("/:customerName/:prjId", async (req, res) => {
   let { customerName, prjId } = req.params;
-  let project = await getProject(customerName, prjId);
+  try {
+    let project = await getProject(customerName, prjId);
 
-  res.send(project);
+    return res.send(project);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 async function getReleasedPerMonth(prjDescription, month, year) {

@@ -92,7 +92,7 @@ router.get("/", async (req, res) => {
     // cache.set(cacheKey, data);
     return res.status(400).send({});
   } catch (err) {
-    // return res.status(500).send(err);
+    return res.status(500).send(err);
   }
 });
 
@@ -157,21 +157,29 @@ router.post("/getAnalytics", async (req, res) => {
     };
     cache.set(cacheKey, data);
     return res.send(data);
-  } catch (err) {}
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 router.post("/trucks", async (req, res) => {
   let { startDate, endDate } = req.body;
-  let result = await getAvgDowntime(startDate, "Truck");
-
-  res.send(result);
+  try {
+    let result = await getAvgDowntime(startDate, "Truck");
+    return res.send(result);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 router.post("/machines", async (req, res) => {
   let { startDate, endDate } = req.body;
-  let result = await getAvgDowntime(startDate, "Machine");
-
-  res.send(result);
+  try {
+    let result = await getAvgDowntime(startDate, "Machine");
+    return res.send(result);
+  } catch (error) {
+    return res.status(500).send(err);
+  }
 });
 
 async function getAvgDowntime(startDate, eqType) {

@@ -53,7 +53,9 @@ router.get("/", async (req, res) => {
     };
     cache.set(cacheKey, data);
     return res.status(200).send(data);
-  } catch (err) {}
+  } catch (err) {
+    return res.status(500).send(error);
+  }
 });
 router.get("/enter-workshop", async (req, res) => {
   try {
@@ -65,7 +67,7 @@ router.get("/enter-workshop", async (req, res) => {
       })
       .populate("vendor")
       .populate("equipmentType");
-    res.status(200).send({
+    return res.status(200).send({
       equipments,
       nrecords: equipments.length,
       available: equipments.filter((w) => {
@@ -90,7 +92,9 @@ router.get("/enter-workshop", async (req, res) => {
         return w.eqStatus === "ct" && w.eqOwner === "Construck";
       }).length,
     });
-  } catch (err) {}
+  } catch (error) {
+    return res.status(500).send(error);
+  }
 });
 
 router.get("/types", async (req, res) => {
@@ -108,8 +112,10 @@ router.get("/types", async (req, res) => {
       },
     ];
     const equipmentTypes = await eqData.model.aggregate(pipeline);
-    res.status(200).send(equipmentTypes);
-  } catch (err) {}
+    return res.status(200).send(equipmentTypes);
+  } catch (err) {
+    return res.status(500).send(error);
+  }
 });
 
 router.get("/v2", async (req, res) => {
@@ -118,8 +124,10 @@ router.get("/v2", async (req, res) => {
       .find()
       .populate("vendor")
       .populate("equipmentType");
-    res.status(200).send(equipments);
-  } catch (err) {}
+    return res.status(200).send(equipments);
+  } catch (err) {
+    return res.status(500).send(error);
+  }
 });
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
@@ -142,8 +150,10 @@ router.get("/:id", async (req, res) => {
       .sort({
         createdOn: -1,
       });
-    res.status(200).send(equipments);
-  } catch (err) {}
+    return res.status(200).send(equipments);
+  } catch (err) {
+    return res.status(500).send(error);
+  }
 });
 
 router.get("/:id", async (req, res) => {
@@ -153,9 +163,9 @@ router.get("/:id", async (req, res) => {
       .findById(id)
       .populate("vendor")
       .populate("equipmentType");
-    res.status(200).send(equipment);
+    return res.status(200).send(equipment);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -166,9 +176,9 @@ router.get("/type/:type", async (req, res) => {
       eqtype: type,
       eqStatus: "standby",
     });
-    res.status(200).send(equipment);
-  } catch (err) {
-    res.send(err);
+    return res.status(200).send(equipment);
+  } catch (error) {
+    return res.status(500).send(error);
   }
 });
 
@@ -209,9 +219,9 @@ router.get("/type/:type/:date/:shift", async (req, res) => {
         },
       ],
     });
-    res.status(200).send(equipment);
-  } catch (err) {
-    res.send(err);
+    return res.status(200).send(equipment);
+  } catch (error) {
+    return res.status(500).send(error);
   }
 });
 
@@ -265,15 +275,13 @@ router.post("/", async (req, res) => {
         }
       }
     );
-    console.log("confused");
   } catch (err) {
-    console.log("err", err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.send({
+    return res.send({
       error,
       key,
     });

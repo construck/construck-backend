@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
     cache.set(cacheKey, jobTypes);
     return res.status(200).send(jobTypes);
   } catch (err) {
-    return res.send(err);
+    return res.status(500).send(err);
   }
 });
 
@@ -36,7 +36,7 @@ router.get("/eqType/:eqType", async (req, res) => {
     const jobType = await jobTypeData.model.find({ eqType });
     return res.status(200).send(jobType);
   } catch (err) {
-    return res.send(err);
+    return res.status(500).send(err);
   }
 });
 

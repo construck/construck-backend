@@ -9,22 +9,10 @@ const { default: mongoose } = require("mongoose");
 const ObjectId = require("mongoose").Types.ObjectId;
 
 router.get("/dailyworks/all", async (req, res) => {
-  //download/dailyworks/all
-  const works = await workData.model.find(
-    { _id: { $in: [new mongoose.Types.ObjectId("659e9193bd4ebf87a86c3d0a")] } }
-    // {
-    //   siteWork: true,
-    //   //   "dailyWork.duration": 0,
-    //   dailyWork: {
-    //     $elemMatch: {
-    //       duration: 0,
-    //     },
-    //   },
-    // },
-    // { $set: { totalRevenue: 0 } }
-  );
-  //   const current = works;
-  console.log("current", works[0]);
+  
+  const works = await workData.model.find({
+    _id: { $in: [new mongoose.Types.ObjectId("659e9193bd4ebf87a86c3d0a")] },
+  });
   works.map(async (work) => {
     const d = work.dailyWork.map((d) => {
       let totalRevenue = 0;
