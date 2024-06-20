@@ -13,11 +13,13 @@ const cache = new NodeCache({ stdTTL: 7200 });
 
 router.get("/", async (req, res) => {
   let { ignoreCache } = req.query;
-  ignoreCache = parseInt(ignoreCache);
+  ignoreCache = parseInt(ignoreCache) || 0;
   const cacheKey = "get-users-cache-key";
   const cachedData = cache.get(cacheKey);
-  if (ignoreCache === 0 && cachedData) {
-    return res.json(cachedData);
+  console.log('ignoreCache !== 1', ignoreCache !== 1)
+  console.log('!_.isEmpty(cachedData)', !_.isEmpty(cachedData))
+  if (ignoreCache !== 1 && !_.isEmpty(cachedData)) {
+    return res.status(200).send(cachedData);
   }
   try {
     let users = await userData.model.find(
@@ -26,7 +28,7 @@ router.get("/", async (req, res) => {
         password: 0,
       }
     );
-    ignoreCache === 0 ? cache.set(cacheKey, users) : null;
+    ignoreCache !== 1 && cache.set(cacheKey, users);
     return res.status(200).send(users);
   } catch (err) {
     return res.send(err);

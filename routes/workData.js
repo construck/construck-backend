@@ -3201,12 +3201,12 @@ router.post("/mobileData", async (req, res) => {
 
 router.post("/getAnalytics", async (req, res) => {
   let { ignoreCache } = req.query;
-  ignoreCache = parseInt(ignoreCache);
-  const cacheKey = "dispatches-analytics-cache-key";
+  ignoreCache = parseInt(ignoreCache) || 0;
+  const cacheKey = "dispatches-analytics-dashboard-cache-key";
   const cachedData = cache.get(cacheKey);
-  // IF ignoreCache is 0, then can cache the data, otherwise, skip
-  if (ignoreCache === 0 && cachedData) {
-    return res.json(cachedData);
+  console.log('ignoreCache', ignoreCache)
+  if (ignoreCache !== 1 && !_.isEmpty(cachedData)) {
+    return res.status(200).send(cachedData);
   }
 
   let { startDate, endDate, status, customer, project, equipment, owner } =
@@ -3614,7 +3614,7 @@ router.post("/getAnalytics", async (req, res) => {
       totalDays: totalDays ? _.round(totalDays, 1).toFixed(1) : "0.0",
     };
     // IF ignoreCache is 0, then cache the data, otherwise, skip
-    ignoreCache === 0 ? cache.set(cacheKey, data) : null;
+    ignoreCache !== 1 && cache.set(cacheKey, data);
     return res.status(200).send(data);
   } catch (err) {
     let error = findError(err.code);
@@ -3743,7 +3743,7 @@ router.put("/approve/:id", async (req, res) => {
     };
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
-    res.status(201).send(savedRecord);
+    return res.status(201).send(savedRecord);
   } catch (err) {}
 });
 
@@ -4782,7 +4782,7 @@ router.put("/stop/:id", async (req, res) => {
       return res.status(200).send(work);
     }
   } catch (err) {
-    return res.status(500).send(err)
+    return res.status(500).send(err);
   }
 });
 
