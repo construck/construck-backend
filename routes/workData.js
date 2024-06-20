@@ -125,9 +125,9 @@ router.get("/v3", async (req, res) => {
       .sort([["_id", "descending"]]);
 
     // res.status(200).send(workList.filter((w) => !_.isNull(w.driver)));
-    res.status(200).send(workList);
+    return res.status(200).send(workList);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -166,24 +166,14 @@ router.get("/filtered2", async (req, res) => {
         workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id 
         `
       )
-
-      // .populate("project")
-      // .populate({
-      //   path: "project",
-      //   populate: {
-      //     path: "customer",
-      //     model: "customers",
-      //   },
-      // })
       .populate("driver")
       .populate("createdBy", "firstName lastName")
       .populate("workDone", "jobDescription")
       .sort([["_id", "descending"]]);
 
-    // res.status(200).send(workList.filter((w) => !_.isNull(w.driver)));
-    res.status(200).send(workList);
+    return res.status(200).send(workList);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -1221,35 +1211,17 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
             workStartDate: { $gte: moment(startDate) },
             workEndDate: { $lte: endDate },
           },
-          // {
-          //   $or: [
-          //     { status: "stopped" },
-          //     { status: "rejected" },
-          //     { status: "approved" },
-          //     { status: "rejected" },
-          //     { status: "on going", "dailyWork.pending": false },
-          //   ],
-          // },
         ],
       };
 
       let workList = await workData.model
         .find(
-          // query,
           {
             "equipment.plateNumber": { $regex: plateNumber.toUpperCase() },
             workStartDate: {
               $gte: startDate,
               $lte: endDate,
             },
-            // workEndDate: { $lte: startDate },
-            // $or: [
-            //   { status: "stopped" },
-            //   { status: "rejected" },
-            //   { status: "approved" },
-            //   { status: "rejected" },
-            //   { status: "on going", "dailyWork.pending": false },
-            // ],
           },
           {
             "project.createdOn": false,
@@ -1302,14 +1274,6 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
             .map((d) => {
               return d.date;
             });
-          // let workStartDate = moment(w.workStartDate);
-          // let workDurationDays = w.workDurationDays;
-
-          // let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
-          // for (let i = 0; i < workDurationDays - 1; i++) {
-          //   datesToPost.push(workStartDate.add(1, "days").format("DD-MMM-YYYY"));
-          // }
-
           datesPosted.map((dP) => {
             siteWorkList.push({
               _id: dP._id,
@@ -1349,74 +1313,6 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
               // millage: w.equipment.millage ? w.equipment.millage : 0,
             });
           });
-
-          // dateNotPosted.map((dNP) => {
-          //   siteWorkList.push({
-          //     workDone: w.workDone
-          //       ? w.workDone
-          //       : {
-          //           _id: "62690b67cf45ad62aa6144d8",
-          //           jobDescription: "Others",
-          //           eqType: "Truck",
-          //           createdOn: "2022-04-27T09:20:50.911Z",
-          //           __v: 0,
-          //         },
-          //     _id: w._id,
-          //     status: "created",
-          //     project: w.project,
-          //     createdOn: w.createdOn,
-          //     equipment: w.equipment,
-          //     siteWork: w.siteWork,
-          //     targetTrips: w.dispatch.targetTrips
-          //       ? w.dispatch.targetTrips
-          //       : "N/A",
-          //     workStartDate: w.workStartDate,
-          //     dispatchDate: new Date(dNP).toISOString(),
-          //     shift: w.dispatch.shift === "nightShift" ? "N" : "D",
-          //     startIndex: w.startIndex
-          //       ? parseFloat(w.startIndex).toFixed(2)
-          //       : // ?
-          //         //   w.startIndex
-          //         "0.0",
-          //     millage: parseFloat(
-          //       w.equipment.millage ? w.equipment.millage : 0
-          //     ).toFixed(2),
-          //   });
-          // });
-
-          // datesPendingPosted.map((dPP) => {
-          //   siteWorkList.push({
-          //     workDone: w.workDone
-          //       ? w.workDone
-          //       : {
-          //           _id: "62690b67cf45ad62aa6144d8",
-          //           jobDescription: "Others",
-          //           eqType: "Truck",
-          //           createdOn: "2022-04-27T09:20:50.911Z",
-          //           __v: 0,
-          //         },
-          //     _id: w._id,
-          //     status: "in progress",
-          //     project: w.project,
-          //     createdOn: w.createdOn,
-          //     equipment: w.equipment,
-          //     siteWork: w.siteWork,
-          //     targetTrips: w.dispatch.targetTrips
-          //       ? w.dispatch.targetTrips
-          //       : "N/A",
-          //     workStartDate: w.workStartDate,
-          //     dispatchDate: new Date(dPP).toISOString(),
-          //     shift: w.dispatch.shift === "nightShift" ? "N" : "D",
-          //     startIndex: w.startIndex
-          //       ? parseFloat(w.startIndex).toFixed(2)
-          //       : //  ? w.startIndex
-          //         "0.0",
-          //     millage: parseFloat(
-          //       w.equipment.millage ? w.equipment.millage : 0
-          //     ).toFixed(2),
-          //     // millage: w.equipment.millage ? w.equipment.millage : 0,
-          //   });
-          // });
         } else {
           work = {
             _id: w._id,
@@ -1446,7 +1342,6 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
             millage: parseFloat(
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
-            // millage: w.equipment.millage ? w.equipment.millage : 0,
           };
         }
 
@@ -1457,12 +1352,12 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
 
       let orderedList = _.orderBy(finalList, "dispatchDate", "desc");
 
-      res.status(200).send(orderedList.filter((d) => !_.isNull(d)));
+      return res.status(200).send(orderedList.filter((d) => !_.isNull(d)));
     } catch (err) {
-      res.send(err);
+      return res.status(500).send(err);
     }
   } else {
-    res
+    return res
       .send({
         error: true,
         message: "Please give all the query parameters!",
@@ -2645,11 +2540,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
                       w?.equipment?.supplierRate
                     : (dP.duration > 0 ? 1 : 0) * w?.equipment?.supplierRate,
-                  }),
-                  "Driver Names": w.driver
-                    ? w?.driver?.firstName + " " + w?.driver?.lastName
-                    : "",
-                  "Driver contacts": w.driver ? w.driver?.phone : "",
+              }),
+              "Driver Names": w.driver
+                ? w?.driver?.firstName + " " + w?.driver?.lastName
+                : "",
+              "Driver contacts": w.driver ? w.driver?.phone : "",
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
                 : 0,
@@ -2848,9 +2743,9 @@ router.get("/monthlyRevenuePerProject/:projectName", async (req, res) => {
 
   try {
     let monthlyRevenues = await workData.model.aggregate(pipeline);
-    res.send(monthlyRevenues);
+    return res.send(monthlyRevenues);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -2858,8 +2753,10 @@ router.get("/monthlyValidatedRevenues/:projectName", async (req, res) => {
   let { projectName } = req.params;
   try {
     let result = await getValidatedRevenuesByProject(projectName);
-    res.send(result);
-  } catch (error) {}
+    return res.send(result);
+  } catch (error) {
+    return res.status(503).send({ error: "Error occurred, try again later" });
+  }
 });
 
 router.get("/monthlyNonValidatedRevenues/:projectName", async (req, res) => {
@@ -2875,17 +2772,25 @@ router.get("/monthlyNonValidatedRevenues/:projectName", async (req, res) => {
 router.get("/monthlyNotPosted/:vendorId", async (req, res) => {
   let { vendorId } = req.params;
   // let result = await getNotPostedRevenuedByProject(vendorId);
-  let result = await getNotPostedRevenuedByVendor(vendorId);
+  try {
+    let result = await getNotPostedRevenuedByVendor(vendorId);
 
-  res.send(result);
+    return res.status(200).send(result);
+  } catch (error) {
+    return res.status(500).send({ error: "Error occurred, try again later" });
+  }
 });
 
 router.get("/dailyValidatedRevenues/:projectName", async (req, res) => {
   let { projectName } = req.params;
   let { month, year } = req.query;
-  let result = await getDailyValidatedRevenues(projectName, month, year);
+  try {
+    let result = await getDailyValidatedRevenues(projectName, month, year);
 
-  return res.send(result);
+    return res.send(result);
+  } catch (error) {
+    return res.status(500).send({ error: "Error occurred, try again later" });
+  }
 });
 
 router.get("/dailyNonValidatedRevenues/:projectName", async (req, res) => {
@@ -2895,7 +2800,9 @@ router.get("/dailyNonValidatedRevenues/:projectName", async (req, res) => {
     let result = await getDailyNonValidatedRevenues(projectName, month, year);
 
     return res.send(result);
-  } catch (error) {}
+  } catch (error) {
+    return res.status(500).send({ error: "Error occurred, try again later" });
+  }
 });
 
 router.get("/dailyNotPostedRevenues/:userId", async (req, res) => {
@@ -2905,39 +2812,53 @@ router.get("/dailyNotPostedRevenues/:userId", async (req, res) => {
   try {
     let result = await getDailyNotPostedRevenues(month, year, userId);
     return res.send(result);
-  } catch (error) {}
+  } catch (error) {
+    return res.status(500).send({ error: "Error occurred, try again later" });
+  }
 });
 
 router.get("/validatedList/:projectName", async (req, res) => {
   let { projectName } = req.params;
   let { month, year } = req.query;
-  let result = await getValidatedListByProjectAndMonth(
-    projectName,
-    month,
-    year
-  );
+  try {
+    let result = await getValidatedListByProjectAndMonth(
+      projectName,
+      month,
+      year
+    );
 
-  res.send(result);
+    return res.send(result);
+  } catch (error) {
+    return res.status(500).send({ error: "Error occurred, try again later" });
+  }
 });
 
 router.get("/nonValidatedList/:projectName", async (req, res) => {
   let { projectName } = req.params;
   let { month, year } = req.query;
-  let result = await getNonValidatedListByProjectAndMonth(
-    projectName,
-    month,
-    year
-  );
+  try {
+    let result = await getNonValidatedListByProjectAndMonth(
+      projectName,
+      month,
+      year
+    );
 
-  res.send(result);
+    return res.send(result);
+  } catch (error) {
+    return res.status(500).send({ error: "Error occurred, try again later" });
+  }
 });
 
 router.get("/validatedByDay/:projectName", async (req, res) => {
   let { projectName } = req.params;
   let { transactionDate } = req.query;
-  let result = await getValidatedListByDay(projectName, transactionDate);
+  try {
+    let result = await getValidatedListByDay(projectName, transactionDate);
 
-  res.send(result);
+    return res.send(result);
+  } catch (error) {
+    return res.status(500).send({ error: "Error occurred, try again later" });
+  }
 });
 
 router.get("/nonValidatedByDay/:projectName", async (req, res) => {
@@ -2956,10 +2877,12 @@ router.get("/nonValidatedByDay/:projectName", async (req, res) => {
 router.get("/notPostedByDay/:userId", async (req, res) => {
   let { userId } = req.params;
   let { transactionDate } = req.query;
-
-  let result = await getNotPostedListByDay(userId, transactionDate);
-
-  res.send(result);
+  try {
+    let result = await getNotPostedListByDay(userId, transactionDate);
+    return res.send(result);
+  } catch (error) {
+    return res.status(500).send({ error: "Error occurred, try again later" });
+  }
 });
 
 router.get(
@@ -3027,19 +2950,22 @@ router.get(
 
     try {
       let monthlyRevenues = await workData.model.aggregate(pipeline);
-      res.send(monthlyRevenues);
+      return res.send(monthlyRevenues);
     } catch (err) {
-      res.send(err);
+      return res.status(500).send(err);
     }
   }
 );
 
 router.get("/monthlyNotPosted/:vendorId", async (req, res) => {
   let { vendorId } = req.params;
-  // let result = await getNotPostedRevenuedByProject(vendorId);
-  let result = await getNotPostedRevenuedByVendor(vendorId);
+  try {
+    let result = await getNotPostedRevenuedByVendor(vendorId);
 
-  res.send(result);
+    return res.send(result);
+  } catch (error) {
+    return res.status(500).send({ error: "Error occurred, try again later" });
+  }
 });
 
 router.get("/dailyNotPostedRevenues/:userId", async (req, res) => {
@@ -3048,8 +2974,10 @@ router.get("/dailyNotPostedRevenues/:userId", async (req, res) => {
 
   try {
     let result = await getDailyNotPostedRevenues(month, year, userId);
-    res.send(result);
-  } catch (error) {}
+    return res.send(result);
+  } catch (error) {
+    return res.status(500).send({ error: "Error occurred, try again later" });
+  }
 });
 
 router.post("/", async (req, res) => {
@@ -3075,7 +3003,6 @@ router.post("/", async (req, res) => {
     });
   }
   try {
-    console.log("init:2:try");
     // start creating a dispatch
     let workToCreate = new workData.model(req.body);
     // IF EQUIPMENT IS STANDBY OR DISPATCHED, PROCEED
@@ -3100,15 +3027,7 @@ router.post("/", async (req, res) => {
     );
     equipment.assignedShift = req.body?.dispatch?.shift;
     let driver = req.body?.driver === "NA" ? null : req.body?.driver;
-    console.log("init:2", driver);
     let driverData = await userData.model.findById(driver);
-    console.log("@@driverData", driverData);
-    // if (employee) {
-    //   employee.status = "dispatched";
-    //   employee.assignedToSiteWork = req.body?.siteWork;
-    //   employee.assignedDate = moment(req.body?.dispatch?.date);
-    //   employee.assignedShift = req.body?.dispatch?.shift;
-    // }
 
     let rate = parseInt(equipment.rate);
     let uom = equipment.uom;
@@ -3117,7 +3036,6 @@ router.post("/", async (req, res) => {
     let workDurationDays = req.body?.workDurationDays;
 
     await equipment.save();
-    // if (employee) await employee.save();
 
     workToCreate.equipment = equipment;
     if (uom === "hour") revenue = rate * 5;
@@ -3187,13 +3105,12 @@ router.post("/", async (req, res) => {
 
     return res.status(201).send(workCreated);
   } catch (err) {
-    console.log("err", err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    return res.send({
+    return res.status(500).send({
       error,
       key,
     });
@@ -3265,9 +3182,9 @@ router.post("/mobileData", async (req, res) => {
       let logTobeSaved = new logData.model(log);
       await logTobeSaved.save();
 
-      res.status(201).send(workCreated);
+      return res.status(201).send(workCreated);
     } else {
-      res.status(201).send(bodyData);
+      return res.status(201).send(bodyData);
     }
   } catch (err) {
     let error = findError(err.code);
@@ -3275,7 +3192,7 @@ router.post("/mobileData", async (req, res) => {
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.send({
+    return res.status(500).send({
       error,
       key,
     });
@@ -4859,13 +4776,13 @@ router.put("/stop/:id", async (req, res) => {
           await dateDataToSave.save();
         }
 
-        res.status(201).send(savedRecord);
+        return res.status(201).send(savedRecord);
       }
     } else {
-      res.status(200).send(work);
+      return res.status(200).send(work);
     }
   } catch (err) {
-    console.log(err);
+    return res.status(500).send(err)
   }
 });
 

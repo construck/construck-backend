@@ -34,11 +34,17 @@ router.put("/:id", async (req, res) => {
 
 router.put("/project/:id", async (req, res) => {
   let { id } = req.params;
-  let { customerId, prjDescription,projectAdmin } = req.body;
+  let { customerId, prjDescription, projectAdmin } = req.body;
 
   let updatedProject = false;
 
-  await updateCustomerProject(customerId, id, prjDescription,projectAdmin, res);
+  await updateCustomerProject(
+    customerId,
+    id,
+    prjDescription,
+    projectAdmin,
+    res
+  );
 });
 
 module.exports = router;
@@ -46,18 +52,18 @@ module.exports = router;
 async function getAllCustomers(res) {
   try {
     const customers = await custData.model.find();
-    res.status(200).send(customers);
+    return res.status(200).send(customers);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 }
 
 async function getCustomerById(id, res) {
   try {
     const customer = await custData.model.findById(id);
-    res.status(200).send(customer);
+    return res.status(200).send(customer);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 }
 
@@ -71,14 +77,14 @@ async function createCustomer(name, phone, email, tinNumber, res) {
     });
     let customerCreated = await customerToCreate.save();
 
-    res.status(201).send(customerCreated);
+    return res.status(201).send(customerCreated);
   } catch (err) {
     let error = findError(err.code) ? findError(err.code) : err?.message;
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.send({
+    return res.send({
       error,
       key,
     });
@@ -92,7 +98,7 @@ async function createProject(id, project, res) {
       { $push: { projects: project } },
       function (error, success) {
         if (error) {
-          res.status(201).send(id);
+          return res.status(201).send(id);
         } else {
         }
       }
@@ -103,18 +109,29 @@ async function createProject(id, project, res) {
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.send({
+    return res.send({
       error,
       key,
     });
   }
 }
 
-async function updateCustomerProject(customerId, id, prjDescription,projectAdmin, res) {
+async function updateCustomerProject(
+  customerId,
+  id,
+  prjDescription,
+  projectAdmin,
+  res
+) {
   try {
     let customer = await custData.model.findOneAndUpdate(
       { _id: customerId, "projects._id": id },
-      { $set: { "projects.$.prjDescription": prjDescription, "projects.$.projectAdmin": new mongoose.Types.ObjectId(projectAdmin)} },
+      {
+        $set: {
+          "projects.$.prjDescription": prjDescription,
+          "projects.$.projectAdmin": new mongoose.Types.ObjectId(projectAdmin),
+        },
+      },
       {
         new: true,
       }
@@ -124,18 +141,23 @@ async function updateCustomerProject(customerId, id, prjDescription,projectAdmin
       {
         "project._id": id,
       },
-      { $set: { "project.prjDescription": prjDescription, "project.projectAdmin": new mongoose.Types.ObjectId(projectAdmin) } }
+      {
+        $set: {
+          "project.prjDescription": prjDescription,
+          "project.projectAdmin": new mongoose.Types.ObjectId(projectAdmin),
+        },
+      }
     );
 
-    res.status(201).send({ customer });
+    return res.status(201).send({ customer });
   } catch (err) {
-    console.log(err)
+    console.log(err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.send({
+    return res.send({
       error,
       key,
     });
@@ -151,11 +173,10 @@ async function updateCustomer(id, name, phone, email, tinNumber, res) {
       tinNumber,
     });
 
-    await updateCustomerRecord(customer.name,name)
+    await updateCustomerRecord(customer.name, name);
 
-    res.status(200).send(customer);
+    return res.status(200).send(customer);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 }
-

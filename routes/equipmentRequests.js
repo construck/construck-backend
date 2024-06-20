@@ -353,8 +353,10 @@ router.get("/aggregated/:status", async (req, res) => {
   try {
     let aggregatedRequests = await requestData.model.aggregate(pipeline);
 
-    res.send(aggregatedRequests);
-  } catch (err) {}
+    return res.send(aggregatedRequests);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 module.exports = router;

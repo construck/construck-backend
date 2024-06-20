@@ -11,20 +11,29 @@ const { default: mongoose } = require("mongoose");
 
 router.get("/", async (req, res) => {
   try {
-    let employees = await employeeData.model.find();
-    res.status(200).send(employees);
+    let employees = await userData.model.find(
+      {
+        userType: "driver",
+        status: "active",
+      },
+      {
+        password: 0,
+        setpassword: 0,
+      }
+    );
+    return res.status(200).send(employees);
   } catch (err) {
-    res.send(err);
+    return res.status(500).send(err);
   }
 });
 
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
   try {
-    let employee = await employeeData.model.findById(id);
-    res.status(200).send(employee);
+    let employee = await userData.model.findById(id);
+    return res.status(200).send(employee);
   } catch (err) {
-    res.send(err);
+    return res.status(500).send(err);
   }
 });
 
@@ -32,8 +41,9 @@ router.get("/token/:id", async (req, res) => {
   let { id } = req.params;
   let result = await getDeviceToken(id);
   if (result.error) {
+    return res.status(500).send();
   } else {
-    res.send(result);
+    return res.send(result);
   }
 });
 
@@ -94,24 +104,20 @@ router.post("/", async (req, res) => {
     employeeToCreate.password = hashedPassword;
     let employeeCreated = await employeeToCreate.save();
 
-    res.status(201).send(employeeCreated);
+    return res.status(201).send(employeeCreated);
   } catch (err) {
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.status(503).send({
+    return res.status(503).send({
       error,
       key,
     });
   }
 });
 router.post("/vendors", async (req, res) => {
-  // COMMENT THIS CODES IF APP IS APPROVED
-  // return res.status(500).send({
-  //   message: "Try again later",
-  // });
   try {
     let hashedPassword = await bcrypt.hash(req.body.password, 10);
     let userToCreate = new userData.model(req.body);
@@ -119,15 +125,14 @@ router.post("/vendors", async (req, res) => {
     userToCreate.status = "active";
     let employeeCreated = await userToCreate.save();
 
-    res.status(201).send(employeeCreated);
+    return res.status(201).send(employeeCreated);
   } catch (err) {
-    console.log("error", err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.status(503).send({
+    return res.status(503).send({
       error,
       key,
     });
@@ -285,15 +290,14 @@ router.post("/login", async (req, res) => {
           userType: user.userType,
         });
       } else {
-        res.status(401).send({
+        return res.status(401).send({
           message: "Not activated!",
           error: true,
         });
       }
     }
   } catch (err) {
-    console.log("@@err", err);
-    res.status(500).send({
+    return res.status(500).send({
       message: `${err}`,
       error: true,
     });
@@ -370,9 +374,9 @@ router.put("/token/:id", async (req, res) => {
     let employeeD = await employeeData.model.findById(id);
     employeeD.deviceToken = token;
     await employeeD.save();
-    res.status(201).send({ tokenUpdated: true });
+    return res.status(201).send({ tokenUpdated: true });
   } catch (err) {
-    res.status(500).send({
+    return res.status(500).send({
       message: `${err}`,
       error: true,
       tokenUpdated: false,
@@ -396,7 +400,7 @@ router.put("/resetPassword/:id", async (req, res) => {
       employee.password = hashedPassword;
       await employee.save();
 
-      res.send({
+      return res.send({
         message: "Allowed",
         error: false,
         newPassword,
@@ -404,7 +408,7 @@ router.put("/resetPassword/:id", async (req, res) => {
       });
     }
   } catch (err) {
-    res.status(500).send({
+    return res.status(500).send({
       message: `${err}`,
       error: true,
     });
@@ -415,9 +419,9 @@ router.put("/:id", async (req, res) => {
   let { id } = req.params;
   try {
     let employee = await employeeData.model.findByIdAndUpdate(id, req.body);
-    res.status(200).send(employee);
+    return res.status(200).send(employee);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
