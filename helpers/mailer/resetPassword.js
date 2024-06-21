@@ -5,20 +5,28 @@ const template = require("./template");
 
 const { FRONTEND_URL } = process.env;
 
-async function resetPassword(email, token) {
+async function resetPassword(email, name, token) {
   let htmlTable = `
   <table width="600" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="border-collapse: collapse">
     <tr style="padding: 20px 20px 0 0px">
-      <div style="text-align:left">
-      Greetings,<br />
-        <p>
-          Please see below the equipment availability report </u></b>
-        <br />
-        </p>
+      <div style="text-align:left;padding:32px">
+      <div>
+        Hello ${name},
       </div>
-      <div style="margin-bottom: 32px">
-        <a href="${FRONTEND_URL}/auth/reset-password/${token}">Link</a>
-            hello: reset password
+      <div style="margin: 12px 0">
+        Follow this link to reset your Shabika password for your ${email} account.
+      </div >
+      <div style="margin: 12px 0">
+        ${FRONTEND_URL}/auth/reset-password/${token}
+      </div>
+      <div style="margin: 12px 0">
+        This link will expire in 2 hours. If you didn't request this, please ignore this email.
+      </div>
+      <div style="margin: 12px 0">
+        Thanks,
+      </div>
+      <div style="margin: 12px 0">
+        ConsTruck Team
       </div>
     </tr>
   </table>

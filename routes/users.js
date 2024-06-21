@@ -271,7 +271,7 @@ router.put("/:id", async (req, res) => {
 router.post("/password/request-change", async (req, res) => {
   UserController.requestChangePassword(req, res);
 })
-router.put("/password/change/:token", async (req, res) => {
+router.post("/password/change/:token", async (req, res) => {
   UserController.changePassword(req, res);
 })
 
