@@ -268,6 +268,13 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+router.post("/password/request-change", async (req, res) => {
+  UserController.requestChangePassword(req, res);
+})
+router.post("/password/change/:token", async (req, res) => {
+  UserController.changePassword(req, res);
+})
+
 router.put("/resetPassword/:id", async (req, res) => {
   // let newPassword = "12345";
   let { id } = req.params;
