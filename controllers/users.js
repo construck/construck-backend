@@ -1,11 +1,47 @@
 const bcrypt = require("bcryptjs");
 const _ = require("lodash");
 const User = require("../models/users");
+const PasswordRequest = require("../models/passwordReset");
 const Driver = require("../models/drivers");
 const token = require("../tokens/tokenGenerator");
 const findError = require("../utils/errorCodes");
+const mailer = require("./../helpers/mailer/resetPassword");
 const ObjectId = require("mongoose").Types.ObjectId;
+const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require("uuid");
 
+async function requestChangePassword(req, res) {
+  let { email } = req.body;
+  try {
+    // 1. check if user exists,
+    const user = await User.model.findOne({ email });
+    if (!user) {
+      return res.status(404).send({
+        error: "User not found",
+      });
+    }
+    console.log("user", user);
+    // 2. create password reset requests
+    const token = uuidv4();
+    const response = await PasswordRequest.model.create({ email, token });
+    console.log("response", response);
+    // 3. send email
+    await mailer.resetPassword(email, token);
+    return res.status(200).send({
+      message: "Go to email",
+    });
+  } catch (error) {
+    console.log("error", error);
+    return res.status(500).send(error);
+  }
+}
+async function changePassword(req, res) {
+  let { token } = req.params;
+  let { password } = req.body;
+  console.log("token", token);
+  console.log("password", password);
+  return res.status(200).send({});
+}
 async function createUser(req, res) {
   let {
     firstName,
@@ -59,7 +95,7 @@ async function createUser(req, res) {
       );
       console.log("driverResponse", driverResponse);
     }
-    
+
     return res.status(201).send(response);
   } catch (err) {
     console.log("err", err);
@@ -83,4 +119,6 @@ async function createUser(req, res) {
 
 module.exports = {
   createUser,
+  requestChangePassword,
+  changePassword,
 };
