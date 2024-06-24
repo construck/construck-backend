@@ -9,16 +9,11 @@ async function createEquipmentRequest(requestBody) {
   let {
     project,
     referenceNumber,
-    equipmentType,
-    quantity,
     startDate,
     endDate,
     shift,
     owner,
-    workToBeDone,
-    tripsToBeMade,
-    tripFrom,
-    tripTo,
+  
   } = requestBody;
 
   let requestToCreate = new requestData.model({

@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { Types } = require("mongoose");
+const { Types, default: mongoose } = require("mongoose");
 const {
   createEquipmentRequest,
   createEquipmentRequestDetails,
@@ -10,6 +10,7 @@ const _ = require("lodash");
 const equipmentRequestDetails = require("../models/equipmentRequestDetails");
 
 router.get("/", async (req, res) => {
+  let { pageNumber, pageSize, owner } = req.query;
   try {
     let pipeline = [
       {
@@ -28,63 +29,6 @@ router.get("/", async (req, res) => {
       },
       {
         $lookup: {
-          from: "equipmenttypes",
-          localField: "details.equipmentType",
-          foreignField: "_id",
-          as: "details.equipmentType",
-        },
-      },
-      {
-        $lookup: {
-          from: "jobtypes",
-          localField: "details.workToBeDone",
-          foreignField: "_id",
-          as: "details.workToBeDone",
-        },
-      },
-      {
-        $unwind: {
-          path: "$details.equipmentType",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $unwind: {
-          path: "$details.workToBeDone",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $group: {
-          _id: "$_id",
-          referenceNumber: {
-            $first: "$referenceNumber",
-          },
-          project: {
-            $first: "$project",
-          },
-          startDate: {
-            $first: "$startDate",
-          },
-          endDate: {
-            $first: "$endDate",
-          },
-          shift: {
-            $first: "$shift",
-          },
-          status: {
-            $first: "$status",
-          },
-          owner: {
-            $first: "$owner",
-          },
-          details: {
-            $push: "$details",
-          },
-        },
-      },
-      {
-        $lookup: {
           from: "projects",
           localField: "project",
           foreignField: "_id",
@@ -98,9 +42,31 @@ router.get("/", async (req, res) => {
         },
       },
       {
-        $addFields: {
-          project: "$project.description",
-          projectId: "$project._id",
+        $lookup: {
+          from: "equipmenttypes",
+          localField: "details.equipmentType",
+          foreignField: "_id",
+          as: "equipmentType",
+        },
+      },
+      {
+        $unwind: {
+          path: "$equipmentType",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "jobtypes",
+          localField: "details.workToBeDone",
+          foreignField: "_id",
+          as: "workToBeDone",
+        },
+      },
+      {
+        $unwind: {
+          path: "$workToBeDone",
+          preserveNullAndEmptyArrays: true,
         },
       },
     ];
@@ -110,12 +76,32 @@ router.get("/", async (req, res) => {
     //   .populate("equipmentType")
     //   .populate("workToBeDone");
 
-    const requests = await requestData.model
-      .aggregate(pipeline)
-      .sort({ startDate: 1 });
+    let totalCount = await requestData.model.aggregate(pipeline);
+    totalCount = totalCount.length;
 
-    return res.status(200).send(requests);
+    if (owner !== "false")
+      pipeline.push({
+        $match: {
+          owner: new mongoose.Types.ObjectId(owner),
+        },
+      });
+    pipeline.push({
+      $skip: parseInt(pageNumber - 1) * parseInt(pageSize),
+    });
+    pipeline.push({
+      $limit: parseInt(pageSize),
+    });
+
+    console.log(parseInt(pageNumber - 1) * parseInt(pageSize));
+
+    const requests = await requestData.model.aggregate(pipeline);
+
+    return res.status(200).send({
+      data: requests,
+      totalCount,
+    });
   } catch (err) {
+    console.log(err);
     return res.send(err);
   }
 });
@@ -301,7 +287,7 @@ router.put("/assignQuantity/:id", async (req, res) => {
 
     res.status(201).send(updatedRequest);
   } catch (err) {
-    console.log(err)
+    console.log(err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
