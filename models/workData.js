@@ -103,6 +103,10 @@ const WorkSchema = new mongoose.Schema(
         pending: Boolean,
         rejectedReason: String,
         status: String,
+        fuel: {
+          type: Number,
+          default: null,
+        },
       },
     ],
     appovedBy: {

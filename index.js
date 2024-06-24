@@ -108,7 +108,7 @@ app.use("/reasons", reasons);
 app.use("/logs", auth, logs);
 app.use("/dispatches", auth, dispatches);
 app.use("/jobtypes", auth, jobTypes);
-app.use("/requests", auth, equipmentRequests);
+app.use("/requests", equipmentRequests);
 app.use("/api", maintenanceLogs);
 app.use("/api", maintenance);
 app.use("/api", auth, item);

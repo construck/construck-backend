@@ -2249,6 +2249,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               expenditure: d.totalExpenditure,
               status: d.status,
               rate: d.rate,
+              fuel: d.fuel,
               comment: d.comment,
             };
           });
@@ -2332,9 +2333,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Trips done": w?.tripsDone ? w?.tripsDone : 0,
               Customer: w.project?.customer,
               Status: dP.status || "stopped",
+              Fuel: dP?.fuel || "",
+              "Start index": w?.startIndex || 0,
+              "End index": w?.endIndex || 0,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
-                "Start index": w?.startIndex || 0,
-                "End index": w?.endIndex || 0,
                 "Project Admin":
                   (w.projectAdmin?.firstName || "") +
                   " " +
@@ -2388,10 +2390,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Trips done": 0,
               Customer: w.project?.customer,
               Status: "created",
-
+              Fuel: dNP?.fuel || "",
+              "Start index": w?.startIndex || 0,
+              "End index": w?.endIndex || 0,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
-                "Start index": w?.startIndex || 0,
-                "End index": w?.endIndex || 0,
                 "Project Admin":
                   (w.projectAdmin?.firstName || "") +
                   " " +
@@ -2444,10 +2446,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 : " ",
               Customer: w.project?.customer,
               Status: "in progress",
-
+              Fuel: dPP?.fuel || "",
+              "Start index": w?.startIndex || 0,
+              "End index": w?.endIndex || 0,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
-                "Start index": w?.startIndex || 0,
-                "End index": w?.endIndex || 0,
                 "Project Admin":
                   (w.projectAdmin?.firstName || "") +
                   " " +
@@ -2468,6 +2470,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               actualRevenue: d.totalRevenue,
               expenditure: d.totalExpenditure,
               rate: d.rate,
+              fuel: d.fuel,
               comment: d.comment,
             };
           });
@@ -2554,10 +2557,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 : " ",
               Customer: w.project?.customer,
               Status: "stopped",
-
+              Fuel: dP?.fuel || "",
+              "Start index": w?.startIndex || 0,
+              "End index": w?.endIndex || 0,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
-                "Start index": w?.startIndex || 0,
-                "End index": w?.endIndex || 0,
                 "Project Admin":
                   (w.projectAdmin?.firstName || "") +
                   " " +
@@ -2611,14 +2614,15 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             "Driver contacts": w.driver ? w.driver?.phone : "",
             "Target trips": w.dispatch?.targetTrips,
             "Trips done": w?.tripsDone,
+            Fuel: w?.fuel || "",
             Comment: w.comment
               ? w.comment
               : "" + " - " + (w.moreComment ? w.moreComment : ""),
             Customer: w.project?.customer,
             Status: w.status,
+            "Start index": w?.startIndex || 0,
+            "End index": w?.endIndex || 0,
             ...((canViewRevenues === "true" || canViewRevenues === true) && {
-              "Start index": w?.startIndex || 0,
-              "End index": w?.endIndex || 0,
               "Project Admin":
                 (w.projectAdmin?.firstName || "") +
                 " " +
@@ -3204,7 +3208,7 @@ router.post("/getAnalytics", async (req, res) => {
   ignoreCache = parseInt(ignoreCache) || 0;
   const cacheKey = "dispatches-analytics-dashboard-cache-key";
   const cachedData = cache.get(cacheKey);
-  console.log('ignoreCache', ignoreCache)
+  console.log("ignoreCache", ignoreCache);
   if (ignoreCache !== 1 && !_.isEmpty(cachedData)) {
     return res.status(200).send(cachedData);
   }
@@ -4566,7 +4570,7 @@ router.put("/stop/:id", async (req, res) => {
         dailyWork.comment = comment;
         dailyWork.moreComment = moreComment;
         dailyWork.pending = false;
-
+        dailyWork.fuel = parseFloat(fuel);
         let dailyWorks = [...work.dailyWork];
         let indexToUpdate = -1;
         let workToUpdate = dailyWorks.find((d, index) => {
@@ -4588,7 +4592,6 @@ router.put("/stop/:id", async (req, res) => {
         work.equipment = equipment;
         work.moreComment = moreComment;
         work.status = workEnded ? "stopped" : "on going";
-        work.fuel = parseFloat(fuel);
         work.startIndex = parseInt(startIndex);
         await equipment.save();
         if (employee) await employee.save();
