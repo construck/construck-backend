@@ -6186,9 +6186,17 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
             },
             siteWork: true,
           },
-          { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
+          { "dailyWork.status": { $exists: true, $nin: ["created", "recalled"] }, siteWork: true },
           {
             status: "stopped",
+            siteWork: false,
+          },
+          {
+            status: "approved",
+            siteWork: false,
+          },
+          {
+            status: "validated",
             siteWork: false,
           },
         ],
@@ -6255,6 +6263,7 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
 
   try {
     let jobs = await workData.model.aggregate(pipeline);
+    console.log('@@jobs', jobs.length)
     let _jobs = [...jobs];
 
     return _jobs;
