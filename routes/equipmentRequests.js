@@ -3,6 +3,7 @@ const { Types, default: mongoose } = require("mongoose");
 const {
   createEquipmentRequest,
   createEquipmentRequestDetails,
+  updateRequestDetails,
 } = require("../controllers/equipmentRequests");
 const requestData = require("../models/equipmentRequest");
 const findError = require("../utils/errorCodes");
@@ -15,7 +16,7 @@ router.get("/", async (req, res) => {
     let pipeline = [
       {
         $lookup: {
-          from: "requestsdetails",
+          from: "equip-requests-details",
           localField: "_id",
           foreignField: "request",
           as: "details",
@@ -67,6 +68,11 @@ router.get("/", async (req, res) => {
         $unwind: {
           path: "$workToBeDone",
           preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          status: "$details.status",
         },
       },
     ];
@@ -267,6 +273,19 @@ router.post("/details", async (req, res) => {
       error,
       key,
     });
+  }
+});
+
+router.put("/details/:id", async (req, res) => {
+  let { id } = req.params;
+  let updates = req.body;
+  try {
+    let result = await updateRequestDetails(id, updates);
+    console.log(result)
+    res.send(result);
+  } catch (err) {
+    console.log(err);
+    res.send(500);
   }
 });
 

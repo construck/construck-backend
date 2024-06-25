@@ -17,10 +17,6 @@ const EquipmentRequestSchema = new mongoose.Schema({
   shift: {
     type: String,
   },
-  status: {
-    type: String,
-    default: "pending",
-  },
   owner: {
     type: mongoose.Types.ObjectId,
     ref: "users",
@@ -29,6 +25,6 @@ const EquipmentRequestSchema = new mongoose.Schema({
 });
 
 module.exports = {
-  model: mongoose.model("requests", EquipmentRequestSchema),
+  model: mongoose.model("equipment-requests", EquipmentRequestSchema),
   schema: EquipmentRequestSchema,
 };
