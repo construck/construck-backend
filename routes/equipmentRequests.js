@@ -29,6 +29,9 @@ router.get("/", async (req, res) => {
         },
       },
       {
+        $sort: { createdAt: -1 },
+      },
+      {
         $lookup: {
           from: "projects",
           localField: "project",
@@ -76,11 +79,6 @@ router.get("/", async (req, res) => {
         },
       },
     ];
-
-    // const requests = await requestData.model
-    //   .find()
-    //   .populate("equipmentType")
-    //   .populate("workToBeDone");
 
     let totalCount = await requestData.model.aggregate(pipeline);
     totalCount = totalCount.length;
@@ -239,19 +237,15 @@ router.get("/byOwner/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    // let requestToCreate = new requestData.model(req.body);
-    // let requestCreated = await requestToCreate.save();
-
     let created = await createEquipmentRequest(req.body);
-
-    res.status(201).send({ _id: created?._id });
+    return res.status(201).send({ _id: created?._id });
   } catch (err) {
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.send({
+    return res.send({
       error,
       key,
     });
@@ -262,14 +256,14 @@ router.post("/details", async (req, res) => {
   try {
     let created = await createEquipmentRequestDetails(req.body);
 
-    res.status(201).send({ created });
+    return res.status(201).send({ created });
   } catch (err) {
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.send({
+    return res.send({
       error,
       key,
     });
@@ -281,11 +275,10 @@ router.put("/details/:id", async (req, res) => {
   let updates = req.body;
   try {
     let result = await updateRequestDetails(id, updates);
-    console.log(result)
-    res.send(result);
+    return res.send(result);
   } catch (err) {
     console.log(err);
-    res.send(500);
+    return res.send(500);
   }
 });
 
@@ -299,12 +292,11 @@ router.put("/assignQuantity/:id", async (req, res) => {
       id,
       {
         approvedQuantity: quantity,
-        // status: "approved",
       },
       { new: true }
     );
 
-    res.status(201).send(updatedRequest);
+    return res.status(201).send(updatedRequest);
   } catch (err) {
     console.log(err);
     let error = findError(err.code);
@@ -312,7 +304,7 @@ router.put("/assignQuantity/:id", async (req, res) => {
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.send({
+    return res.send({
       error,
       key,
     });
