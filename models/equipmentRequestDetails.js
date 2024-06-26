@@ -30,9 +30,16 @@ const EquipmentRequestDetailsSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  status: {
+    type: String,
+    default: "pending",
+  },
 });
 
 module.exports = {
-  model: mongoose.model("requestsDetails", EquipmentRequestDetailsSchema),
+  model: mongoose.model(
+    "equip-requests-details",
+    EquipmentRequestDetailsSchema
+  ),
   schema: EquipmentRequestDetailsSchema,
 };

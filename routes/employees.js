@@ -11,16 +11,20 @@ const { default: mongoose } = require("mongoose");
 
 router.get("/", async (req, res) => {
   try {
-    let employees = await userData.model.find(
-      {
-        userType: "driver",
-        status: "active",
-      },
-      {
-        password: 0,
-        setpassword: 0,
-      }
-    );
+    let employees = await userData.model
+      .find(
+        {
+          userType: "driver",
+          status: "active",
+        },
+        {
+          password: 0,
+          setpassword: 0,
+        }
+      )
+      .populate("company")
+      .populate("driver")
+      .populate("vendor");
     return res.status(200).send(employees);
   } catch (err) {
     return res.status(500).send(err);

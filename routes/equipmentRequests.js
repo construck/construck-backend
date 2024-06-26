@@ -1,8 +1,9 @@
 const router = require("express").Router();
-const { Types } = require("mongoose");
+const { Types, default: mongoose } = require("mongoose");
 const {
   createEquipmentRequest,
   createEquipmentRequestDetails,
+  updateRequestDetails,
 } = require("../controllers/equipmentRequests");
 const requestData = require("../models/equipmentRequest");
 const findError = require("../utils/errorCodes");
@@ -10,11 +11,12 @@ const _ = require("lodash");
 const equipmentRequestDetails = require("../models/equipmentRequestDetails");
 
 router.get("/", async (req, res) => {
+  let { pageNumber, pageSize, owner } = req.query;
   try {
     let pipeline = [
       {
         $lookup: {
-          from: "requestsdetails",
+          from: "equip-requests-details",
           localField: "_id",
           foreignField: "request",
           as: "details",
@@ -27,61 +29,7 @@ router.get("/", async (req, res) => {
         },
       },
       {
-        $lookup: {
-          from: "equipmenttypes",
-          localField: "details.equipmentType",
-          foreignField: "_id",
-          as: "details.equipmentType",
-        },
-      },
-      {
-        $lookup: {
-          from: "jobtypes",
-          localField: "details.workToBeDone",
-          foreignField: "_id",
-          as: "details.workToBeDone",
-        },
-      },
-      {
-        $unwind: {
-          path: "$details.equipmentType",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $unwind: {
-          path: "$details.workToBeDone",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $group: {
-          _id: "$_id",
-          referenceNumber: {
-            $first: "$referenceNumber",
-          },
-          project: {
-            $first: "$project",
-          },
-          startDate: {
-            $first: "$startDate",
-          },
-          endDate: {
-            $first: "$endDate",
-          },
-          shift: {
-            $first: "$shift",
-          },
-          status: {
-            $first: "$status",
-          },
-          owner: {
-            $first: "$owner",
-          },
-          details: {
-            $push: "$details",
-          },
-        },
+        $sort: { createdAt: -1 },
       },
       {
         $lookup: {
@@ -98,24 +46,66 @@ router.get("/", async (req, res) => {
         },
       },
       {
+        $lookup: {
+          from: "equipmenttypes",
+          localField: "details.equipmentType",
+          foreignField: "_id",
+          as: "equipmentType",
+        },
+      },
+      {
+        $unwind: {
+          path: "$equipmentType",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "jobtypes",
+          localField: "details.workToBeDone",
+          foreignField: "_id",
+          as: "workToBeDone",
+        },
+      },
+      {
+        $unwind: {
+          path: "$workToBeDone",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
         $addFields: {
-          project: "$project.description",
-          projectId: "$project._id",
+          status: "$details.status",
         },
       },
     ];
 
-    // const requests = await requestData.model
-    //   .find()
-    //   .populate("equipmentType")
-    //   .populate("workToBeDone");
+    let totalCount = await requestData.model.aggregate(pipeline);
+    totalCount = totalCount.length;
 
-    const requests = await requestData.model
-      .aggregate(pipeline)
-      .sort({ startDate: 1 });
+    if (owner !== "false")
+      pipeline.push({
+        $match: {
+          owner: new mongoose.Types.ObjectId(owner),
+        },
+      });
+    pipeline.push({
+      $skip: parseInt(pageNumber - 1) * parseInt(pageSize),
+    });
+    pipeline.push({
+      $limit: parseInt(pageSize),
+    });
 
-    return res.status(200).send(requests);
+    console.log(parseInt(pageNumber - 1) * parseInt(pageSize));
+
+    const requests = await requestData.model.aggregate(pipeline);
+
+    return res.status(200).send({
+      data: requests,
+      totalCount,
+    });
   } catch (err) {
+    console.log(err);
     return res.send(err);
   }
 });
@@ -247,19 +237,15 @@ router.get("/byOwner/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    // let requestToCreate = new requestData.model(req.body);
-    // let requestCreated = await requestToCreate.save();
-
     let created = await createEquipmentRequest(req.body);
-
-    res.status(201).send({ _id: created?._id });
+    return res.status(201).send({ _id: created?._id });
   } catch (err) {
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.send({
+    return res.send({
       error,
       key,
     });
@@ -270,17 +256,29 @@ router.post("/details", async (req, res) => {
   try {
     let created = await createEquipmentRequestDetails(req.body);
 
-    res.status(201).send({ created });
+    return res.status(201).send({ created });
   } catch (err) {
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.send({
+    return res.send({
       error,
       key,
     });
+  }
+});
+
+router.put("/details/:id", async (req, res) => {
+  let { id } = req.params;
+  let updates = req.body;
+  try {
+    let result = await updateRequestDetails(id, updates);
+    return res.send(result);
+  } catch (err) {
+    console.log(err);
+    return res.send(500);
   }
 });
 
@@ -294,20 +292,19 @@ router.put("/assignQuantity/:id", async (req, res) => {
       id,
       {
         approvedQuantity: quantity,
-        // status: "approved",
       },
       { new: true }
     );
 
-    res.status(201).send(updatedRequest);
+    return res.status(201).send(updatedRequest);
   } catch (err) {
-    console.log(err)
+    console.log(err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.send({
+    return res.send({
       error,
       key,
     });
