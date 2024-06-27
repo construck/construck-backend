@@ -504,7 +504,7 @@ async function worksByEquipment(req, res) {
       .find(query)
       .sort({ workStartDate: 1 })
       .populate("driver");
-      
+
     // Fetch works by dates and projects
     if (response.length > 0) {
       return res.status(200).send({
@@ -518,7 +518,7 @@ async function worksByEquipment(req, res) {
       });
     }
   } catch (error) {
-    return
+    return;
     console.log("@@err", error);
   }
 }
@@ -551,6 +551,42 @@ async function bulkPostSingleDispatch(req, res) {
   return;
 }
 
+async function createDispatch(req, res) {
+  const data = req.body;
+  try {
+    // check if equipment is in not disposed
+    // check if equipment is in workshop
+    // check if exists: shift, driver, plate number, date
+    // const response = await Work.model.insertOne(data);
+    const Dispatch = new Work.model(data);
+
+    const response = await Dispatch.save();
+    return res.status(403).send({
+      // message: "Created successfully",
+      // plateNumber: data.equipment.plateNumber,
+      // status: "CREATED",
+      // date: data.dispatch.date,
+      // response,
+      message: "Something went wrong, refresh the page and try again",
+      plateNumber: data.equipment.plateNumber,
+      status: "ERROR",
+      date: data.dispatch.date,
+      response: null,
+    });
+  } catch (error) {
+    console.log("error", error);
+    return res.status(503).send({
+      message: "Something went wrong, refresh the page and try again",
+      plateNumber: data.equipment.plateNumber,
+      status: "ERROR",
+      date: data.dispatch.date,
+      response: null,
+      // error: "Something went wrong, refresh the page and try again",
+    });
+  }
+  return;
+}
+
 module.exports = {
   captureDispatchDailyReport,
   getDispatchDailyReport,
@@ -559,4 +595,5 @@ module.exports = {
   postWorkForSitework,
   worksByEquipment,
   bulkPostSingleDispatch,
+  createDispatch,
 };

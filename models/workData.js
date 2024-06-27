@@ -8,8 +8,18 @@ const WorkSchema = new mongoose.Schema(
     project: {
       type: Object,
     },
+    projectId: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "projects",
+    },
     equipment: {
       type: Object,
+    },
+    equipmentId: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "equipments",
     },
     dispatch: {
       type: Object,

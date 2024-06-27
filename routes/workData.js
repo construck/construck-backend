@@ -5330,6 +5330,9 @@ router.get("/sd/equipment/:id/:startdate/:enddate", (req, res) => {
 router.patch("/post/singledispatches", (req, res) => {
   works.bulkPostSingleDispatch(req, res);
 });
+router.post("/create", (req, res) => {
+  works.createDispatch(req, res);
+});
 
 async function getEmployees(listIds) {
   let list = [];
