@@ -2986,7 +2986,6 @@ router.get("/dailyNotPostedRevenues/:userId", async (req, res) => {
 
 router.post("/", async (req, res) => {
   const isExist = await helper.checkExistDispatch(req.body);
-  console.log("init:1", isExist);
   if (isExist.length > 0) {
     let message = [];
     isExist.map((e) => {

@@ -81,6 +81,7 @@ let auth = (req, res, next) => {
   if (login && password && login === auth.login && password === auth.password) {
     return next();
   } else {
+    console.log('@@@AUTHED')
     if (NODE_ENV === "development") {
       return next();
     }
