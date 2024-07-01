@@ -15,7 +15,9 @@ router.get("/", async (req, res) => {
     return res.json(cachedData);
   }
   try {
-    let projects = await prjData.model.find().populate("customer");
+    const projects = await prjData.model
+      .find()
+      .populate("client", { _id: 1, name: 1, tinNumber: 1 });
 
     cache.set(cacheKey, projects);
     return res.status(200).send(projects);
@@ -26,25 +28,28 @@ router.get("/", async (req, res) => {
 
 router.get("/v2", async (req, res) => {
   try {
-    let customers = await custData.model.find().populate({
-      path: "projects",
-      populate: {
-        path: "projectAdmin",
-        model: "users",
-      },
-    });
-    let projects = [];
-    customers.forEach((c) => {
-      let cProjects = c.projects;
-      if (cProjects && cProjects?.length > 0) {
-        cProjects.forEach((p) => {
-          let _p = { ...p._doc };
-          _p.customer = c?.name;
-          _p.customerId = c?._id;
-          projects.push(_p);
-        });
-      }
-    });
+    // let customers = await custData.model.find().populate({
+    //   path: "projects",
+    //   populate: {
+    //     path: "projectAdmin",
+    //     model: "users",
+    //   },
+    // });
+    // let projects = [];
+    // customers.forEach((c) => {
+    //   let cProjects = c.projects;
+    //   if (cProjects && cProjects?.length > 0) {
+    //     cProjects.forEach((p) => {
+    //       let _p = { ...p._doc };
+    //       _p.customer = c?.name;
+    //       _p.customerId = c?._id;
+    //       projects.push(_p);
+    //     });
+    //   }
+    // });
+    const projects = await prjData.model
+      .find()
+      .populate("client", { _id: 1, name: 1, tinNumber: 1 });
     return res.send(projects);
   } catch (err) {
     return res.send(err);
@@ -52,9 +57,16 @@ router.get("/v2", async (req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
-  let { id } = req.params;
+  const { id } = req.params;
+  console.log("####DATA", id);
   try {
-    let project = await prjData.model.find(id).populate("customer");
+    // await assetAvblty.model.findOne({ date: today });
+    const project = await prjData.model
+      .findOne({ _id: id })
+      .populate("client", { _id: 1, name: 1, tinNumber: 1 })
+      .populate("projectAdmin", {
+        password: 0,
+      });
     return res.status(200).send(project);
   } catch (err) {
     return res.status(500).send(err);
@@ -687,6 +699,75 @@ router.get("/releasedRevenue/:projectName", async (req, res) => {
     let result = await getReleasedPerMonth(projectName, month, year);
 
     return res.send(result);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+});
+router.get("/:id/invoice", async (req, res) => {
+  let { id } = req.params;
+  let { month, year } = req.query;
+  console.log("@@@#@@##", id, month, year);
+  try {
+    let pipeline = [
+      {
+        $match: {
+          "project._id": id,
+          status: "approved",
+        },
+      },
+      {
+        $unwind: {
+          path: "$dailyWork",
+          includeArrayIndex: "string",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          amount: {
+            $cond: {
+              if: {
+                $eq: ["$siteWork", false],
+              },
+              then: "$totalRevenue",
+              else: "$dailyWork.totalRevenue",
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          "equipment.eqDescription": 1,
+          "equipment.plateNumber": 1,
+          "equipment.uwo": 1,
+          "dispatch.date": 1,
+          "dispatch.shift": 1,
+          duration: 1,
+          totalRevenue: 1,
+          siteWork: 1,
+          workStartDate: 1,
+          amount: 1,
+          siteWork: 1,
+        },
+      },
+      {
+        $sort: {
+          totalRevenue: -1,
+        },
+      },
+    ];
+
+    const response = await workData.model.aggregate(pipeline);
+    const project = await prjData.model
+      .findOne({ _id: id })
+      .populate("client", { _id: 1, name: 1, tinNumber: 1 })
+      .populate("projectAdmin", {
+        password: 0,
+      });
+    return res.status(200).send({
+      meta: project,
+      invoice: response,
+    });
   } catch (err) {
     return res.status(500).send(err);
   }

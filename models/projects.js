@@ -6,10 +6,17 @@ const ProjectSchema = new mongoose.Schema({
     required: true,
   },
   projectAdmin: {
-    type: mongoose.SchemaTypes.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
+    transform: (v) => (v === "" ? null : v),
+    ref: "users",
   },
   customer: {
     type: String,
+  },
+  client: {
+    type: mongoose.Schema.Types.ObjectId,
+    transform: (v) => (v === "" ? null : v),
+    ref: "customers",
   },
   startDate: {
     type: Date, // can refer to vendors
