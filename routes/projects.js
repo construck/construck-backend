@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const moment = require("moment");
 const NodeCache = require("node-cache");
 const prjData = require("../models/projects");
 const custData = require("../models/customers");
@@ -704,9 +705,10 @@ router.get("/releasedRevenue/:projectName", async (req, res) => {
   }
 });
 router.get("/:id/invoice", async (req, res) => {
-  let { id } = req.params;
-  let { month, year } = req.query;
-  console.log("@@@#@@##", id, month, year);
+  const { id } = req.params;
+  const { month, year } = req.query;
+  const date = moment(`${year}-${month}`);
+  console.log("&&&&date", date);
   try {
     let pipeline = [
       {
@@ -724,6 +726,27 @@ router.get("/:id/invoice", async (req, res) => {
       },
       {
         $addFields: {
+          date: {
+            $cond: {
+              if: {
+                $eq: ["$siteWork", false],
+              },
+              then: "$workStartDate",
+              else: "$dailyWork.date",
+            },
+          },
+        },
+      },
+      {
+        $match: {
+          date: {
+            $gte: new Date(date),
+            $lt: new Date(moment(date).endOf("month")),
+          },
+        },
+      },
+      {
+        $addFields: {
           amount: {
             $cond: {
               if: {
@@ -736,13 +759,30 @@ router.get("/:id/invoice", async (req, res) => {
         },
       },
       {
+        $group: {
+          _id: "$equipment.plateNumber",
+          amount: {
+            $sum: "$amount",
+          },
+          duration: {
+            $sum: "$duration",
+          },
+          equipment: {
+            $first: "$equipment",
+          },
+        },
+      },
+      {
         $project: {
+          _id: 1,
           "equipment.eqDescription": 1,
           "equipment.plateNumber": 1,
-          "equipment.uwo": 1,
+          "equipment.uom": 1,
           "dispatch.date": 1,
           "dispatch.shift": 1,
           duration: 1,
+          status: 1,
+          date: 1,
           totalRevenue: 1,
           siteWork: 1,
           workStartDate: 1,
@@ -752,7 +792,7 @@ router.get("/:id/invoice", async (req, res) => {
       },
       {
         $sort: {
-          totalRevenue: -1,
+          date: -1,
         },
       },
     ];
@@ -764,11 +804,13 @@ router.get("/:id/invoice", async (req, res) => {
       .populate("projectAdmin", {
         password: 0,
       });
+    console.log("$$$$", response);
     return res.status(200).send({
       meta: project,
       invoice: response,
     });
   } catch (err) {
+    console.log("##3ERR", err);
     return res.status(500).send(err);
   }
 });
