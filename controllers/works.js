@@ -5,6 +5,7 @@ const Equipment = require("./../models/equipments");
 const Employee = require("./../models/employees");
 const { Project } = require("../models/projects");
 const Customer = require("./../models/customers");
+const Maintenance = require("../models/maintenance");
 const DispatchReport = require("./../models/dispatchReports");
 const mongoose = require("mongoose");
 const mailer = require("./../helpers/mailer/dispatchReport");
@@ -554,6 +555,24 @@ async function bulkPostSingleDispatch(req, res) {
 async function createDispatch(req, res) {
   const data = req.body;
   try {
+    // CHECK IF EQUIPMENT IS NOT DISPOSED
+    const equipment = await Equipment.model.findOne({
+      _id: data?.equipment?._id,
+      eqStatus: "disposed",
+    });
+    if (!_.isEmpty(equipment)) {
+      return res.status(404).send({
+        message:
+          "Equipment is not available to be dispatched, contact administrator",
+        plateNumber: "",
+        status: "ERROR",
+        date: data.dispatch.date,
+        response: {},
+      });
+    }
+
+    // TODO: CHECK IF EQUIPMENT IS IN WORKSHOP -> EQUIPMENTS IN WORKSHOP ARE FILTERED ON THE DISPATCH FORM, SKIP THIS
+
     // CHECK IF DISPATCH EXIST
     const isExist = await Work.model.findOne(
       {
@@ -571,39 +590,9 @@ async function createDispatch(req, res) {
     );
     if (!_.isEmpty(isExist)) {
       return res.status(409).send({
-        message: `"${
+        message: `Equipment(${
           data.equipment.plateNumber
-        }": Equipment is already dispatched on ${moment(
-          data.dispatch.date
-        ).format("MMM DD, YYYY")}/${
-          data.dispatch.shift === "dayShift" ? "Day shift" : "Night shift"
-        }`,
-        plateNumber: data.equipment.plateNumber,
-        status: "ERROR",
-        date: data.dispatch.date,
-        response: null,
-      });
-    }
-    // CHECK IF DRIVER IS DISPATCHED ON THE SAME DATE AND SHIFT
-    const driverDispatched = await Work.model.findOne(
-      {
-        driver: data?.driver,
-        "dispatch.shift": data?.dispatch?.shift,
-        "dispatch.date": {
-          $eq: moment(data.dispatch.date).format("YYYY-MM-DD"),
-        },
-      },
-      {
-        driver: 1,
-        "dispatch.date": 1,
-        "dispatch.shift": 1,
-      }
-    );
-    if (!_.isEmpty(driverDispatched)) {
-      return res.status(409).send({
-        message: `${
-          data.equipment.plateNumber
-        }: Driver is already dispatched on ${moment(data.dispatch.date).format(
+        }) is already dispatched on ${moment(data.dispatch.date).format(
           "MMM DD, YYYY"
         )}/${data.dispatch.shift === "dayShift" ? "Day shift" : "Night shift"}`,
         plateNumber: data.equipment.plateNumber,
@@ -612,30 +601,56 @@ async function createDispatch(req, res) {
         response: null,
       });
     }
-    // check if equipment is in not disposed
-    // check if equipment is in workshop
-    // check if exists: shift, driver, plate number, date
-    // const response = await Work.model.insertOne(data);
+    // CHECK IF DRIVER IS DISPATCHED ON THE SAME DATE AND SHIFT
+    const driverDispatched = await Work.model
+      .findOne(
+        {
+          driver: data?.driver,
+          "dispatch.shift": data?.dispatch?.shift,
+          "dispatch.date": {
+            $eq: moment(data.dispatch.date).format("YYYY-MM-DD"),
+          },
+        },
+        {
+          driver: 1,
+          "dispatch.date": 1,
+          "dispatch.shift": 1,
+        }
+      )
+      .populate("driver", {
+        firstName: 1,
+        lastName: 1,
+      });
+    if (!_.isEmpty(driverDispatched)) {
+      return res.status(409).send({
+        message: `${data.equipment.plateNumber}: ${
+          driverDispatched?.driver.firstName
+        } ${
+          driverDispatched?.driver.lastName
+        } is already dispatched on ${moment(data.dispatch.date).format(
+          "MMM DD, YYYY"
+        )}/${data.dispatch.shift === "dayShift" ? "Day shift" : "Night shift"}`,
+        plateNumber: data.equipment.plateNumber,
+        status: "ERROR",
+        date: data.dispatch.date,
+        response: null,
+      });
+    }
+    // CREATE NEW DISPATCH
     const Dispatch = new Work.model(data);
-
     const response = await Dispatch.save();
+
+    // TODO: NOTIFY THE OPERATOR/DRIVER
     return res.status(201).send({
-      message: `${
+      message: `Equipment(${
         data.equipment.plateNumber
-      }: Equipment is successfully dispatched on ${moment(
-        data.dispatch.date
-      ).format("MMM DD, YYYY")}/${
-        data.dispatch.shift === "dayShift" ? "Day shift" : "Night shift"
-      }`,
+      }) is successfully dispatched on ${moment(data.dispatch.date).format(
+        "MMM DD, YYYY"
+      )}/${data.dispatch.shift === "dayShift" ? "Day shift" : "Night shift"}`,
       plateNumber: data.equipment.plateNumber,
       status: "CREATED",
       date: data.dispatch.date,
       response,
-      // message: "Something went wrong, refresh the page and try again",
-      // plateNumber: data.equipment.plateNumber,
-      // status: "ERROR",
-      // date: data.dispatch.date,
-      // response: null,
     });
   } catch (error) {
     console.log("error", error);

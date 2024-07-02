@@ -107,7 +107,7 @@ async function createUser(req, res) {
     const userToCreate = new User.model({
       firstName,
       lastName,
-      username,
+      username: `${username}${phone}`,
       password: hashedPassword,
       email: email || null,
       phone,
