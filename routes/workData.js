@@ -5627,7 +5627,7 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
       .map(($) => {
         return {
           monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
-          totalRevenue: $?.totalRevenue.toLocaleString(),
+          totalRevenue: _.round($?.totalRevenue, 0).toLocaleString(),
           id: $?._id,
         };
       });
@@ -5837,7 +5837,7 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
     let validatedJobs = await workData.model.aggregate(pipeline);
     let list = validatedJobs.map(($) => {
       return {
-        totalRevenue: $?.totalRevenue.toLocaleString(),
+        totalRevenue: _.round($?.totalRevenue, 0).toLocaleString(),
         id: $?._id,
       };
     });
@@ -6186,7 +6186,13 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
             },
             siteWork: true,
           },
-          { "dailyWork.status": { $exists: true, $nin: ["created", "recalled"] }, siteWork: true },
+          {
+            "dailyWork.status": {
+              $exists: true,
+              $nin: ["created", "recalled"],
+            },
+            siteWork: true,
+          },
           {
             status: "stopped",
             siteWork: false,
@@ -6263,7 +6269,7 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
 
   try {
     let jobs = await workData.model.aggregate(pipeline);
-    console.log('@@jobs', jobs.length)
+    console.log("@@jobs", jobs.length);
     let _jobs = [...jobs];
 
     return _jobs;
