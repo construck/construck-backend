@@ -10,14 +10,15 @@ const _ = require("lodash");
 const token = require("../tokens/tokenGenerator");
 const UserController = require("./../controllers/users");
 const cache = new NodeCache({ stdTTL: 7200 });
+const moment = require("moment");
 
 router.get("/", async (req, res) => {
   let { ignoreCache } = req.query;
   ignoreCache = parseInt(ignoreCache) || 0;
   const cacheKey = "get-users-cache-key";
   const cachedData = cache.get(cacheKey);
-  console.log('ignoreCache !== 1', ignoreCache !== 1)
-  console.log('!_.isEmpty(cachedData)', !_.isEmpty(cachedData))
+  console.log("ignoreCache !== 1", ignoreCache !== 1);
+  console.log("!_.isEmpty(cachedData)", !_.isEmpty(cachedData));
   if (ignoreCache !== 1 && !_.isEmpty(cachedData)) {
     return res.status(200).send(cachedData);
   }
@@ -98,6 +99,19 @@ router.post("/login", async (req, res) => {
       // GENERATE
       const generatedToken = await token.tokenGenerator(payload);
       delete user.password;
+
+      // UPDATE LAST LOGIN
+      const lastLogin = moment();
+      await userData.model.updateOne(
+        {
+          _id: user._id,
+        },
+        {
+          $set: {
+            lastLogin,
+          },
+        }
+      );
 
       return res.status(200).send({
         user,
@@ -270,10 +284,10 @@ router.put("/:id", async (req, res) => {
 
 router.post("/password/request-change", async (req, res) => {
   UserController.requestChangePassword(req, res);
-})
+});
 router.post("/password/change/:token", async (req, res) => {
   UserController.changePassword(req, res);
-})
+});
 
 router.put("/resetPassword/:id", async (req, res) => {
   // let newPassword = "12345";

@@ -69,6 +69,9 @@ const UserSchema = mongoose.Schema(
     deviceToken: {
       type: String,
     },
+    lastLogin: {
+      type: mongoose.SchemaTypes.Date,
+    },
   },
 
   { timestamps: true }
