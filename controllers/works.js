@@ -608,7 +608,7 @@ async function createDispatch(req, res) {
     const driverDispatched = await Work.model
       .findOne(
         {
-          driver: data?.driver,
+          driver: new mongoose.Types.ObjectId(data?.driver),
           "dispatch.shift": data?.dispatch?.shift,
           "dispatch.date": {
             $eq: moment(data.workStartDate).format("YYYY-MM-DD"),
