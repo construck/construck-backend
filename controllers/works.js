@@ -581,7 +581,7 @@ async function createDispatch(req, res) {
         "equipment.plateNumber": data?.equipment?.plateNumber,
         "dispatch.shift": data?.dispatch?.shift,
         workStartDate: {
-          $eq: moment(data.dispatch.date).format("YYYY-MM-DD"),
+          $eq: moment(data.workStartDate).format("YYYY-MM-DD"),
         },
       },
       {
@@ -590,6 +590,7 @@ async function createDispatch(req, res) {
         "dispatch.shift": 1,
       }
     );
+    console.log("###isExist", isExist);
     if (!_.isEmpty(isExist)) {
       return res.status(409).send({
         message: `Equipment(${
@@ -652,7 +653,8 @@ async function createDispatch(req, res) {
       },
       dispatch: {
         ...data.dispatch,
-        date: moment(data.dispatch.date).format("YYYY-MM-DDTHH:mm:ss.SSS") + "Z",
+        date:
+          moment(data.dispatch.date).format("YYYY-MM-DDTHH:mm:ss.SSS") + "Z",
       },
       date: moment(data.dispatch.date),
     };
