@@ -611,7 +611,7 @@ async function createDispatch(req, res) {
           driver: data?.driver,
           "dispatch.shift": data?.dispatch?.shift,
           "dispatch.date": {
-            $eq: moment(data.dispatch.date).format("YYYY-MM-DD"),
+            $eq: moment(data.workStartDate).format("YYYY-MM-DD"),
           },
         },
         {
@@ -630,12 +630,12 @@ async function createDispatch(req, res) {
           driverDispatched?.driver.firstName
         } ${
           driverDispatched?.driver.lastName
-        } is already dispatched on ${moment(data.dispatch.date).format(
+        } is already dispatched on ${moment(data.workStartDate).format(
           "MMM DD, YYYY"
         )}/${data.dispatch.shift === "dayShift" ? "Day shift" : "Night shift"}`,
         plateNumber: data.equipment.plateNumber,
         status: "ERROR",
-        date: data.dispatch.date,
+        date: data.workStartDate,
         response: null,
       });
     }
@@ -654,9 +654,9 @@ async function createDispatch(req, res) {
       dispatch: {
         ...data.dispatch,
         date:
-          moment(data.dispatch.date).format("YYYY-MM-DDTHH:mm:ss.SSS") + "Z",
+          moment(data.workStartDate).format("YYYY-MM-DDTHH:mm:ss.SSS") + "Z",
       },
-      date: moment(data.dispatch.date),
+      date: moment(data.workStartDate),
     };
     // console.log("###data", data);
     // return;
@@ -667,7 +667,7 @@ async function createDispatch(req, res) {
     return res.status(201).send({
       message: `Equipment(${
         data.equipment.plateNumber
-      }) is successfully dispatched on ${moment(data.dispatch.date).format(
+      }) is successfully dispatched on ${moment(data.workStartDate).format(
         "MMM DD, YYYY"
       )}/${data.dispatch.shift === "dayShift" ? "Day shift" : "Night shift"}`,
       plateNumber: data.equipment.plateNumber,
@@ -681,7 +681,7 @@ async function createDispatch(req, res) {
       message: "Something went wrong, refresh the page and try again",
       plateNumber: data.equipment.plateNumber,
       status: "ERROR",
-      date: data.dispatch.date,
+      date: data.workStartDate,
       response: null,
       // error: "Something went wrong, refresh the page and try again",
     });
