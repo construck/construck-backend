@@ -481,8 +481,9 @@ async function worksByEquipment(req, res) {
   let { id, startdate, enddate } = req.params;
   let projects = req.query.projects;
   projects = projects.split(",").filter((r) => !_.isEmpty(r));
-  startdate = moment(startdate).startOf("day");
-  enddate = moment(enddate).endOf("day");
+  // startdate = moment(startdate).startOf("day");
+  // enddate = moment(enddate).endOf("day");
+  console.log("id", id);
   try {
     // Query
     let query;
@@ -503,7 +504,7 @@ async function worksByEquipment(req, res) {
 
     const response = await Work.model
       .find(query)
-      .sort({ workStartDate: 1 })
+      .sort({ workStartDate: -1 })
       .populate("driver");
 
     // Fetch works by dates and projects
@@ -519,8 +520,10 @@ async function worksByEquipment(req, res) {
       });
     }
   } catch (error) {
-    return;
     console.log("@@err", error);
+    return res.status(409).send({
+      error: "Something went wrong, try again later",
+    });
   }
 }
 
@@ -553,7 +556,7 @@ async function bulkPostSingleDispatch(req, res) {
 }
 
 async function createDispatch(req, res) {
-  const data = req.body;
+  let data = req.body;
   try {
     // CHECK IF EQUIPMENT IS NOT DISPOSED
     const equipment = await Equipment.model.findOne({
@@ -637,6 +640,21 @@ async function createDispatch(req, res) {
       });
     }
     // CREATE NEW DISPATCH
+    // TREAT IDS
+    console.log("###data", data);
+    data = {
+      ...data,
+      equipment: {
+        ...data.equipment,
+        _id: new mongoose.Types.ObjectId(data.equipment._id),
+      },
+      project: {
+        ...data.project,
+        _id: new mongoose.Types.ObjectId(data.project._id),
+      },
+    };
+    // console.log("###data", data);
+    // return;
     const Dispatch = new Work.model(data);
     const response = await Dispatch.save();
 
