@@ -652,7 +652,7 @@ async function createDispatch(req, res) {
       },
       dispatch: {
         ...data.dispatch,
-        date: moment(data.dispatch.date),
+        date: moment(data.dispatch.date).format("YYYY-MM-DDTHH:mm:ss.SSS") + "Z",
       },
       date: moment(data.dispatch.date),
     };

@@ -23,6 +23,9 @@ const WorkSchema = new mongoose.Schema(
     },
     dispatch: {
       type: Object,
+      date: {
+        type: Date,
+      },
     },
     driver: {
       type: mongoose.SchemaTypes.ObjectId,
