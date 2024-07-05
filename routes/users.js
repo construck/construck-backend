@@ -11,6 +11,7 @@ const token = require("../tokens/tokenGenerator");
 const UserController = require("./../controllers/users");
 const cache = new NodeCache({ stdTTL: 7200 });
 const moment = require("moment");
+const { DEFAULT_PASSWORD } = process.env;
 
 router.get("/", async (req, res) => {
   let { ignoreCache } = req.query;
@@ -81,6 +82,9 @@ router.post("/login", async (req, res) => {
     // IMPLEMENT NEW LOGIN: SERVING ALL USER TYPES
     // CHECK IF PASSWORD IF CORRECT
     let allowed = await bcrypt.compare(password, user?.password);
+    const isDefaultPassword = bcrypt.compareSync(password, "12345");
+    console.log("###:password", isDefaultPassword, password);
+
     if (!allowed) {
       return res.status(401).send({
         message: "Wrong email/phone or password",
@@ -128,6 +132,7 @@ router.post("/login", async (req, res) => {
     console.log("err", err);
     return res.status(500).send({
       error: true,
+      message: "Not allowed!",
     });
   }
 });

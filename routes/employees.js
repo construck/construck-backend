@@ -24,7 +24,8 @@ router.get("/", async (req, res) => {
       )
       .populate("company")
       .populate("driver")
-      .populate("vendor");
+      .populate("vendor")
+      .sort({ firstName: 1 });
     return res.status(200).send(employees);
   } catch (err) {
     return res.status(500).send(err);
@@ -64,37 +65,6 @@ router.get("/:date/:shift", async (req, res) => {
         setpassword: 0,
       }
     );
-    // let query = {
-    //   $or: [
-    //     { status: "active" },
-    //     {
-    //       status: "busy",
-    //       assignedShift: { $ne: shift },
-    //       assignedToSiteWork: { $ne: true },
-    //     },
-    //     {
-    //       status: "busy",
-    //       assignedDate: { $ne: date },
-    //       assignedToSiteWork: { $ne: true },
-    //     },
-    //     {
-    //       status: "dispatched",
-    //       assignedShift: { $ne: shift },
-    //       assignedToSiteWork: { $ne: true },
-    //     },
-    //     {
-    //       status: "dispatched",
-    //       assignedDate: { $ne: date },
-    //       assignedToSiteWork: { $ne: true },
-    //     },
-    //   ],
-    // };
-    // const employee = await employeeData.model.find(
-    //   {},
-    //   {
-    //     password: 0,
-    //   }
-    // );
     return res.status(200).send(response);
   } catch (err) {
     return res.send(err);

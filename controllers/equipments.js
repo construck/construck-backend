@@ -402,21 +402,20 @@ async function checkEquipmentAvailabilityForDispatch(req, res) {
       return e.plateNumber;
     });
     // 3. GET LIST OF EQUIPMENT ON DUTY
-    let equipmentOnDuty = await getListOfEquipmentOnDuty(
-      new Date(workStartDate),
-      new Date(workEndDate),
-      shift,
-      siteWork
-    );
-    let listEquipOnDuty = [];
-    listEquipOnDuty = equipmentOnDuty?.map((e) => {
-      return e.equipment.plateNumber;
-    });
+    // let equipmentOnDuty = await getListOfEquipmentOnDuty(
+    //   new Date(workStartDate),
+    //   new Date(workEndDate),
+    //   shift,
+    //   siteWork
+    // );
+    // let listEquipOnDuty = [];
+    // listEquipOnDuty = equipmentOnDuty?.map((e) => {
+    //   return e.equipment.plateNumber;
+    // });
 
     // 2. GET LIST OF EQUIPMENT IN WORKSHOP
     let equipmentInWorkshop = await getListOfEquipmentInWorkshop(workStartDate);
 
-    
     let listEquipInWorkshop = equipmentInWorkshop?.map((e) => {
       return e.plate.text;
     });
@@ -424,7 +423,7 @@ async function checkEquipmentAvailabilityForDispatch(req, res) {
     // 4. COMBINED ALL LISTS
     let combined = _.uniq([
       ...listDisposedEquip,
-      ...listEquipOnDuty,
+      // ...listEquipOnDuty,
       ...listEquipInWorkshop,
     ]);
     let availableEquipment = await Equipment.model.find({

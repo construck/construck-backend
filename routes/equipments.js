@@ -24,7 +24,10 @@ router.get("/", async (req, res) => {
     const equipments = await eqData.model
       .find()
       .populate("vendor")
-      .populate("equipmentType");
+      .populate("equipmentType")
+      .sort({
+        plateNumber: 1,
+      });
 
     const data = {
       equipments,
@@ -152,7 +155,7 @@ router.get("/:id", async (req, res) => {
       });
     return res.status(200).send(equipments);
   } catch (err) {
-    return res.status(500).send(error);
+    return res.status(500).send(err);
   }
 });
 
@@ -226,6 +229,9 @@ router.get("/type/:type/:date/:shift", async (req, res) => {
 });
 
 router.get("/:date/:shift", async (req, res) => {
+  EquipmentController.checkEquipmentAvailabilityForDispatch(req, res);
+});
+router.get("/dispatchable", async (req, res) => {
   EquipmentController.checkEquipmentAvailabilityForDispatch(req, res);
 });
 

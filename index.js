@@ -81,6 +81,7 @@ let auth = (req, res, next) => {
   if (login && password && login === auth.login && password === auth.password) {
     return next();
   } else {
+    console.log('@@@AUTHED')
     if (NODE_ENV === "development") {
       return next();
     }
@@ -102,7 +103,7 @@ app.use("/users", users);
 app.use("/equipments", auth, equipments);
 app.use("/customers", auth, customers);
 app.use("/vendors", auth, vendors);
-app.use("/projects", auth, projects.router);
+app.use("/projects",  projects.router);
 app.use("/activities", auth, activities);
 app.use("/reasons", reasons);
 app.use("/logs", auth, logs);

@@ -8,8 +8,18 @@ const WorkSchema = new mongoose.Schema(
     project: {
       type: Object,
     },
+    projectId: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "projects",
+    },
     equipment: {
       type: Object,
+    },
+    equipmentId: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "equipments",
     },
     dispatch: {
       type: Object,
@@ -154,6 +164,26 @@ const WorkSchema = new mongoose.Schema(
     fuel: {
       type: Number,
       default: null,
+    },
+    releasedBy: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "users",
+    },
+    approvedBy: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "users",
+    },
+    validatedBy: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "users",
+    },
+    invoice: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "projectInvoices",
     },
   },
   {

@@ -10,6 +10,7 @@ const ObjectId = require("mongoose").Types.ObjectId;
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const moment = require("moment");
+const { DEFAULT_PASSWORD } = process.env;
 
 async function requestChangePassword(req, res) {
   let { email } = req.body;
@@ -100,14 +101,14 @@ async function createUser(req, res) {
     driver,
   } = req.body;
 
-  const password = "12345"; // Default password
+  const password = DEFAULT_PASSWORD;
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const userToCreate = new User.model({
       firstName,
       lastName,
-      username,
+      username: `${username}${phone}`,
       password: hashedPassword,
       email: email || null,
       phone,
