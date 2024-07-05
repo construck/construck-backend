@@ -575,13 +575,12 @@ async function createDispatch(req, res) {
     }
 
     // TODO: CHECK IF EQUIPMENT IS IN WORKSHOP -> EQUIPMENTS IN WORKSHOP ARE FILTERED ON THE DISPATCH FORM, SKIP THIS
-
     // CHECK IF DISPATCH EXIST
     const isExist = await Work.model.findOne(
       {
         "equipment.plateNumber": data?.equipment?.plateNumber,
         "dispatch.shift": data?.dispatch?.shift,
-        "dispatch.date": {
+        workStartDate: {
           $eq: moment(data.dispatch.date).format("YYYY-MM-DD"),
         },
       },
@@ -640,8 +639,7 @@ async function createDispatch(req, res) {
       });
     }
     // CREATE NEW DISPATCH
-    // TREAT IDS
-    console.log("###data", data);
+    // TREAT IDS & DATES
     data = {
       ...data,
       equipment: {
@@ -652,6 +650,11 @@ async function createDispatch(req, res) {
         ...data.project,
         _id: new mongoose.Types.ObjectId(data.project._id),
       },
+      dispatch: {
+        ...data.dispatch,
+        date: moment(data.dispatch.date),
+      },
+      date: moment(data.dispatch.date),
     };
     // console.log("###data", data);
     // return;

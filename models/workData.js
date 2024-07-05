@@ -48,6 +48,9 @@ const WorkSchema = new mongoose.Schema(
       type: mongoose.SchemaTypes.Date,
       default: Date.now(),
     },
+    date: {
+      type: mongoose.SchemaTypes.Date,
+    },
     duration: {
       type: Number,
       default: 0,
