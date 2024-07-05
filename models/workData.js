@@ -165,6 +165,26 @@ const WorkSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
+    releasedBy: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "users",
+    },
+    approvedBy: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "users",
+    },
+    validatedBy: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "users",
+    },
+    invoice: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "projectInvoices",
+    },
   },
   {
     timestamps: true,

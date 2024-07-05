@@ -50,7 +50,10 @@ router.get("/v2", async (req, res) => {
     // });
     const projects = await prjData.model
       .find()
-      .populate("client", { _id: 1, name: 1, tinNumber: 1 });
+      .populate("client", { _id: 1, name: 1, tinNumber: 1 })
+      .sort({
+        prjDescription: 1,
+      });
     return res.send(projects);
   } catch (err) {
     return res.send(err);

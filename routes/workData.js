@@ -29,6 +29,7 @@ const {
 
 const MaintenanceController = require("./../controllers/maintenance");
 const { sendPushNotification } = require("../utils/sendNotification");
+const validateCreateDispatch = require("./../validation/dispatch/validateCreateDispatch");
 
 const DURATION_LIMIT = 16;
 const cache = new NodeCache({ stdTTL: 7200 });
@@ -862,7 +863,7 @@ router.get("/filtered/:page", async (req, res) => {
       .populate("workDone", "jobDescription _id")
       .limit(perPage)
       .skip(parseInt(page - 1) * perPage)
-      .sort([["_id", "descending"]]);
+      .sort({ "dispatch.date": -1 });
 
     res.status(200).send({ workList, dataCount });
   } catch (err) {
@@ -901,7 +902,7 @@ router.get("/v3/:vendorName", async (req, res) => {
       .populate("equipment")
       .populate("driver")
       .populate("dispatch")
-      .populate("appovedBy")
+      .populate("approvedBy")
       .populate("createdBy")
       .populate("workDone")
       .sort([["_id", "descending"]]);
@@ -953,10 +954,10 @@ router.get("/v3/driver/:driverId", async (req, res) => {
       .populate("equipment")
       .populate("driver")
       .populate("dispatch")
-      .populate("appovedBy")
+      .populate("approvedBy")
       .populate("createdBy")
       .populate("workDone")
-      .sort([["_id", "descending"]]);
+      .sort({ _id: -1 });
 
     let listToSend = workList.filter(
       (w) =>
@@ -968,6 +969,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             return dW.date === moment().format("DD-MMM-YYYY");
           }).length === 0)
     );
+    // .filter(
+    //   (w) =>
+    //     // !_.isNull(w.driver) &&
+    //     !_.isNull(w.workDone) && w.status !== "recalled"
+    // );
     let siteWorkList = [];
 
     let l = listToSend.map((w) => {
@@ -2981,7 +2987,6 @@ router.get("/dailyNotPostedRevenues/:userId", async (req, res) => {
 
 router.post("/", async (req, res) => {
   const isExist = await helper.checkExistDispatch(req.body);
-  console.log("init:1", isExist);
   if (isExist.length > 0) {
     let message = [];
     isExist.map((e) => {
@@ -5326,6 +5331,16 @@ router.patch("/post/singledispatches", (req, res) => {
   works.bulkPostSingleDispatch(req, res);
 });
 router.post("/create", (req, res) => {
+  const validationError = validateCreateDispatch(req.body);
+  if (validationError) {
+    return res.status(400).send({
+      message: `Dispatch of "${req.body.equipment.plateNumber}" on ${req.body.dispatch.date} failed: ${validationError}`,
+      plateNumber: "",
+      status: "ERROR",
+      date: req.body.dispatch.date,
+      response: {},
+    });
+  }
   works.createDispatch(req, res);
 });
 

@@ -24,7 +24,10 @@ router.get("/", async (req, res) => {
     const equipments = await eqData.model
       .find()
       .populate("vendor")
-      .populate("equipmentType");
+      .populate("equipmentType")
+      .sort({
+        plateNumber: 1,
+      });
 
     const data = {
       equipments,
