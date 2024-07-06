@@ -42,6 +42,7 @@ mongoDB = CONS_MONGO_DB;
 
 console.log("CONS_MONGO_DB", mongoDB);
 
+mongoose.set("strictQuery", false);
 mongoose.connect(mongoDB, { useNewUrlParser: true });
 //Get the default connection
 var db = mongoose.connection;

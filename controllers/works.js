@@ -569,7 +569,7 @@ async function createDispatch(req, res) {
           "Equipment is not available to be dispatched, contact administrator",
         plateNumber: "",
         status: "ERROR",
-        date: data.dispatch.date,
+        date: data.workStartDate,
         response: {},
       });
     }
@@ -595,22 +595,28 @@ async function createDispatch(req, res) {
       return res.status(409).send({
         message: `Equipment(${
           data.equipment.plateNumber
-        }) is already dispatched on ${moment(data.dispatch.date).format(
+        }) is already dispatched on ${moment(data.workStartDate).format(
           "MMM DD, YYYY"
         )}/${data.dispatch.shift === "dayShift" ? "Day shift" : "Night shift"}`,
         plateNumber: data.equipment.plateNumber,
         status: "ERROR",
-        date: data.dispatch.date,
+        date: data.workStartDate,
         response: null,
       });
     }
+    console.log(
+      "##driver:check:before",
+      data?.driver,
+      data?.dispatch?.shift,
+      data.workStartDate
+    );
     // CHECK IF DRIVER IS DISPATCHED ON THE SAME DATE AND SHIFT
     const driverDispatched = await Work.model
       .findOne(
         {
-          driver: new mongoose.Types.ObjectId(data?.driver),
+          driver: data?.driver,
           "dispatch.shift": data?.dispatch?.shift,
-          "dispatch.date": {
+          workStartDate: {
             $eq: moment(data.workStartDate).format("YYYY-MM-DD"),
           },
         },
@@ -624,6 +630,11 @@ async function createDispatch(req, res) {
         firstName: 1,
         lastName: 1,
       });
+    console.log(
+      "##driver:check:after",
+      !_.isEmpty(driverDispatched),
+      driverDispatched
+    );
     if (!_.isEmpty(driverDispatched)) {
       return res.status(409).send({
         message: `${data.equipment.plateNumber}: ${
@@ -672,7 +683,7 @@ async function createDispatch(req, res) {
       )}/${data.dispatch.shift === "dayShift" ? "Day shift" : "Night shift"}`,
       plateNumber: data.equipment.plateNumber,
       status: "CREATED",
-      date: data.dispatch.date,
+      date: data.workStartDate,
       response,
     });
   } catch (error) {
