@@ -30,6 +30,7 @@ const {
 const MaintenanceController = require("./../controllers/maintenance");
 const { sendPushNotification } = require("../utils/sendNotification");
 const validateCreateDispatch = require("./../validation/dispatch/validateCreateDispatch");
+const validateStopDispatch = require("../validation/dispatch/validateStopDispatch");
 
 const DURATION_LIMIT = 16;
 const cache = new NodeCache({ stdTTL: 7200 });
@@ -4425,8 +4426,14 @@ router.put("/start/:id", async (req, res) => {
 });
 
 router.put("/stop/:id", async (req, res) => {
+  const validationError = validateStopDispatch(req.body);
+  if (validationError) {
+    console.log("#validationError", validationError);
+    return res
+      .status(400)
+      .send({ error: "validation error occurred, contact administrator" });
+  }
   let { id } = req.params;
-
   let {
     endIndex,
     tripsDone,

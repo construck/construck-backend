@@ -63,9 +63,10 @@ app.use((req, res, next) => {
   // ONLY ALLOWING CLIENTS APPS WITH SUPPLIED PLATFORM TOKEN
   // NOTE: THIS SHOULD BE ENABLE WHEN MOBILE APP IS ROLLED OUT
   // if (!apiSecret || apiSecret !== PLATFORM_TOKEN) {
+  //   console.log("client not allowed");
   //   return res.status(401).json({ error: "Invalid API secret" });
   // }
-  next();
+  // next();
 });
 
 //Basic Authorization
@@ -82,7 +83,7 @@ let auth = (req, res, next) => {
   if (login && password && login === auth.login && password === auth.password) {
     return next();
   } else {
-    console.log('@@@AUTHED')
+    console.log("@@@AUTHED");
     if (NODE_ENV === "development") {
       return next();
     }
@@ -104,7 +105,7 @@ app.use("/users", users);
 app.use("/equipments", auth, equipments);
 app.use("/customers", auth, customers);
 app.use("/vendors", auth, vendors);
-app.use("/projects",  projects.router);
+app.use("/projects", projects.router);
 app.use("/activities", auth, activities);
 app.use("/reasons", reasons);
 app.use("/logs", auth, logs);
@@ -129,6 +130,6 @@ app.listen(PORT, async () => {
   equipmentCronjobs.equipmentCronjobs();
   equipmentCronjobs.equipmentStatus();
   cron.schedule("0 0 * * *", () => {
-    console.log(''); // run every hour
+    console.log(""); // run every hour
   });
 });
