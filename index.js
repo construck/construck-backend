@@ -58,8 +58,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // CHECK IF THE APP OR WEB IS ALLOWED TO MAKE CALLS ON BACKEND:
-app.use((req, res, next) => {
-  const apiSecret = req.headers["x-api-secret"];
+// app.use((req, res, next) => {
+  // const apiSecret = req.headers["x-api-secret"];
   // ONLY ALLOWING CLIENTS APPS WITH SUPPLIED PLATFORM TOKEN
   // NOTE: THIS SHOULD BE ENABLE WHEN MOBILE APP IS ROLLED OUT
   // if (!apiSecret || apiSecret !== PLATFORM_TOKEN) {
@@ -67,7 +67,7 @@ app.use((req, res, next) => {
   //   return res.status(401).json({ error: "Invalid API secret" });
   // }
   // next();
-});
+// });
 
 //Basic Authorization
 let auth = (req, res, next) => {

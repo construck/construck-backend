@@ -30,9 +30,9 @@ const getUnpostedDates = (work) => {
         workedDate.isSame(currDate, "day")
       )
     ) {
-      newDates.push(currDate.clone()); // Clone currDate to avoid mutation
+      newDates.push(currDate.clone()); 
     }
-    currDate.add(1, "day"); // Increment after checking to avoid duplicates
+    currDate.add(1, "day"); 
   }
   return newDates.map((date) => date.format("YYYY-MM-DD"));
 };
@@ -590,7 +590,6 @@ async function createDispatch(req, res) {
         "dispatch.shift": 1,
       }
     );
-    console.log("###isExist", isExist);
     if (!_.isEmpty(isExist)) {
       return res.status(409).send({
         message: `Equipment(${
@@ -604,12 +603,6 @@ async function createDispatch(req, res) {
         response: null,
       });
     }
-    console.log(
-      "##driver:check:before",
-      data?.driver,
-      data?.dispatch?.shift,
-      data.workStartDate
-    );
     // CHECK IF DRIVER IS DISPATCHED ON THE SAME DATE AND SHIFT
     const driverDispatched = await Work.model
       .findOne(
@@ -630,11 +623,6 @@ async function createDispatch(req, res) {
         firstName: 1,
         lastName: 1,
       });
-    console.log(
-      "##driver:check:after",
-      !_.isEmpty(driverDispatched),
-      driverDispatched
-    );
     if (!_.isEmpty(driverDispatched)) {
       return res.status(409).send({
         message: `${data.equipment.plateNumber}: ${
@@ -669,8 +657,6 @@ async function createDispatch(req, res) {
       },
       date: moment(data.workStartDate),
     };
-    // console.log("###data", data);
-    // return;
     const Dispatch = new Work.model(data);
     const response = await Dispatch.save();
 
@@ -694,10 +680,130 @@ async function createDispatch(req, res) {
       status: "ERROR",
       date: data.workStartDate,
       response: null,
-      // error: "Something went wrong, refresh the page and try again",
     });
   }
   return;
+}
+
+async function editDispatch(req, res) {
+  const data = req.body;
+  const { id } = req.params;
+  const { originalWorkStartDate } = req.query;
+  // CHECK IF EQUIPMENT IS NOT IN DISPOSED
+  const equipment = await Equipment.model.findOne({
+    _id: data?.equipment?._id,
+    eqStatus: "disposed",
+  });
+  if (!_.isEmpty(equipment)) {
+    return res.status(404).send({
+      message:
+        "Equipment is not available to be dispatched, contact administrator",
+      plateNumber: "",
+      status: "ERROR",
+      date: data.workStartDate,
+      response: {},
+    });
+  }
+  // CHECK IF DISPATCH EXIST
+  if (data?.workStartDate !== originalWorkStartDate) {
+    const isExist = await Work.model.findOne(
+      {
+        "equipment.plateNumber": data?.equipment?.plateNumber,
+        "dispatch.shift": data?.dispatch?.shift,
+        workStartDate: {
+          $eq: moment(data.workStartDate).format("YYYY-MM-DD"),
+        },
+      },
+      {
+        "equipment.plateNumber": 1,
+        "dispatch.date": 1,
+        "dispatch.shift": 1,
+      }
+    );
+
+    if (!_.isEmpty(isExist)) {
+      return res.status(409).send({
+        message: `Equipment(${
+          data.equipment.plateNumber
+        }) is already dispatched on ${moment(data.workStartDate).format(
+          "MMM DD, YYYY"
+        )}/${data.dispatch.shift === "dayShift" ? "Day shift" : "Night shift"}`,
+        plateNumber: data.equipment.plateNumber,
+        status: "ERROR",
+        date: data.workStartDate,
+        response: null,
+      });
+    }
+  }
+  // CHECK IF DRIVER IS DISPATCHED ON THE SAME DATE AND SHIFT
+  const driverDispatched = await Work.model
+    .findOne(
+      {
+        driver: data?.driver,
+        "dispatch.shift": data?.dispatch?.shift,
+        workStartDate: {
+          $eq: moment(data.workStartDate).format("YYYY-MM-DD"),
+        },
+      },
+      {
+        driver: 1,
+        "dispatch.date": 1,
+        "dispatch.shift": 1,
+      }
+    )
+    .populate("driver", {
+      firstName: 1,
+      lastName: 1,
+    });
+  if (!_.isEmpty(driverDispatched)) {
+    return res.status(409).send({
+      message: `${data.equipment.plateNumber}: ${
+        driverDispatched?.driver.firstName
+      } ${driverDispatched?.driver.lastName} is already dispatched on ${moment(
+        data.workStartDate
+      ).format("MMM DD, YYYY")}/${
+        data.dispatch.shift === "dayShift" ? "Day shift" : "Night shift"
+      }`,
+      plateNumber: data.equipment.plateNumber,
+      status: "ERROR",
+      date: data.workStartDate,
+      response: null,
+    });
+  }
+  try {
+    const response = await Work.model.findOneAndUpdate(
+      { _id: id },
+      {
+        $set: {
+          dispatch: data.dispatch,
+          project: data.project,
+          equipment: data.equipment,
+          equipmentId: new mongoose.Types.ObjectId(data.equipment._id),
+          driver: new mongoose.Types.ObjectId(data.driver),
+          workDone: new mongoose.Types.ObjectId(data.workDone),
+          workStartDate: data.workStartDate,
+          workEndDate: data.workedDate,
+          uom: data.equipment.uom,
+        },
+      }
+    );
+    return res.status(201).send({
+      message: "Dispatch has been updated successfully",
+      plateNumber: data.equipment.plateNumber,
+      status: "SUCCESS",
+      date: data.workStartDate,
+      response,
+    });
+  } catch (error) {
+    console.log("error", error);
+    return res.status(503).send({
+      message: "Something went wrong, refresh the page and try again",
+      plateNumber: data.equipment.plateNumber,
+      status: "ERROR",
+      date: data.workStartDate,
+      response: null,
+    });
+  }
 }
 
 module.exports = {
@@ -709,4 +815,5 @@ module.exports = {
   worksByEquipment,
   bulkPostSingleDispatch,
   createDispatch,
+  editDispatch,
 };

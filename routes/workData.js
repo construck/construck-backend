@@ -31,6 +31,7 @@ const MaintenanceController = require("./../controllers/maintenance");
 const { sendPushNotification } = require("../utils/sendNotification");
 const validateCreateDispatch = require("./../validation/dispatch/validateCreateDispatch");
 const validateStopDispatch = require("../validation/dispatch/validateStopDispatch");
+const validateEditDispatch = require("../validation/dispatch/validateEditDispatch");
 
 const DURATION_LIMIT = 16;
 const cache = new NodeCache({ stdTTL: 7200 });
@@ -161,9 +162,9 @@ router.get("/filtered2", async (req, res) => {
       })
       .select(
         `dispatch.targetTrips dispatch.drivers dispatch.astDrivers  dispatch.shift dispatch.date dispatch.otherJobType
-        project.prjDescription project.customer
+        project.prjDescription project.customer project.client.name
         equipment.plateNumber equipment.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
-        equipment.eqStatus equipment.millage equipment.rate equipment.supplieRate equipment.uom
+        equipment.eqStatus equipment.millage equipment.rate equipment.supplierRate equipment.uom
         startTime endTime duration tripsDone totalRevenue totalExpenditure projectedRevenue status siteWork workStartDate workEndDate
         workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id 
         `
@@ -851,7 +852,7 @@ router.get("/filtered/:page", async (req, res) => {
     let workList = await workData.model
       .find(query)
       .select(
-        `dispatch.targetTrips dispatch.drivers dispatch.astDriver dispatch.shift dispatch.date dispatch.otherJobType
+        `dispatch.targetTrips dispatch.drivers dispatch.astDrivers dispatch.shift dispatch.date dispatch.otherJobType
         project.prjDescription project.customer project._id
         equipment._id equipment.plateNumber equipment.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
         equipment.eqStatus equipment.millage equipment.rate equipment.supplierRate equipment.uom
@@ -3703,9 +3704,9 @@ router.put("/:id", async (req, res) => {
       }
     );
 
-    res.send({ message: "done" });
+    return res.status(200).send({ message: "done" });
   } catch (err) {
-    return res.send({
+    return res.status(400).send({
       error: true,
     });
   }
@@ -5349,6 +5350,19 @@ router.post("/create", (req, res) => {
     });
   }
   works.createDispatch(req, res);
+});
+router.put("/edit/:id", (req, res) => {
+  const validationError = validateEditDispatch(req.body);
+  if (validationError) {
+    return res.status(400).send({
+      message: validationError,
+      plateNumber: "",
+      status: "ERROR",
+      date: "",
+      response: {},
+    });
+  }
+  works.editDispatch(req, res);
 });
 
 async function getEmployees(listIds) {
