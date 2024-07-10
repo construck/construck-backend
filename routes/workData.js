@@ -927,6 +927,7 @@ router.get("/v3/:vendorName", async (req, res) => {
 
 router.get("/v3/driver/:driverId", async (req, res) => {
   let { driverId } = req.params;
+  const today = moment().format("YYYY-MM-DD");
   try {
     let workList = await workData.model
       .find(
@@ -935,10 +936,18 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             {
               "equipment.vendor": Types.ObjectId(driverId),
               status: { $nin: ["recalled", "released"] },
+              workStartDate: {
+                $lte: today,
+                $gte:  moment().subtract(1, "month").startOf("month").format("YYYY-MM-DD"),
+              },
             },
             {
               driver: isValidObjectId(driverId) ? driverId : "123456789011",
               status: { $nin: ["recalled", "released"] },
+              workStartDate: {
+                $lte: today,
+                $gte:  moment().subtract(1, "month").startOf("month").format("YYYY-MM-DD"),
+              },
             },
           ],
         },
@@ -2674,7 +2683,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     return res.status(200).send(orderedList.filter((w) => w !== null));
   } catch (err) {
-    console.log('err', err)
     return res.send(err);
   }
 });
