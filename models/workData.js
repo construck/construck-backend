@@ -171,6 +171,11 @@ const WorkSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
+    stoppedBy: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "users",
+    },
     releasedBy: {
       type: mongoose.SchemaTypes.ObjectId,
       transform: (v) => (v === "" ? null : v),

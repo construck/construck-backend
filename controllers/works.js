@@ -30,9 +30,9 @@ const getUnpostedDates = (work) => {
         workedDate.isSame(currDate, "day")
       )
     ) {
-      newDates.push(currDate.clone()); 
+      newDates.push(currDate.clone());
     }
-    currDate.add(1, "day"); 
+    currDate.add(1, "day");
   }
   return newDates.map((date) => date.format("YYYY-MM-DD"));
 };
@@ -657,6 +657,7 @@ async function createDispatch(req, res) {
       },
       date: moment(data.workStartDate),
     };
+    
     const Dispatch = new Work.model(data);
     const response = await Dispatch.save();
 
@@ -670,10 +671,9 @@ async function createDispatch(req, res) {
       plateNumber: data.equipment.plateNumber,
       status: "CREATED",
       date: data.workStartDate,
-      response,
+      // response,
     });
   } catch (error) {
-    console.log("error", error);
     return res.status(503).send({
       message: "Something went wrong, refresh the page and try again",
       plateNumber: data.equipment.plateNumber,

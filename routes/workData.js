@@ -4,6 +4,7 @@ const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const workData = require("../models/workData");
 const employeeData = require("../models/employees");
+const venData = require("../models/vendors");
 const assetAvblty = require("../models/assetAvailability");
 const userData = require("../models/users");
 const logData = require("../models/logs");
@@ -105,7 +106,7 @@ router.get("/v3", async (req, res) => {
     let workList = await workData.model
       .find({ workStartDate: { $gte: "2022-07-01" } })
       .select(
-        `dispatch.targetTrips dispatch.drivers dispatch.astDrivers  dispatch.shift dispatch.date dispatch.otherJobType
+        `dispatch.targetTrips dispatch.drivers dispatch.astDriver  dispatch.shift dispatch.date dispatch.otherJobType
         project.prjDescription project.customer
         equipment.plateNumber equipment.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
         equipment.eqStatus equipment.millage equipment.rate equipment.supplieRate equipment.uom
@@ -161,7 +162,7 @@ router.get("/filtered2", async (req, res) => {
         ],
       })
       .select(
-        `dispatch.targetTrips dispatch.drivers dispatch.astDrivers  dispatch.shift dispatch.date dispatch.otherJobType
+        `dispatch.targetTrips dispatch.drivers dispatch.astDriver  dispatch.shift dispatch.date dispatch.otherJobType
         project.prjDescription project.customer project.client.name
         equipment.plateNumber equipment.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
         equipment.eqStatus equipment.millage equipment.rate equipment.supplierRate equipment.uom
@@ -852,16 +853,17 @@ router.get("/filtered/:page", async (req, res) => {
     let workList = await workData.model
       .find(query)
       .select(
-        `dispatch.targetTrips dispatch.drivers dispatch.astDrivers dispatch.shift dispatch.date dispatch.otherJobType
+        `dispatch.targetTrips dispatch.drivers dispatch.astDriver dispatch.shift dispatch.date dispatch.otherJobType
         project.prjDescription project.customer project._id
         equipment._id equipment.plateNumber equipment.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
         equipment.eqStatus equipment.millage equipment.rate equipment.supplierRate equipment.uom
         startTime endTime duration tripsDone totalRevenue totalExpenditure projectedRevenue status siteWork workStartDate workEndDate
-        workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id driver
+        workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id driver reasonForRejection rejectedRevenue
         `
       )
       .populate("driver", "firstName lastName phone userType driver")
       .populate("createdBy", "firstName lastName")
+      .populate("stoppedBy", "firstName lastName")
       .populate("workDone", "jobDescription _id")
       .limit(perPage)
       .skip(parseInt(page - 1) * perPage)
@@ -2137,7 +2139,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       },
       {
         $lookup: {
-          from: "employees",
+          from: "users",
           localField: "turnboy",
           foreignField: "_id",
           as: "turnboy",
@@ -2172,6 +2174,12 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           },
         },
       },
+      // {
+      //   $addFields: {
+      //     turnboy1: { $arrayElemAt: ["$turnBoy", 0] },
+      //     turnboy2: { $arrayElemAt: ["$turnBoy", 1] },
+      //   },
+      // },
       {
         $lookup: {
           from: "users",
@@ -2330,6 +2338,16 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               Comment: dP.comment
                 ? dP.comment + " - " + (dP.moreComment ? dP.moreComment : "")
                 : " ",
+              ...(userType === "admin" && {
+                "Turn boy 1":
+                  w?.turnBoy?.length >= 1
+                    ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
+                    : "",
+                "Turn boy 2":
+                  w?.turnBoy?.length >= 2
+                    ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
+                    : "",
+              }),
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
                 : 0,
@@ -2350,6 +2368,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         });
 
         dateNotPosted.map((dNP) => {
+          console.log("dNP", dNP);
           if (
             moment(Date.parse(dNP)).isSameOrAfter(moment(startDate)) &&
             moment(Date.parse(dNP)).isSameOrBefore(
@@ -2387,6 +2406,9 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               Comment: dNP.comment
                 ? dNP.comment + " - " + (dNP.moreComment ? dNP.moreComment : "")
                 : " ",
+              ...(userType === "dispatch" && {
+                "Turn boy 1": "",
+              }),
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
                 : 0,
@@ -2407,6 +2429,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         });
 
         datesPendingPosted.map((dPP) => {
+          console.log("dNP", dNP);
           if (
             moment(Date.parse(dPP)).isSameOrAfter(moment(startDate)) &&
             moment(Date.parse(dPP)).isSameOrBefore(
@@ -2462,6 +2485,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           }
         });
       } else if (w.siteWork === true && w.status === "stopped") {
+        console.log("s-stopped");
         let dailyWorks = w.dailyWork;
 
         let datesPosted = dailyWorks
@@ -2573,6 +2597,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           }
         });
       } else if (w.siteWork === false) {
+        console.log("not siteWork", w);
         if (
           moment(Date.parse(w.dispatch.date)).isSameOrAfter(
             moment(startDate)
@@ -2614,6 +2639,16 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             "Driver Names": w.driver
               ? w?.driver?.firstName + " " + w?.driver?.lastName
               : "",
+            ...(userType === "admin" && {
+              "Turn boy 1":
+                w?.turnBoy?.length >= 1
+                  ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
+                  : "",
+              "Turn boy 2":
+                w?.turnBoy?.length >= 2
+                  ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
+                  : "",
+            }),
             "Driver contacts": w.driver ? w.driver?.phone : "",
             "Target trips": w.dispatch?.targetTrips,
             "Trips done": w?.tripsDone,
@@ -2779,11 +2814,13 @@ router.get("/monthlyNonValidatedRevenues/:projectName", async (req, res) => {
 router.get("/monthlyNotPosted/:vendorId", async (req, res) => {
   let { vendorId } = req.params;
   // let result = await getNotPostedRevenuedByProject(vendorId);
+  console.log("@@@init");
   try {
     let result = await getNotPostedRevenuedByVendor(vendorId);
 
     return res.status(200).send(result);
   } catch (error) {
+    console.log("error", error);
     return res.status(500).send({ error: "Error occurred, try again later" });
   }
 });
@@ -4655,6 +4692,7 @@ router.put("/stop/:id", async (req, res) => {
             : parseInt(startIndex);
         work.startIndex = parseInt(startIndex);
         work.fuel = fuel;
+        work.stoppedBy = stoppedBy;
         work.tripsDone = parseInt(tripsDone);
         let uom = equipment?.uom;
 
@@ -6895,12 +6933,17 @@ async function getDailyNotPostedRevenues(month, year, userId) {
 }
 
 async function getNotPostedRevenuedByVendor(userId) {
-  //get vendor from name
+  //get vendor from vendor collection
+
+  const user = await userData.model.findById(userId);
+
+  console.log("##vendor", user?.vendor);
 
   let pipeline = [
     {
       $match: {
-        "equipment.vendor": new ObjectId(userId),
+        "equipment.vendor": new ObjectId("64a5630cd1cb79f0e6384cfa"),
+        // "equipment.vendor": new ObjectId(userId),
       },
     },
     {
