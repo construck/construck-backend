@@ -2368,7 +2368,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         });
 
         dateNotPosted.map((dNP) => {
-          console.log("dNP", dNP);
           if (
             moment(Date.parse(dNP)).isSameOrAfter(moment(startDate)) &&
             moment(Date.parse(dNP)).isSameOrBefore(
@@ -2429,7 +2428,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         });
 
         datesPendingPosted.map((dPP) => {
-          console.log("dNP", dNP);
           if (
             moment(Date.parse(dPP)).isSameOrAfter(moment(startDate)) &&
             moment(Date.parse(dPP)).isSameOrBefore(
@@ -2485,7 +2483,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           }
         });
       } else if (w.siteWork === true && w.status === "stopped") {
-        console.log("s-stopped");
         let dailyWorks = w.dailyWork;
 
         let datesPosted = dailyWorks
@@ -2597,7 +2594,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           }
         });
       } else if (w.siteWork === false) {
-        console.log("not siteWork", w);
         if (
           moment(Date.parse(w.dispatch.date)).isSameOrAfter(
             moment(startDate)
@@ -2678,6 +2674,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     return res.status(200).send(orderedList.filter((w) => w !== null));
   } catch (err) {
+    console.log('err', err)
     return res.send(err);
   }
 });
