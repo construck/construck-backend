@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const prjSchema = require("./projects").schema;
 const dispSchema = require("./dispatches").schema;
 const eqSchema = require("./equipments").schema;
+// const { findOneAndUpdate } = require("./../helpers/hooks/dispatches/findOneAndUpdate");
+const LogDispatch = require("./logDispatch");
 
 const WorkSchema = new mongoose.Schema(
   {
@@ -201,6 +203,90 @@ const WorkSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+WorkSchema.pre("update", async function (next) {
+  const dispatch = this;
+
+  if (dispatch.status === "stopped" && dispatch.totalRevenue === 0) {
+    const LogData = new LogDispatch.model({
+      request: dispatch,
+      status: "stopped",
+      action: "save",
+    });
+    await LogData.save();
+  } else if (dispatch.status === "created" && dispatch.totalRevenue > 0) {
+    const LogData = new LogDispatch.model({
+      request: dispatch,
+      status: "created",
+      action: "save",
+    });
+    await LogData.save();
+  } else {
+    const LogData = new LogDispatch.model({
+      request: dispatch,
+      status: "others",
+      action: "save",
+    });
+    await LogData.save();
+  }
+
+  next();
+});
+WorkSchema.pre("save", async function (next) {
+  const dispatch = this;
+
+  if (dispatch.status === "stopped" && dispatch.totalRevenue === 0) {
+    const LogData = new LogDispatch.model({
+      request: dispatch,
+      status: "stopped",
+      action: "save",
+    });
+    await LogData.save();
+  } else if (dispatch.status === "created" && dispatch.totalRevenue > 0) {
+    const LogData = new LogDispatch.model({
+      request: dispatch,
+      status: "created",
+      action: "save",
+    });
+    await LogData.save();
+  } else {
+    const LogData = new LogDispatch.model({
+      request: dispatch,
+      status: "others",
+      action: "save",
+    });
+    await LogData.save();
+  }
+
+  next();
+});
+WorkSchema.pre("findOneAndUpdate", async function (next) {
+  const dispatch = this.getUpdate();
+
+  if (dispatch.status === "stopped" && dispatch.totalRevenue === 0) {
+    const LogData = new LogDispatch.model({
+      request: dispatch,
+      status: "stopped",
+      action: "findOneAndUpdate",
+    });
+    await LogData.save();
+  } else if (dispatch.status === "created" && dispatch.totalRevenue > 0) {
+    const LogData = new LogDispatch.model({
+      request: dispatch,
+      status: "created",
+      action: "findOneAndUpdate",
+    });
+    await LogData.save();
+  } else {
+    const LogData = new LogDispatch.model({
+      request: dispatch,
+      status: "others",
+      action: "findOneAndUpdate",
+    });
+    await LogData.save();
+  }
+
+  next();
+});
 
 module.exports = {
   model: mongoose.model("work", WorkSchema),
