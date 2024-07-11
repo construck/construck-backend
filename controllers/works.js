@@ -613,6 +613,7 @@ async function createDispatch(req, res) {
               ? null
               : data.driver,
           "dispatch.shift": data?.dispatch?.shift,
+          status: { $ne: "recalled" },
           workStartDate: {
             $eq: moment(data.workStartDate).format("YYYY-MM-DD"),
           },
