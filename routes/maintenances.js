@@ -11,7 +11,7 @@ router.get("/maintenance/repair", async (req, res) => {
   if (!jobCards)
     return res.status(404).json({ message: "No job cards available" });
 
-  res.status(200).send(jobCards);
+  return res.status(200).send(jobCards);
 });
 
 router.get("/maintenance", async (req, res) => {
@@ -207,7 +207,7 @@ router.get("/maintenance", async (req, res) => {
   if (!jobCards)
     return res.status(404).json({ message: "No JobCards Available" });
 
-  res.status(200).send({
+  return res.status(200).send({
     jobCards,
     dataCount,
     openDataCount,

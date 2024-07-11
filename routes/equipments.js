@@ -368,7 +368,7 @@ router.put("/makeAvailable/:id", async (req, res) => {
       });
       await dateDataToSave.save();
     }
-    res.status(201).send(savedRecord);
+    return res.status(201).send(savedRecord);
   } catch (err) {}
 });
 
@@ -381,7 +381,7 @@ router.put("/dispose/:id", async (req, res) => {
 
     let savedRecord = await equipment.save();
 
-    res.status(201).send(savedRecord);
+    return res.status(201).send(savedRecord);
   } catch (err) {}
 });
 
@@ -442,8 +442,10 @@ router.put("/sendToWorkshop/:id", async (req, res) => {
       });
       await dateDataToSave.save();
     }
-    res.status(201).send(savedRecord);
-  } catch (err) {}
+    return res.status(201).send(savedRecord);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 router.put("/makeAllAvailable/", async (req, res) => {
@@ -488,8 +490,10 @@ router.put("/makeAllAvailable/", async (req, res) => {
       });
       await dateDataToSave.save();
     }
-    res.status(202).send(equipment);
-  } catch (err) {}
+    return res.status(202).send(equipment);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 router.put("/syncWorkshopStatus/", async (req, res) => {
@@ -509,7 +513,7 @@ router.put("/syncWorkshopStatus/", async (req, res) => {
       .save();
   });
 
-  res.send("Done");
+  return res.send("Done");
 });
 
 router.put("/assignToJob/:id", async (req, res) => {
@@ -560,8 +564,10 @@ router.put("/assignToJob/:id", async (req, res) => {
       });
       await dateDataToSave.save();
     }
-    res.status(201).send(savedRecord);
-  } catch (err) {}
+    return res.status(201).send(savedRecord);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 router.put("/makeDispatched/:id", async (req, res) => {
@@ -572,8 +578,10 @@ router.put("/makeDispatched/:id", async (req, res) => {
     equipment.eqStatus = "dispatched";
 
     let savedRecord = await equipment.save();
-    res.status(201).send(savedRecord);
-  } catch (err) {}
+    return res.status(201).send(savedRecord);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 router.put("/release/:id", async (req, res) => {
@@ -584,22 +592,28 @@ router.put("/release/:id", async (req, res) => {
     equipment.eqStatus = "standby";
 
     let savedRecord = await equipment.save();
-    res.status(201).send(savedRecord);
-  } catch (err) {}
+    return res.status(201).send(savedRecord);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 router.delete("/hired", async (req, res) => {
   try {
     await eqData.model.deleteMany({ eqOwner: { $ne: "Construck" } });
-    res.send("Done");
-  } catch (err) {}
+    return res.send("Done");
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 router.delete("/ctk", async (req, res) => {
   try {
     await eqData.model.deleteMany({ eqOwner: "Construck" });
-    res.send("Done");
-  } catch (err) {}
+    return res.send("Done");
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 router.put("/resetIndices", async (req, res) => {
@@ -609,8 +623,10 @@ router.put("/resetIndices", async (req, res) => {
         millage: 0,
       },
     });
-    res.send(update);
-  } catch (err) {}
+    return res.send(update);
+  } catch (err) {
+    return res.status(500).send(err)
+  }
 });
 
 router.put("/:id", async (req, res) => {
@@ -742,10 +758,10 @@ router.put("/:id", async (req, res) => {
     //   { arrayFilters: [{ "element.date": { $gte: effectiveDate } }] }
     // );
 
-    res.status(200).send(equipment);
+    return res.status(200).send(equipment);
   } catch (err) {
     console.log(err);
-    res.status(500);
+    return res.status(500);
   }
 });
 

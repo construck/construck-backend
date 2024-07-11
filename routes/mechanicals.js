@@ -15,7 +15,7 @@ router.get('/mechanicals', async (req, res) => {
     const mechanicals = await mechanicalsQuery;
     if(!mechanicals) return res.status(404).json({message: "No Mechanicals Found"});
 
-    res.status(200).send({mechanicals, totalMechanicals});
+    return res.status(200).send({mechanicals, totalMechanicals});
 })
 
 router.post('/mechanicals', async (req, res) => {
