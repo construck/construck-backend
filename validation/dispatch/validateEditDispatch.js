@@ -12,6 +12,7 @@ const editDispatchSchema = Joi.object({
   workDone: Joi.string().required(),
   workStartDate: Joi.string().required(),
   workEndDate: Joi.string().required(),
+  uom: Joi.string().required(),
 });
 
 const validateEditDispatch = (body) => {
