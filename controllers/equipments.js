@@ -429,9 +429,9 @@ async function checkEquipmentAvailabilityForDispatch(req, res) {
     let availableEquipment = await Equipment.model.find({
       plateNumber: { $nin: combined },
     });
-    res.status(200).send(availableEquipment);
+    return res.status(200).send(availableEquipment);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 }
 

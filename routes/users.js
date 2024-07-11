@@ -46,9 +46,9 @@ router.get("/:id", async (req, res) => {
       })
       .populate("company")
       .populate("driver");
-    res.status(200).send(user);
+    return res.status(200).send(user);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -144,9 +144,9 @@ router.put("/status", async (req, res) => {
     let userD = await userData.model.findById(_id);
     userD.status = status;
     let updatedUser = await userD.save();
-    res.status(201).send(updatedUser);
+    return res.status(201).send(updatedUser);
   } catch (err) {
-    res.status(500).send({
+    return res.status(500).send({
       message: `${err}`,
       error: true,
     });
@@ -186,10 +186,10 @@ router.put("/:id/disable-account", async (req, res) => {
         password: 0,
       }
     );
-    res.status(201).send(response);
+    return res.status(201).send(response);
   } catch (err) {
     console.log("err");
-    res.status(500).send({
+    return res.status(500).send({
       message: `${err}`,
       error: true,
     });
@@ -207,10 +207,10 @@ router.put("/:id/activate-account", async (req, res) => {
         password: 0,
       }
     );
-    res.status(201).send(response);
+    return res.status(201).send(response);
   } catch (err) {
     console.log("err");
-    res.status(500).send({
+    return res.status(500).send({
       message: `${err}`,
       error: true,
     });
@@ -223,7 +223,7 @@ router.put("/", async (req, res) => {
   try {
     let user = await userData.model.findOne({ email: email });
     if (!user) {
-      res.status(401).send({
+      return res.status(401).send({
         message: "User not found!",
         error: true,
       });
@@ -242,14 +242,14 @@ router.put("/", async (req, res) => {
           companyName: user.company,
         });
       } else {
-        res.status(401).send({
+        return res.status(401).send({
           message: "Not allowed. Please check the Old password.",
           error: true,
         });
       }
     }
   } catch (err) {
-    res.status(500).send({
+    return res.status(500).send({
       message: `${err}`,
       error: true,
     });
@@ -281,9 +281,9 @@ router.put("/:id", async (req, res) => {
       permissions,
     });
 
-    res.status(200).send(user);
+    return res.status(200).send(user);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -298,13 +298,11 @@ router.put("/resetPassword/:id", async (req, res) => {
   // let newPassword = "12345";
   let { id } = req.params;
   const { password } = req.body;
-  console.log("id", id);
-  console.log("password", password);
 
   try {
     let user = await userData.model.findById(id);
     if (!user) {
-      res.status(401).send({
+      return res.status(401).send({
         message: "User not found!",
         error: true,
       });
@@ -321,7 +319,6 @@ router.put("/resetPassword/:id", async (req, res) => {
       });
     }
   } catch (err) {
-    console.log("err", err);
     return res.status(500).send({
       message: `${err}`,
       error: true,
@@ -336,9 +333,9 @@ router.put("/token/:id", async (req, res) => {
     let userD = await userData.model.findById(id);
     userD.deviceToken = token;
     await userD.save();
-    res.status(201).send({ tokenUpdated: true });
+    return res.status(201).send({ tokenUpdated: true });
   } catch (err) {
-    res.status(500).send({
+    return res.status(500).send({
       message: `${err}`,
       error: true,
       tokenUpdated: false,

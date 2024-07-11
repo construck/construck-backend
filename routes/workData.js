@@ -95,9 +95,9 @@ router.get("/v2", async (req, res) => {
       .populate("workDone")
       .sort([["_id", "descending"]]);
     // res.status(200).send(workList.filter((w) => !_.isNull(w.driver)));
-    res.status(200).send(workList);
+    return res.status(200).send(workList);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -194,6 +194,7 @@ router.get("/filtered/:page", async (req, res) => {
     userProject,
     userProjects,
   } = req.query;
+  console.log("##dates", startDate, endDate);
   let { page } = req.params;
   let perPage = 15;
   let query = {};
@@ -338,8 +339,14 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              workEndDate: {
+              workStartDate: {
                 $gte: moment(startDate),
+              },
+              workEndDate: {
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds"),
               },
               "project.customer": companyName,
             },
@@ -361,8 +368,15 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              workEndDate: {
+             
+              workStartDate: {
                 $gte: moment(startDate),
+              },
+              workEndDate: {
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds"),
               },
 
               "equipment.plateNumber": {
@@ -392,8 +406,15 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              workEndDate: {
+              
+              workStartDate: {
                 $gte: moment(startDate),
+              },
+              workEndDate: {
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds"),
               },
 
               "project.prjDescription": {
@@ -423,8 +444,15 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              workEndDate: {
+             
+              workStartDate: {
                 $gte: moment(startDate),
+              },
+              workEndDate: {
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds"),
               },
 
               "project.prjDescription": {
@@ -464,8 +492,15 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              workEndDate: {
+             
+              workStartDate: {
                 $gte: moment(startDate),
+              },
+              workEndDate: {
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds"),
               },
 
               "project.prjDescription": { $in: prjs },
@@ -489,8 +524,15 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              workEndDate: {
+              
+              workStartDate: {
                 $gte: moment(startDate),
+              },
+              workEndDate: {
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds"),
               },
 
               "equipment.plateNumber": {
@@ -522,8 +564,15 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              workEndDate: {
+             
+              workStartDate: {
                 $gte: moment(startDate),
+              },
+              workEndDate: {
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds"),
               },
 
               "project.prjDescription": {
@@ -555,10 +604,16 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              workEndDate: {
+             
+              workStartDate: {
                 $gte: moment(startDate),
               },
-
+              workEndDate: {
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds"),
+              },
               "project.prjDescription": {
                 $regex: project,
               },
@@ -598,8 +653,15 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              workEndDate: {
+              
+              workStartDate: {
                 $gte: moment(startDate),
+              },
+              workEndDate: {
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds"),
               },
 
               "project.prjDescription": { $in: prjs },
@@ -623,8 +685,15 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              workEndDate: {
+             
+              workStartDate: {
                 $gte: moment(startDate),
+              },
+              workEndDate: {
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds"),
               },
 
               "equipment.plateNumber": {
@@ -656,8 +725,15 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              workEndDate: {
+             
+              workStartDate: {
                 $gte: moment(startDate),
+              },
+              workEndDate: {
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds"),
               },
 
               "project.prjDescription": {
@@ -689,8 +765,15 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              workEndDate: {
+             
+              workStartDate: {
                 $gte: moment(startDate),
+              },
+              workEndDate: {
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds"),
               },
 
               "project.prjDescription": {
@@ -732,8 +815,14 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              workEndDate: {
+              workStartDate: {
                 $gte: moment(startDate),
+              },
+              workEndDate: {
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds"),
               },
             },
             {
@@ -753,10 +842,15 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              workEndDate: {
+              workStartDate: {
                 $gte: moment(startDate),
               },
-
+              workEndDate: {
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds"),
+              },
               "equipment.plateNumber": {
                 $regex: searchText.toUpperCase(),
               },
@@ -782,10 +876,15 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              workEndDate: {
+              workStartDate: {
                 $gte: moment(startDate),
               },
-
+              workEndDate: {
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds"),
+              },
               "project.prjDescription": {
                 $regex: project,
               },
@@ -811,10 +910,15 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              workEndDate: {
+              workStartDate: {
                 $gte: moment(startDate),
               },
-
+              workEndDate: {
+                $lte: moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds"),
+              },
               "project.prjDescription": {
                 $regex: project,
               },
@@ -869,9 +973,9 @@ router.get("/filtered/:page", async (req, res) => {
       .skip(parseInt(page - 1) * perPage)
       .sort({ "dispatch.date": -1 });
 
-    res.status(200).send({ workList, dataCount });
+    return res.status(200).send({ workList, dataCount });
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -919,9 +1023,9 @@ router.get("/v3/:vendorName", async (req, res) => {
         _.trim(w.driver.firstName) === _.trim(vendorName)
       );
     });
-    res.status(200).send(filteredByVendor);
+    return res.status(200).send(filteredByVendor);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -938,7 +1042,10 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               status: { $nin: ["recalled", "released"] },
               workStartDate: {
                 $lte: today,
-                $gte:  moment().subtract(1, "month").startOf("month").format("YYYY-MM-DD"),
+                $gte: moment()
+                  .subtract(1, "month")
+                  .startOf("month")
+                  .format("YYYY-MM-DD"),
               },
             },
             {
@@ -946,7 +1053,10 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               status: { $nin: ["recalled", "released"] },
               workStartDate: {
                 $lte: today,
-                $gte:  moment().subtract(1, "month").startOf("month").format("YYYY-MM-DD"),
+                $gte: moment()
+                  .subtract(1, "month")
+                  .startOf("month")
+                  .format("YYYY-MM-DD"),
               },
             },
           ],
@@ -1202,9 +1312,9 @@ router.get("/v3/driver/:driverId", async (req, res) => {
 
     let orderedList = _.orderBy(finalList, "dispatchDate", "desc");
 
-    res.status(200).send(orderedList.filter((d) => !_.isNull(d)));
+    return res.status(200).send(orderedList.filter((d) => !_.isNull(d)));
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -3856,7 +3966,7 @@ router.put("/approveDailyWork/:id", async (req, res) => {
 
     return res.status(201).send(work);
   } catch (err) {
-    res.status(500).send({
+    return res.status(500).send({
       error: err,
     });
   }
@@ -4101,9 +4211,9 @@ router.put("/reject/:id", async (req, res) => {
         }
       );
     }
-    res.status(201).send(savedRecord);
+    return res.status(201).send(savedRecord);
   } catch (err) {
-    res.send("Error occured!!");
+    return res.send("Error occured!!");
   }
 });
 
@@ -4290,7 +4400,7 @@ router.put("/recall/:id", async (req, res) => {
       await dateDataToSave.save();
     }
 
-    res.status(201).send(savedRecord);
+    return res.status(201).send(savedRecord);
   } catch (err) {}
 });
 
@@ -4348,9 +4458,9 @@ router.put("/reject/:id", async (req, res) => {
         }
       );
     }
-    res.status(201).send(savedRecord);
+    return res.status(201).send(savedRecord);
   } catch (err) {
-    res.send("Error occured!!");
+    return res.send("Error occured!!");
   }
 });
 
@@ -4439,7 +4549,7 @@ router.put("/start/:id", async (req, res) => {
         let logTobeSaved = new logData.model(log);
         await logTobeSaved.save();
 
-        res.status(201).send(savedRecord);
+        return res.status(201).send(savedRecord);
       } else {
         work.status = "in progress";
         work.startTime = Date.now();
@@ -4460,12 +4570,14 @@ router.put("/start/:id", async (req, res) => {
         let logTobeSaved = new logData.model(log);
         await logTobeSaved.save();
 
-        res.status(201).send(savedRecord);
+        return res.status(201).send(savedRecord);
       }
     } else {
-      res.status(200).send(work);
+      return res.status(200).send(work);
     }
-  } catch (err) {}
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 router.put("/stop/:id", async (req, res) => {
@@ -4657,7 +4769,7 @@ router.put("/stop/:id", async (req, res) => {
         let logTobeSaved = new logData.model(log);
         await logTobeSaved.save();
 
-        res.status(201).send(savedRecord);
+        return res.status(201).send(savedRecord);
       } else {
         let eqId = work?.equipment?._id;
         await workData.model.updateMany(
@@ -4928,9 +5040,11 @@ router.put("/end/:id", async (req, res) => {
         });
         await dateDataToSave.save();
       }
-      res.status(201).send(savedRecord);
+      return res.status(201).send(savedRecord);
     }
-  } catch (err) {}
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 router.put("/resetStartIndices", async (req, res) => {
@@ -4942,8 +5056,10 @@ router.put("/resetStartIndices", async (req, res) => {
       },
     });
 
-    res.send(updates);
-  } catch (err) {}
+    return res.send(updates);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 router.put("/reverse/:id", async (req, res) => {
@@ -5084,9 +5200,9 @@ router.put("/amend/:id", async (req, res) => {
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
 
-    res.status(201).send(savedRecord);
+    return res.status(201).send(savedRecord);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -5204,7 +5320,7 @@ router.put("/swamend/:id", async (req, res) => {
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
 
-    res.status(201).send(savedRecord);
+    return res.status(201).send(savedRecord);
   } catch (err) {
     return res.status(503).send({
       error: err,

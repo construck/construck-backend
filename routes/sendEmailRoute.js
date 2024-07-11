@@ -10,12 +10,12 @@ router.post("/send", async (req, res) => {
   let { from, to, subject, messageType, password, workPayload } = req.body;
   try {
     await sendEmail(from, to, subject, messageType, password, workPayload);
-    res.send({
+    return res.send({
       error: false,
       message: "Email Sent!",
     });
   } catch (err) {
-    res.status(500).send({
+    return res.status(500).send({
       error: true,
       errorMessage: err.response,
     });

@@ -150,7 +150,7 @@ router.post("/login", async (req, res) => {
     } // cons User
     if (userType === null) {
       allowed = false;
-      res.status(401).send({
+      return res.status(401).send({
         message: "Not allowed!",
         error: true,
       });
@@ -161,7 +161,7 @@ router.post("/login", async (req, res) => {
       if (!isDefaultPassword) {
         allowed = await bcrypt.compare(password, employee.password);
         if (employee.status !== "inactive" && allowed) {
-          res.status(200).send({
+          return res.status(200).send({
             employee: {
               _id: employee._id,
               firstName: employee.firstName,
@@ -176,12 +176,12 @@ router.post("/login", async (req, res) => {
           });
         } else {
           if (employee.status === "inactive")
-            res.status(401).send({
+            return res.status(401).send({
               message: "Not activated!",
               error: true,
             });
           else
-            res.status(401).send({
+            return res.status(401).send({
               message: "Not allowed!",
               error: true,
             });
@@ -193,7 +193,7 @@ router.post("/login", async (req, res) => {
 
         if (employee.status !== "inactive") {
           // employee.message = "Allowed";
-          res.status(200).send({
+          return res.status(200).send({
             employee: {
               _id: employee._id,
               firstName: employee.firstName,
@@ -207,7 +207,7 @@ router.post("/login", async (req, res) => {
             userType,
           });
         } else {
-          res.status(401).send({
+          return res.status(401).send({
             message: "Not activated!",
             error: true,
           });
@@ -244,7 +244,7 @@ router.post("/login", async (req, res) => {
           return _p;
         });
 
-        res.status(200).send({
+        return res.status(200).send({
           employee: {
             _id: user._id,
             firstName: user.firstName,
@@ -332,9 +332,9 @@ router.put("/status", async (req, res) => {
     let employeeD = await employeeData.model.findById(_id);
     employeeD.status = status;
     let updatedEmployee = await employeeD.save();
-    res.status(201).send(updatedEmployee);
+    return res.status(201).send(updatedEmployee);
   } catch (err) {
-    res.status(500).send({
+    return res.status(500).send({
       message: `${err}`,
       error: true,
     });
@@ -365,7 +365,7 @@ router.put("/resetPassword/:id", async (req, res) => {
   try {
     let employee = await employeeData.model.findById(id);
     if (!employee) {
-      res.status(401).send({
+      return res.status(401).send({
         message: "Driver not found!",
         error: true,
       });

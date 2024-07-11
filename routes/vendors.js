@@ -8,9 +8,9 @@ const workData = require("../models/workData");
 router.get("/", async (req, res) => {
   try {
     const vendors = await venData.model.find();
-    res.status(200).send(vendors);
+    return res.status(200).send(vendors);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -20,14 +20,14 @@ router.post("/", async (req, res) => {
     let hashedPassword = await bcrypt.hash(req.body.password, 10);
     vendorToCreate.password = hashedPassword;
     let vendorCreated = await vendorToCreate.save();
-    res.status(201).send(vendorCreated);
+    return res.status(201).send(vendorCreated);
   } catch (err) {
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    res.send({
+    return res.send({
       error,
       key,
     });
@@ -46,9 +46,9 @@ router.put("/:id", async (req, res) => {
       { $set: { "equipment.eqOwner": req?.body?.name } }
     );
 
-    res.status(200).send(vendor);
+    return res.status(200).send(vendor);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -59,7 +59,7 @@ router.put("/resetPassword/:id", async (req, res) => {
   try {
     let vendor = await venData.model.findById(id);
     if (!vendor) {
-      res.status(401).send({
+      return res.status(401).send({
         message: "Vendor not found!",
         error: true,
       });
@@ -68,7 +68,7 @@ router.put("/resetPassword/:id", async (req, res) => {
       vendor.password = hashedPassword;
       await vendor.save();
 
-      res.send({
+      return res.send({
         message: "Allowed",
         error: false,
         newPassword,
@@ -76,7 +76,7 @@ router.put("/resetPassword/:id", async (req, res) => {
       });
     }
   } catch (err) {
-    res.status(500).send({
+    return res.status(500).send({
       message: `${err}`,
       error: true,
     });

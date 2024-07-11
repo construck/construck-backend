@@ -177,11 +177,11 @@ async function equipmentWasInWorkshop(req, res) {
   const { startdate, enddate } = req.query;
   const response = await checkIfEquipmentWasInWorkshop(id, startdate, enddate);
   if (!_.isEmpty(response)) {
-    res.status(409).send({
+    return res.status(409).send({
       error: `Equipment with "${response?.plate?.text}" plate number was in the workshop between ${moment(response?.entryDate).format("MMMM DD, YYYY")} and ${moment(response?.endRepair).format("MMMM DD, YYYY")}`,
     });
   } else {
-    res.status(200).send({
+    return res.status(200).send({
       message: "You can dispatch this equipment",
     });
   }

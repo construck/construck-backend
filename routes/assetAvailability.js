@@ -10,9 +10,9 @@ const cache = new NodeCache({ stdTTL: 7200 });
 router.get("/", async (req, res) => {
   try {
     const avblties = await assetAvblty.model.find();
-    res.status(200).send(avblties);
+    return res.status(200).send(avblties);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
