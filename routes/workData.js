@@ -3927,7 +3927,6 @@ router.put("/approveDailyWork/:id", async (req, res) => {
     let _approvedDuration = workRec.approvedDuration
       ? workRec.approvedDuration
       : 0;
-
     let work = await workData.model.findOneAndUpdate(
       {
         _id: id,
@@ -3939,7 +3938,7 @@ router.put("/approveDailyWork/:id", async (req, res) => {
             "dailyWork.date": postingDate,
           },
         ],
-        pending: false,
+        "dailyWork.pending": false,
       },
       {
         $set: {
@@ -3953,6 +3952,7 @@ router.put("/approveDailyWork/:id", async (req, res) => {
         },
       }
     );
+
 
     //log saving
     let log = {
@@ -4107,7 +4107,7 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
             "dailyWork.date": postingDate,
           },
         ],
-        pending: false,
+        "dailyWork.pending": false,
       },
       {
         $set: {
