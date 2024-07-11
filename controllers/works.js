@@ -580,6 +580,7 @@ async function createDispatch(req, res) {
       {
         "equipment.plateNumber": data?.equipment?.plateNumber,
         "dispatch.shift": data?.dispatch?.shift,
+        status: { $ne: "recalled" },
         workStartDate: {
           $eq: moment(data.workStartDate).format("YYYY-MM-DD"),
         },
@@ -588,6 +589,7 @@ async function createDispatch(req, res) {
         "equipment.plateNumber": 1,
         "dispatch.date": 1,
         "dispatch.shift": 1,
+        status: 1
       }
     );
     if (!_.isEmpty(isExist)) {
