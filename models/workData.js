@@ -210,21 +210,21 @@ WorkSchema.pre("update", async function (next) {
     const LogData = new LogDispatch.model({
       request: dispatch,
       status: "stopped",
-      action: "save",
+      action: "update",
     });
     await LogData.save();
   } else if (dispatch.status === "created" && dispatch.totalRevenue > 0) {
     const LogData = new LogDispatch.model({
       request: dispatch,
       status: "created",
-      action: "save",
+      action: "update",
     });
     await LogData.save();
   } else {
     const LogData = new LogDispatch.model({
       request: dispatch,
       status: "others",
-      action: "save",
+      action: "update",
     });
     await LogData.save();
   }

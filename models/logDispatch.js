@@ -7,7 +7,7 @@ const LogDispatchSchema = mongoose.Schema(
     action: {
       type: String,
     },
-    action: {
+    status: {
       type: String,
     },
     createdOn: {
