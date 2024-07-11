@@ -368,7 +368,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-             
+
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -406,7 +406,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              
+
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -444,7 +444,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-             
+
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -492,7 +492,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-             
+
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -524,7 +524,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              
+
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -564,7 +564,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-             
+
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -604,7 +604,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-             
+
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -653,7 +653,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              
+
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -685,7 +685,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-             
+
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -725,7 +725,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-             
+
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -765,7 +765,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-             
+
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -3953,7 +3953,6 @@ router.put("/approveDailyWork/:id", async (req, res) => {
       }
     );
 
-
     //log saving
     let log = {
       action: "DISPATCH APPROVED",
@@ -6812,10 +6811,11 @@ async function getNotPostedListByDay(userId, transactionDate) {
 }
 
 async function getDailyNotPostedRevenues(month, year, userId) {
+  const user = await userData.model.findById(userId);
   let pipeline = [
     {
       $match: {
-        "equipment.vendor": new mongoose.Types.ObjectId(userId),
+        "equipment.vendor": new mongoose.Types.ObjectId(user),
       },
     },
     {
@@ -7055,16 +7055,12 @@ async function getDailyNotPostedRevenues(month, year, userId) {
 
 async function getNotPostedRevenuedByVendor(userId) {
   //get vendor from vendor collection
-
   const user = await userData.model.findById(userId);
-
-  console.log("##vendor", user?.vendor);
 
   let pipeline = [
     {
       $match: {
-        "equipment.vendor": new ObjectId("64a5630cd1cb79f0e6384cfa"),
-        // "equipment.vendor": new ObjectId(userId),
+        "equipment.vendor": new ObjectId(user.vendor),
       },
     },
     {
