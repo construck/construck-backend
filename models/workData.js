@@ -248,6 +248,7 @@ WorkSchema.pre("save", async function (next) {
       status: "others",
       action: "save",
     });
+    await LogData.save();
   }
 
   // if (dispatch.status === "stopped" && dispatch.totalRevenue === 0) {
