@@ -72,6 +72,9 @@ const UserSchema = mongoose.Schema(
     lastLogin: {
       type: mongoose.SchemaTypes.Date,
     },
+    lastBrowserVersion: {
+      type: String,
+    },
   },
 
   { timestamps: true }

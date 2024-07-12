@@ -12,6 +12,8 @@ const UserController = require("./../controllers/users");
 const cache = new NodeCache({ stdTTL: 7200 });
 const moment = require("moment");
 const { DEFAULT_PASSWORD } = process.env;
+const useragent = require('express-useragent');
+router.use(useragent.express());
 
 router.get("/", async (req, res) => {
   let { ignoreCache } = req.query;
@@ -113,6 +115,7 @@ router.post("/login", async (req, res) => {
         {
           $set: {
             lastLogin,
+            lastBrowserVersion: `${req.useragent.os}/${req.useragent.browser}/${req.useragent.version}`,
           },
         }
       );

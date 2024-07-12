@@ -248,7 +248,7 @@ WorkSchema.pre("update", async function (next) {
   const LogData = new LogDispatch.model({
     request: dispatch,
     status: "other",
-    action: "save",
+    action: "update",
   });
   await LogData.save();
   next();
