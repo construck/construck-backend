@@ -4952,7 +4952,8 @@ router.put("/stop/:id", async (req, res) => {
 });
 
 router.put("/update-stopped-work/:id", async (req, res) => {
-  await stopWork(req, res);
+  return res.status(200).send({})
+  // await stopWork(req, res);
 });
 
 router.put("/end/:id", async (req, res) => {
