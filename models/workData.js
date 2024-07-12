@@ -270,15 +270,15 @@ WorkSchema.pre("save", async function (next) {
     return next(
       new Error("Validation error occurred(save), contact administrator")
     );
+  } else {
+    const LogData = new LogDispatch.model({
+      request: dispatch,
+      status: "other",
+      action: "save",
+    });
+    await LogData.save();
+    next();
   }
-  const LogData = new LogDispatch.model({
-    request: dispatch,
-    status: "other",
-    action: "save",
-  });
-  await LogData.save();
-
-  next();
 });
 // WorkSchema.pre("findOneAndUpdate", async function (next) {
 //   const dispatch = this;
