@@ -236,7 +236,7 @@ WorkSchema.pre("update", async function (next) {
   ) {
     const LogData = new LogDispatch.model({
       request: dispatch,
-      status: "others",
+      status: "checked",
       action: "update",
     });
     await LogData.save();
@@ -244,6 +244,13 @@ WorkSchema.pre("update", async function (next) {
       new Error("Validation error occurred(update), contact administrator")
     );
   }
+
+  const LogData = new LogDispatch.model({
+    request: dispatch,
+    status: "other",
+    action: "save",
+  });
+  await LogData.save();
   next();
 });
 WorkSchema.pre("save", async function (next) {
@@ -256,7 +263,7 @@ WorkSchema.pre("save", async function (next) {
   ) {
     const LogData = new LogDispatch.model({
       request: dispatch,
-      status: "others",
+      status: "checked",
       action: "save",
     });
     await LogData.save();
@@ -264,6 +271,13 @@ WorkSchema.pre("save", async function (next) {
       new Error("Validation error occurred(save), contact administrator")
     );
   }
+  const LogData = new LogDispatch.model({
+    request: dispatch,
+    status: "other",
+    action: "save",
+  });
+  await LogData.save();
+
   next();
 });
 WorkSchema.pre("findOneAndUpdate", async function (next) {
