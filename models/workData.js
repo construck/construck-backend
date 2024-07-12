@@ -1,3 +1,4 @@
+const _ = require("lodash");
 const mongoose = require("mongoose");
 const prjSchema = require("./projects").schema;
 const dispSchema = require("./dispatches").schema;
@@ -203,90 +204,111 @@ const WorkSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-WorkSchema.pre("update", async function (next) {
-  const dispatch = this;
+// WorkSchema.pre("update", async function (next) {
+//   const dispatch = this;
 
-  if (dispatch.status === "stopped" && dispatch.totalRevenue === 0) {
-    const LogData = new LogDispatch.model({
-      request: dispatch,
-      status: "stopped",
-      action: "update",
-    });
-    await LogData.save();
-  } else if (dispatch.status === "created" && dispatch.totalRevenue > 0) {
-    const LogData = new LogDispatch.model({
-      request: dispatch,
-      status: "created",
-      action: "update",
-    });
-    await LogData.save();
-  } else {
-    const LogData = new LogDispatch.model({
-      request: dispatch,
-      status: "others",
-      action: "update",
-    });
-    await LogData.save();
-  }
+//   if (dispatch.status === "stopped" && dispatch.totalRevenue === 0) {
+//     console.log("update:stopped");
+//     const LogData = new LogDispatch.model({
+//       request: dispatch,
+//       status: "stopped",
+//       action: "update",
+//     });
+//     await LogData.save();
+//   } else if (dispatch.status === "created" && dispatch.totalRevenue > 0) {
+//     console.log("update:created");
+//     const LogData = new LogDispatch.model({
+//       request: dispatch,
+//       status: "created",
+//       action: "update",
+//     });
+//     await LogData.save();
+//   } else {
+//     console.log("update:others");
+//     const LogData = new LogDispatch.model({
+//       request: dispatch,
+//       status: "others",
+//       action: "update",
+//     });
+//     await LogData.save();
+//   }
 
-  next();
-});
+//   next();
+// });
 WorkSchema.pre("save", async function (next) {
   const dispatch = this;
 
-  if (dispatch.status === "stopped" && dispatch.totalRevenue === 0) {
-    const LogData = new LogDispatch.model({
-      request: dispatch,
-      status: "stopped",
-      action: "save",
-    });
-    await LogData.save();
-  } else if (dispatch.status === "created" && dispatch.totalRevenue > 0) {
-    const LogData = new LogDispatch.model({
-      request: dispatch,
-      status: "created",
-      action: "save",
-    });
-    await LogData.save();
-  } else {
+  if (
+    !_.isEmpty(dispatch._id) &&
+    dispatch.status === "created" &&
+    dispatch.totalRevenue > 0
+  ) {
     const LogData = new LogDispatch.model({
       request: dispatch,
       status: "others",
       action: "save",
     });
-    await LogData.save();
   }
+
+  // if (dispatch.status === "stopped" && dispatch.totalRevenue === 0) {
+  //   console.log("save:stopped");
+  //   const LogData = new LogDispatch.model({
+  //     request: dispatch,
+  //     status: "stopped",
+  //     action: "save",
+  //   });
+  //   await LogData.save();
+  // } else if (dispatch.status === "created" && dispatch.totalRevenue > 0) {
+  //   console.log("save:created");
+  //   const LogData = new LogDispatch.model({
+  //     request: dispatch,
+  //     status: "created",
+  //     action: "save",
+  //   });
+  //   await LogData.save();
+  // } else {
+  //   console.log("save:others", _.isNull(dispatch._id), _.isEmpty(dispatch._id));
+  //   const LogData = new LogDispatch.model({
+  //     request: dispatch,
+  //     status: "others",
+  //     action: "save",
+  //   });
+  //   await LogData.save();
+  // }
 
   next();
 });
-WorkSchema.pre("findOneAndUpdate", async function (next) {
-  const dispatch = this.getUpdate();
+// WorkSchema.pre("findOneAndUpdate", async function (next) {
+//   const dispatch = this.getUpdate();
 
-  if (dispatch.status === "stopped" && dispatch.totalRevenue === 0) {
-    const LogData = new LogDispatch.model({
-      request: dispatch,
-      status: "stopped",
-      action: "findOneAndUpdate",
-    });
-    await LogData.save();
-  } else if (dispatch.status === "created" && dispatch.totalRevenue > 0) {
-    const LogData = new LogDispatch.model({
-      request: dispatch,
-      status: "created",
-      action: "findOneAndUpdate",
-    });
-    await LogData.save();
-  } else {
-    const LogData = new LogDispatch.model({
-      request: dispatch,
-      status: "others",
-      action: "findOneAndUpdate",
-    });
-    await LogData.save();
-  }
+//   if (dispatch.status === "stopped" && dispatch.totalRevenue === 0) {
+//     console.log("findOneAndUpdate:stopped");
+//     const LogData = new LogDispatch.model({
+//       request: dispatch,
+//       status: "stopped",
+//       action: "findOneAndUpdate",
+//     });
+//     await LogData.save();
+//   } else if (dispatch.status === "created" && dispatch.totalRevenue > 0) {
+//     console.log("findOneAndUpdate:created");
+//     const LogData = new LogDispatch.model({
+//       request: dispatch,
+//       status: "created",
+//       action: "findOneAndUpdate",
+//     });
+//     await LogData.save();
+//   } else {
+//     console.log("findOneAndUpdate:others");
+//     const LogData = new LogDispatch.model({
+//       request: dispatch,
+//       status: "others",
+//       action: "findOneAndUpdate",
+//     });
+//     await LogData.save();
+//   }
 
-  next();
-});
+//   next();
+// });
 
 module.exports = {
   model: mongoose.model("work", WorkSchema),
