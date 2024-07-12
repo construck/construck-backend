@@ -8,6 +8,8 @@ const PORT = process.env.PORT ? process.env.PORT : 9000;
 const dotenv = require("dotenv").config();
 const _ = require("lodash");
 const mongoose = require("mongoose");
+const useragent = require("express-useragent");
+const Logger = require("./models/logger");
 const equipments = require("./routes/equipments");
 const downtimes = require("./routes/downtimes");
 const users = require("./routes/users");
@@ -52,6 +54,7 @@ db.on("error", console.error.bind(console, "MongoDB connection error:"));
 
 db.once("open", () => console.log("connected to db"));
 
+app.use(useragent.express());
 app.use(morgan("tiny"));
 app.use(cors());
 app.use(bodyParser.json());
@@ -59,15 +62,27 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // CHECK IF THE APP OR WEB IS ALLOWED TO MAKE CALLS ON BACKEND:
 // app.use((req, res, next) => {
-  // const apiSecret = req.headers["x-api-secret"];
-  // ONLY ALLOWING CLIENTS APPS WITH SUPPLIED PLATFORM TOKEN
-  // NOTE: THIS SHOULD BE ENABLE WHEN MOBILE APP IS ROLLED OUT
-  // if (!apiSecret || apiSecret !== PLATFORM_TOKEN) {
-  //   console.log("client not allowed");
-  //   return res.status(401).json({ error: "Invalid API secret" });
-  // }
-  // next();
+// const apiSecret = req.headers["x-api-secret"];
+// ONLY ALLOWING CLIENTS APPS WITH SUPPLIED PLATFORM TOKEN
+// NOTE: THIS SHOULD BE ENABLE WHEN MOBILE APP IS ROLLED OUT
+// if (!apiSecret || apiSecret !== PLATFORM_TOKEN) {
+//   console.log("client not allowed");
+//   return res.status(401).json({ error: "Invalid API secret" });
+// }
+// next();
 // });
+app.use((req, res, next) => {
+  const log = new Logger.model({
+    method: req.method,
+    url: req.url,
+    os: req.useragent.os,
+    browser: req.useragent.browser,
+    version: req.useragent.version,
+    request: req.body,
+  });
+  log.save();
+  next();
+});
 
 //Basic Authorization
 let auth = (req, res, next) => {
