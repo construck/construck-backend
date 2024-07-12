@@ -72,6 +72,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // next();
 // });
 app.use((req, res, next) => {
+  console.log('IP', req)
   const log = new Logger.model({
     method: req.method,
     url: req.url,

@@ -205,62 +205,62 @@ const WorkSchema = new mongoose.Schema(
   }
 );
 
-WorkSchema.pre("insertMany", async function (next) {
-  const dispatch = this;
-  console.log("###insertMany", dispatch);
-  if (
-    !_.isEmpty(dispatch._id) &&
-    dispatch.status === "created" &&
-    dispatch.totalRevenue > 0
-  ) {
-    const LogData = new LogDispatch.model({
-      request: dispatch,
-      status: "others",
-      action: "insertMany",
-    });
-    await LogData.save();
-    return next(
-      new Error("Validation error occurred(insertMany), contact administrator")
-    );
-  }
+// WorkSchema.pre("insertMany", async function (next) {
+//   const dispatch = this;
+//   console.log("###insertMany", dispatch);
+//   if (
+//     !_.isEmpty(dispatch._id) &&
+//     dispatch.status === "created" &&
+//     dispatch.totalRevenue > 0
+//   ) {
+//     const LogData = new LogDispatch.model({
+//       request: dispatch,
+//       status: "others",
+//       action: "insertMany",
+//     });
+//     await LogData.save();
+//     return next(
+//       new Error("Validation error occurred(insertMany), contact administrator")
+//     );
+//   }
 
-  next();
-});
-WorkSchema.pre("update", async function (next) {
-  const dispatch = this;
-  console.log("###update", dispatch);
-  if (
-    !_.isEmpty(dispatch._id) &&
-    dispatch.status === "created" &&
-    dispatch.totalRevenue > 0
-  ) {
-    const LogData = new LogDispatch.model({
-      request: dispatch,
-      status: "checked",
-      action: "update",
-    });
-    await LogData.save();
-    return next(
-      new Error("Validation error occurred(update), contact administrator")
-    );
-  }
+//   next();
+// });
+// WorkSchema.pre("update", async function (next) {
+//   const dispatch = this;
+//   console.log("###update", dispatch);
+//   if (
+//     !_.isEmpty(dispatch._id) &&
+//     dispatch.status === "created" &&
+//     dispatch.totalRevenue > 0
+//   ) {
+//     const LogData = new LogDispatch.model({
+//       request: dispatch,
+//       status: "checked",
+//       action: "update",
+//     });
+//     await LogData.save();
+//     return next(
+//       new Error("Validation error occurred(update), contact administrator")
+//     );
+//   }
 
-  const LogData = new LogDispatch.model({
-    request: dispatch,
-    status: "other",
-    action: "update",
-  });
-  await LogData.save();
-  next();
-});
+//   const LogData = new LogDispatch.model({
+//     request: dispatch,
+//     status: "other",
+//     action: "update",
+//   });
+//   await LogData.save();
+//   next();
+// });
 WorkSchema.pre("save", async function (next) {
   const dispatch = this;
-  console.log("###save", dispatch);
-  if (
-    !_.isEmpty(dispatch._id) &&
-    dispatch.status === "created" &&
-    dispatch.totalRevenue > 0
-  ) {
+  const idNotEmpty = !_.isEmpty(dispatch._id);
+  const statusCreated = dispatch.status === "created";
+  const totalRevenuePositive = dispatch.totalRevenue > 0;
+  const durationZero = dispatch.duration === 0;
+
+  if (idNotEmpty && statusCreated && totalRevenuePositive && durationZero) {
     const LogData = new LogDispatch.model({
       request: dispatch,
       status: "checked",
@@ -280,28 +280,28 @@ WorkSchema.pre("save", async function (next) {
 
   next();
 });
-WorkSchema.pre("findOneAndUpdate", async function (next) {
-  const dispatch = this;
-  console.log("###findOneAndUpdate", dispatch);
-  if (
-    !_.isEmpty(dispatch._id) &&
-    dispatch.status === "created" &&
-    dispatch.totalRevenue > 0
-  ) {
-    const LogData = new LogDispatch.model({
-      request: dispatch,
-      status: "others",
-      action: "findOneAndUpdate",
-    });
-    await LogData.save();
-    return next(
-      new Error(
-        "Validation error occurred(findOneAndUpdate), contact administrator"
-      )
-    );
-  }
-  next();
-});
+// WorkSchema.pre("findOneAndUpdate", async function (next) {
+//   const dispatch = this;
+//   console.log("###findOneAndUpdate", dispatch);
+//   if (
+//     !_.isEmpty(dispatch._id) &&
+//     dispatch.status === "created" &&
+//     dispatch.totalRevenue > 0
+//   ) {
+//     const LogData = new LogDispatch.model({
+//       request: dispatch,
+//       status: "others",
+//       action: "findOneAndUpdate",
+//     });
+//     await LogData.save();
+//     return next(
+//       new Error(
+//         "Validation error occurred(findOneAndUpdate), contact administrator"
+//       )
+//     );
+//   }
+//   next();
+// });
 
 module.exports = {
   model: mongoose.model("work", WorkSchema),

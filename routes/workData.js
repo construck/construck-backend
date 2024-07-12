@@ -4312,12 +4312,12 @@ router.put("/recall/:id", async (req, res) => {
     }
 
     let eqId = work?.equipment?._id;
-    await workData.model.updateMany(
-      { "equipment._id": eqId },
-      {
-        $set: { eqStatus: "standby", assignedDate: null, assignedShift: "" },
-      }
-    );
+    // await workData.model.updateMany(
+    //   { "equipment._id": eqId },
+    //   {
+    //     $set: { eqStatus: "standby", assignedDate: null, assignedShift: "" },
+    //   }
+    // );
 
     let worksInProgress = await workData.model.find({
       "equipment._id": eqId,
@@ -4400,7 +4400,9 @@ router.put("/recall/:id", async (req, res) => {
     }
 
     return res.status(201).send(savedRecord);
-  } catch (err) {}
+  } catch (err) {
+    return res.status(503).send("Error occured!!");
+  }
 });
 
 router.put("/reject/:id", async (req, res) => {
