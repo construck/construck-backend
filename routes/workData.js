@@ -4765,7 +4765,7 @@ router.put("/stop/:id", async (req, res) => {
           action: "DISPATCH STOPPED",
           doneBy: stoppedBy,
           request: req.body,
-          payload: { ...work, hint: `fx:sw:stop/${id}` },
+          payload: work,
         };
         let logTobeSaved = new logData.model(log);
         await logTobeSaved.save();
@@ -4898,7 +4898,7 @@ router.put("/stop/:id", async (req, res) => {
           action: "DISPATCH STOPPED",
           doneBy: stoppedBy,
           request: req.body,
-          payload: { ...work, hint: `fx:sd:stop/${id}` },
+          payload: work,
         };
         let logTobeSaved = new logData.model(log);
         await logTobeSaved.save();
@@ -4954,7 +4954,7 @@ router.put("/stop/:id", async (req, res) => {
 });
 
 router.put("/update-stopped-work/:id", async (req, res) => {
-  return res.status(200).send({})
+  return res.status(200).send({});
   // await stopWork(req, res);
 });
 
@@ -7868,7 +7868,7 @@ async function stopWork(
             stoppedBy,
             duration,
           },
-          payload: { ...work, hint: "fx:stopWork:sw" },
+          payload: work,
         };
         let logTobeSaved = new logData.model(log);
         await logTobeSaved.save();
@@ -7988,7 +7988,7 @@ async function stopWork(
           stoppedBy,
           duration,
         },
-        payload: { ...work, hint: "fx:stopWork:sd" },
+        payload: work,
       };
       let logTobeSaved = new logData.model(log);
       await logTobeSaved.save();

@@ -625,7 +625,7 @@ router.put("/resetIndices", async (req, res) => {
     });
     return res.send(update);
   } catch (err) {
-    return res.status(500).send(err)
+    return res.status(500).send(err);
   }
 });
 
@@ -652,33 +652,46 @@ router.put("/:id", async (req, res) => {
       new: true,
     });
 
-    let toUpdate = await workData.model.find({
-      $or: [
-        {
-          "equipment._id": new mongoose.Types.ObjectId(id),
-        },
-        {
-          "equipment._id": id,
-        },
-      ],
-      $or: [
-        { workStartDate: { $gte: moment(effectiveDate) } },
-        { "dailyWork.date": { $gte: moment(effectiveDate) } },
-      ],
-    });
+    // console.log("##toUpdate", toUpdate);
+    // return;
 
-    toUpdate?.forEach(async (work) => {
-      await stopWork(
-        work?._id,
-        work?.endIndex,
-        work?.tripsDone,
-        work?.comment,
-        work?.moreComment,
-        effectiveDate,
-        work?.createdBy,
-        work?.duration
-      );
-    });
+    // let toUpdate = await workData.model.find(
+    //   {
+    //     equipmentId: new mongoose.Types.ObjectId(id),
+    //     workStartDate: { $gte: moment(effectiveDate) },
+    //     // status: "created",
+    //     // $or: [
+    //     //   {
+    //     //   },
+    //     //   {
+    //     //     "equipment._id": id,
+    //     //   },
+    //     // ],
+    //     // $or: [
+    //     //   { workStartDate: { $gte: moment(effectiveDate) } },
+    //     //   { "dailyWork.date": { $gte: moment(effectiveDate) } },
+    //     // ],
+    //   },
+    //   {
+    //     workStartDate: 1,
+    //     status: 1,
+    //   }
+    // );
+    // console.log("##toUpdate", toUpdate);
+    // return;
+
+    // toUpdate?.forEach(async (work) => {
+    //   await stopWork(
+    //     work?._id,
+    //     work?.endIndex,
+    //     work?.tripsDone,
+    //     work?.comment,
+    //     work?.moreComment,
+    //     effectiveDate,
+    //     work?.createdBy,
+    //     work?.duration
+    //   );
+    // });
 
     // await workData.model.updateMany(
     //   {
