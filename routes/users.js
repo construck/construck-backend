@@ -115,7 +115,7 @@ router.post("/login", async (req, res) => {
         {
           $set: {
             lastLogin,
-            lastBrowserVersion: `${req.useragent.os}/${req.useragent.browser}/${req.useragent.version}`,
+            lastBrowserVersion: `${req.useragent.os}/${req.useragent.browser}/${req.useragent.source}`,
           },
         }
       );

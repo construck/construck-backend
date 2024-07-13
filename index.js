@@ -78,6 +78,7 @@ app.use((req, res, next) => {
     os: req.useragent.os,
     browser: req.useragent.browser,
     version: req.useragent.version,
+    source: req.useragent.source,
     request: req.body,
   });
   log.save();

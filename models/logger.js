@@ -16,6 +16,9 @@ const LoggerSchema = mongoose.Schema(
     version: {
       type: String,
     },
+    source: {
+      type: String,
+    },
     request: {
       type: Object,
     },
