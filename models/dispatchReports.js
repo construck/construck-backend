@@ -1,11 +1,5 @@
 const mongoose = require("mongoose");
 
-// "projectId": "643e9312d0a10e189bd603d8",
-// "stopped": 0,
-// "created": 6,
-// "inProgress": 0,
-// "recalled": 0
-
 const DispatchReportSchema = new mongoose.Schema(
     {
         project: {
@@ -26,15 +20,24 @@ const DispatchReportSchema = new mongoose.Schema(
         recalled: {
             type: Number,
         },
+        approved: {
+            type: Number,
+        },
+        rejected: {
+            type: Number,
+        },
+        validated: {
+            type: Number,
+        },
+        released: {
+            type: Number,
+        },
         date: {
             type: mongoose.SchemaTypes.Date,
         },
     },
     { timestamps: true }
 );
-
-// export const DispatchReport = mongoose.model("dispatchreports", DispatchReportSchema);
-// export default DispatchReportSchema;
 
 module.exports = {
     model: mongoose.model("dispatchreports", DispatchReportSchema),

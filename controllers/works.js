@@ -3,7 +3,8 @@ const moment = require("moment");
 const Work = require("./../models/workData");
 const Equipment = require("./../models/equipments");
 const Employee = require("./../models/employees");
-const { Project } = require("../models/projects");
+// const { Project } = require("../models/projects");
+const Project = require("../models/projects");
 const Customer = require("./../models/customers");
 const Maintenance = require("../models/maintenance");
 const DispatchReport = require("./../models/dispatchReports");
@@ -56,37 +57,13 @@ async function captureDispatchDailyReport(date) {
   console.log("Cron job has started", date);
   try {
     // 1. GET ALL PROJECTS
-    let customers = await Customer.model.find();
-    let projects = [];
-    customers.map(async (c) => {
-      let cProjects = c.projects;
-      if (cProjects && cProjects?.length > 0) {
-        cProjects.map(async (p) => {
-          let _p = { ...p._doc };
-          _p.customer = c?.name;
-          _p.customerId = c?._id;
-          _p.description = p?.prjDescription;
-          projects.push(_p);
-        });
-      }
-    });
+    const projects = await Project.model
+      .find()
+      .populate("client", { _id: 1, name: 1, tinNumber: 1 });
     // 2. GET DISPATCH REPORT
     const query = {
-      $or: [
-        {
-          siteWork: false,
-          workStartDate: date,
-        },
-        {
-          siteWork: true,
-          workStartDate: {
-            $lte: date,
-          },
-          workEndDate: {
-            $gte: date,
-          },
-        },
-      ],
+      siteWork: false,
+      workStartDate: { $eq: date },
     };
     const works = await Work.model.find(query, {
       status: 1,
@@ -99,7 +76,6 @@ async function captureDispatchDailyReport(date) {
       "project._id": 1,
       "dispatch.shift": 1,
     });
-
     let report = await Promise.all(
       projects.map(async (project, index) => {
         const projectId = new mongoose.Types.ObjectId(project._id);
@@ -108,53 +84,32 @@ async function captureDispatchDailyReport(date) {
           stopped: 0,
           created: 0,
           inProgress: 0,
+          approved: 0,
+          rejected: 0,
+          validated: 0,
+          recalled: 0,
+          released: 0,
         };
-        works.map((work) => {
-          if (work?.siteWork) {
-            if (projectIdString === work.project._id) {
-              // DEAL WITH SITE WORKS
-              if (work.status === "created") {
-                count.created++;
-              } else if (
-                work.status === "on going" ||
-                work.status === "in progress"
-              ) {
-                // 1. IS SITE WORK EMPTY: CREATED +
-                work?.dailyWork?.map((d) => {
-                  if (
-                    moment(date).format("YYYY-MM-DD") ===
-                      moment(d?.date).format("YYYY-MM-DD") &&
-                    d.pending
-                  ) {
-                    count.inProgress++;
-                  } else if (
-                    moment(date).format("YYYY-MM-DD") ===
-                      moment(d?.date).format("YYYY-MM-DD") &&
-                    !d.pending
-                  ) {
-                    count.stopped++;
-                  } else {
-                  }
-                });
-                const unpostedDates = getUnpostedDates(work);
-                if (unpostedDates.includes(moment(date).format("YYYY-MM-DD"))) {
-                  count.created++;
-                }
-                // 2. IS SITE WORK NOT EMPTY: NESTED CONDITIONS
-              }
-            }
-          } else {
-            if (projectIdString === work.project._id) {
-              if (work.status === "stopped") {
-                count.stopped++;
-              } else if (work.status === "created") {
-                count.created++;
-              } else if (work.status === "in progress") {
-                count.inProgress++;
-              } else {
-              }
+        works.map((work, index) => {
+          if (projectIdString === work.project._id) {
+            if (work.status === "stopped") {
+              count.stopped++;
+            } else if (work.status === "created") {
+              count.created++;
+            } else if (work.status === "in progress") {
+              count.inProgress++;
+            } else if (work.status === "rejected") {
+              count.rejected++;
+            } else if (work.status === "validated") {
+              count.validated++;
+            } else if (work.status === "recalled") {
+              count.recalled++;
+            } else if (work.status === "released") {
+              count.released++;
+            } else {
             }
           }
+          // }
           return count;
         });
         // }
@@ -180,13 +135,14 @@ async function captureDispatchDailyReport(date) {
       // SAVE DISPATCH REPORT ONE BY ONE
       await DispatchReport.model.insertMany(report);
       // SEND EMAIL
-      await mailer.dispatchReport(date, report);
+      // await mailer.dispatchReport(date, report);
       // return;
       console.log(
         `Cronjob: Dispatch report has been captured successfully: ${date}`
       );
     }
   } catch (err) {
+    console.log("err", err);
     console.log("Cronjob: Cannot capture dispatch report: ", err);
   }
 }
@@ -196,26 +152,17 @@ async function getDispatchDailyReport(req, res) {
   date = moment(date, "YYYY-MM-DD", "UTC");
   date = date.format("YYYY-MM-DDTHH:mm:ss.SSS") + "Z";
   // 1. GET ALL PROJECTS
-  let customers = await Customer.model.find();
-  let projects = [];
-  customers.map(async (c) => {
-    let cProjects = c.projects;
-    if (cProjects && cProjects?.length > 0) {
-      cProjects.map(async (p) => {
-        let _p = { ...p._doc };
-        _p.customer = c?.name;
-        _p.customerId = c?._id;
-        _p.description = p?.prjDescription;
-        projects.push(_p);
-      });
-    }
-  });
+  const projects = await Project.model
+    .find()
+    .populate("client", { _id: 1, name: 1, tinNumber: 1 });
   // 2. GET DISPATCH REPORT
   const query = {
     $or: [
       {
         siteWork: false,
-        workStartDate: date,
+        workStartDate: {
+          $eq: date,
+        },
       },
       {
         siteWork: true,
@@ -248,10 +195,15 @@ async function getDispatchDailyReport(req, res) {
         stopped: 0,
         created: 0,
         inProgress: 0,
+        approved: 0,
+        rejected: 0,
+        validated: 0,
+        recalled: 0,
+        released: 0,
       };
       works.map((work) => {
         if (work?.siteWork) {
-          if (projectIdString === work.project._id) {
+          if (projectIdString === work.project._id.toString()) {
             // DEAL WITH SITE WORKS
             if (work.status === "created") {
               count.created++;
@@ -284,11 +236,21 @@ async function getDispatchDailyReport(req, res) {
             }
           }
         } else {
-          if (projectIdString === work.project._id) {
+          if (projectIdString === work.project._id.toString()) {
             if (work.status === "stopped") {
               count.stopped++;
             } else if (work.status === "created") {
               count.created++;
+            } else if (work.status === "approved") {
+              count.approved++;
+            } else if (work.status === "rejected") {
+              count.rejected++;
+            } else if (work.status === "validated") {
+              count.validated++;
+            } else if (work.status === "recalled") {
+              count.recalled++;
+            } else if (work.status === "released") {
+              count.released++;
             } else if (work.status === "in progress") {
               count.inProgress++;
             } else {
@@ -589,7 +551,7 @@ async function createDispatch(req, res) {
         "equipment.plateNumber": 1,
         "dispatch.date": 1,
         "dispatch.shift": 1,
-        status: 1
+        status: 1,
       }
     );
     if (!_.isEmpty(isExist)) {
