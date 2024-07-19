@@ -820,7 +820,6 @@ async function releaseValidated(req, res) {
       year,
       aggregatedRevenue
     );
-
     // TODO: UPDATE STATUS AND INVOICE ID OF ALL WORKS WITH VALIDATED STATUS
     const updatedDispatches = await Work.model.updateMany(
       {

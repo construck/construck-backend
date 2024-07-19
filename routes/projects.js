@@ -83,6 +83,7 @@ router.get("/:id", async (req, res) => {
     );
     return res.status(200).send({ project, siteManager, projectManager });
   } catch (err) {
+    console.log("eer", err);
     return res.status(500).send(err);
   }
 });
