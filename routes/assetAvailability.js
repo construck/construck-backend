@@ -90,13 +90,15 @@ router.post("/", async (req, res) => {
       dateData.unavailable = unavailable;
 
       let dateDataUpdated = await dateData.save();
-      res.send(dateDataUpdated).status(202);
+      return res.status(200).send(dateDataUpdated).status(202);
     } else {
       let dateDataToSave = new assetAvblty.model(req.body);
       let dataSaved = await dateDataToSave.save();
-      res.send(dataSaved).status(201);
+      return res.status(200).send(dataSaved).status(201);
     }
-  } catch (err) {}
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 module.exports = router;

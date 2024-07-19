@@ -65,13 +65,13 @@ router.get("/", async (req, res) => {
       .populate("workDone")
       .sort([["_id", "descending"]]);
     // res.status(200).send(workList.filter((w) => !_.isNull(w.driver)));
-    res.status(200).send(
+    return res.status(200).send(
       workList.filter((w) => {
         w.workDone !== null;
       })
     );
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -2824,6 +2824,7 @@ router.get("/monthlyRevenuePerProject/:projectName", async (req, res) => {
     {
       $match: {
         "project.prjDescription": projectName,
+        // siteWork: false,
       },
     },
     {
@@ -2835,14 +2836,16 @@ router.get("/monthlyRevenuePerProject/:projectName", async (req, res) => {
     },
     {
       $match: {
-        $or: [
-          {
-            "dailyWork.status": status,
-          },
-          {
-            status: status,
-          },
-        ],
+        status: "validated",
+        siteWork: false
+        // $or: [
+        //   {
+        //     "dailyWork.status": status,
+        //   },
+        //   {
+        //     status,
+        //   },
+        // ],
       },
     },
     {
@@ -2900,8 +2903,9 @@ router.get("/monthlyRevenuePerProject/:projectName", async (req, res) => {
 
   try {
     let monthlyRevenues = await workData.model.aggregate(pipeline);
-    return res.send(monthlyRevenues);
+    return res.status(200).send(monthlyRevenues);
   } catch (err) {
+    console.log("@@@", err);
     return res.send(err);
   }
 });
@@ -3111,6 +3115,7 @@ router.get(
       let monthlyRevenues = await workData.model.aggregate(pipeline);
       return res.send(monthlyRevenues);
     } catch (err) {
+      console.log("333", err);
       return res.status(500).send(err);
     }
   }
@@ -3981,41 +3986,56 @@ router.put("/validateDailyWork/:id", async (req, res) => {
     approvedExpenditure,
   } = req.body;
 
-  let workRec = await workData.model.findById(id);
-  let _approvedRevenue = workRec.approvedRevenue ? workRec.approvedRevenue : 0;
-  let _approvedExpenditure = workRec.approvedExpenditure
-    ? workRec.approvedExpenditure
-    : 0;
-  let _approvedDuration = workRec.approvedDuration
-    ? workRec.approvedDuration
-    : 0;
+  try {
+    const workRec = await workData.model.findById(id);
+    const _approvedRevenue = workRec.approvedRevenue
+      ? workRec.approvedRevenue
+      : 0;
+    const _approvedExpenditure = workRec.approvedExpenditure
+      ? workRec.approvedExpenditure
+      : 0;
+    const _approvedDuration = workRec.approvedDuration
+      ? workRec.approvedDuration
+      : 0;
 
-  let work = await workData.model.findOneAndUpdate(
-    {
-      _id: id,
-      "dailyWork.date": postingDate,
-      pending: false,
-    },
-    {
-      $set: {
-        "dailyWork.$.status": "validated",
-        approvedRevenue: _approvedRevenue - approvedRevenue,
-        approvedDuration: _approvedDuration - approvedDuration,
-        approvedExpenditure: _approvedExpenditure - approvedExpenditure,
+    const work = await workData.model.findOneAndUpdate(
+      {
+        _id: id,
+        $or: [
+          {
+            "dailyWork.date": moment(postingDate).format("DD-MMM-YYYY"),
+          },
+          {
+            "dailyWork.date": postingDate,
+          },
+        ],
+        "dailyWork.pending": false,
       },
-    }
-  );
+      {
+        $set: {
+          "dailyWork.$.status": "validated",
+          approvedRevenue: _approvedRevenue - approvedRevenue,
+          approvedDuration: _approvedDuration - approvedDuration,
+          approvedExpenditure: _approvedExpenditure - approvedExpenditure,
+        },
+      }
+    );
 
-  //log saving
-  let log = {
-    action: "DISPATCH VALIDATED",
-    doneBy: approvedBy,
-    request: req.body,
-    payload: workRec,
-  };
-  let logTobeSaved = new logData.model(log);
-  await logTobeSaved.save();
-  res.send(workRec);
+    //log saving
+    const log = {
+      action: "DISPATCH VALIDATED",
+      doneBy: approvedBy,
+      request: req.body,
+      payload: work,
+    };
+    const logTobeSaved = new logData.model(log);
+    await logTobeSaved.save();
+    return res.status(200).send(workRec);
+  } catch (error) {
+    return res.status(500).send({
+      error: error,
+    });
+  }
 });
 
 router.put("/validateWork/:id", async (req, res) => {
@@ -4028,42 +4048,51 @@ router.put("/validateWork/:id", async (req, res) => {
     approvedExpenditure,
   } = req.body;
 
-  let workRec = await workData.model.findById(id);
-  let _approvedRevenue = workRec.approvedRevenue ? workRec.approvedRevenue : 0;
-  let _approvedExpenditure = workRec.approvedExpenditure
-    ? workRec.approvedExpenditure
-    : 0;
-  let _approvedDuration = workRec.approvedDuration
-    ? workRec.approvedDuration
-    : 0;
+  try {
+    let workRec = await workData.model.findById(id);
+    let _approvedRevenue = workRec.approvedRevenue
+      ? workRec.approvedRevenue
+      : 0;
+    let _approvedExpenditure = workRec.approvedExpenditure
+      ? workRec.approvedExpenditure
+      : 0;
+    let _approvedDuration = workRec.approvedDuration
+      ? workRec.approvedDuration
+      : 0;
 
-  let work = await workData.model.findOneAndUpdate(
-    {
-      _id: id,
-      "dispatch.date": postingDate,
-      status: "approved",
-    },
-    {
-      $set: {
-        status: "validated",
-        approvedRevenue: _approvedRevenue - approvedRevenue,
-        approvedDuration: _approvedDuration - approvedDuration,
-        approvedExpenditure: _approvedExpenditure - approvedExpenditure,
+    let work = await workData.model.findOneAndUpdate(
+      {
+        _id: id,
+        "dispatch.date": postingDate,
+        status: "approved",
       },
-    }
-  );
+      {
+        $set: {
+          status: "validated",
+          approvedRevenue: _approvedRevenue - approvedRevenue,
+          approvedDuration: _approvedDuration - approvedDuration,
+          approvedExpenditure: _approvedExpenditure - approvedExpenditure,
+        },
+      }
+    );
 
-  //log saving
-  let log = {
-    action: "DISPATCH VALIDATED",
-    doneBy: approvedBy,
-    request: req.body,
-    payload: workRec,
-  };
-  let logTobeSaved = new logData.model(log);
-  await logTobeSaved.save();
+    //log saving
+    let log = {
+      action: "DISPATCH VALIDATED",
+      doneBy: approvedBy,
+      request: req.body,
+      payload: workRec,
+    };
+    let logTobeSaved = new logData.model(log);
+    await logTobeSaved.save();
 
-  res.send(workRec);
+    return res.status(200).send(workRec);
+  } catch (error) {
+    console.log("##e", error);
+    return res.status(500).send({
+      error: error,
+    });
+  }
 });
 
 router.put("/rejectDailyWork/:id", async (req, res) => {
@@ -4216,48 +4245,52 @@ router.put("/reject/:id", async (req, res) => {
   }
 });
 
-router.put("/releaseValidated/:projectName", async (req, res) => {
-  let { month, year } = req.query;
-  let { projectName } = req.params;
-  // month = month - 1;
-  try {
-    if (month < 10) month = "0" + month;
-    const startOfMonth = moment()
-      .startOf("month")
-      .format(`${year}-${month}-DD`);
-    const endOfMonth = moment()
-      .endOf("month")
-      .format(
-        `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
-      );
+// router.put("/releaseValidated/:projectName", async (req, res) => {
+//   let { month, year } = req.query;
+//   let { projectName } = req.params;
+//   // month = month - 1;
+//   try {
+//     if (month < 10) month = "0" + month;
+//     const startOfMonth = moment()
+//       .startOf("month")
+//       .format(`${year}-${month}-DD`);
+//     const endOfMonth = moment()
+//       .endOf("month")
+//       .format(
+//         `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
+//       );
 
-    let q2 = await workData.model.updateMany(
-      {
-        siteWork: true,
-        "project.prjDescription": projectName,
-      },
-      {
-        $set: {
-          "dailyWork.$[elem].status": "released",
-        },
-      },
-      {
-        arrayFilters: [
-          {
-            "elem.date": {
-              $gte: new Date(year, month - 1, 1),
-              $lt: new Date(year, month, 1),
-            },
-          },
-        ],
-        multi: true,
-      }
-    );
+//     let q2 = await workData.model.updateMany(
+//       {
+//         siteWork: true,
+//         "project.prjDescription": projectName,
+//       },
+//       {
+//         $set: {
+//           "dailyWork.$[elem].status": "released",
+//         },
+//       },
+//       {
+//         arrayFilters: [
+//           {
+//             "elem.date": {
+//               $gte: new Date(year, month - 1, 1),
+//               $lt: new Date(year, month, 1),
+//             },
+//           },
+//         ],
+//         multi: true,
+//       }
+//     );
 
-    res.send({ q2 });
-  } catch (err) {
-    res.send(err);
-  }
+//     return res.status(200).send({ q2 });
+//   } catch (err) {
+//     return res.status(503).send(err);
+//   }
+// });
+
+router.put("/releaseValidated/:projectName", (req, res) => {
+  works.releaseValidated(req, res);
 });
 
 router.put("/rejectValidated/:projectName", async (req, res) => {
@@ -5100,8 +5133,10 @@ router.put("/reverse/:id", async (req, res) => {
     await logTobeSaved.save();
     await work.save();
 
-    res.send(work).status(201);
-  } catch (err) {}
+    return res.send(work).status(201);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
 
 router.put("/amend/:id", async (req, res) => {
@@ -5371,9 +5406,9 @@ router.put("/swreverse/:id", async (req, res) => {
     await logTobeSaved.save();
     await work.save();
 
-    res.send(work).status(201);
+    return res.status(201).send(work);
   } catch (err) {
-    res.send(err);
+    return res.status(503).send(err);
   }
 });
 
@@ -5454,9 +5489,9 @@ router.post("/gethoursperdriver/", async (req, res) => {
       })
       .filter((w) => w["Main Driver"] !== "undefined undefined");
 
-    res.send(refinedData);
+    return res.status(200).send(refinedData);
   } catch (err) {
-    res.send(err);
+    return res.status(503).send(err);
   }
 });
 
@@ -5474,8 +5509,10 @@ router.put("/driverassistants/", async (req, res) => {
     });
     let uniqueAssistants = [...new Set(allAssistants)];
     let list = await getEmployees(uniqueAssistants);
-    res.send(list);
-  } catch (err) {}
+    return res.status(200).send(list);
+  } catch (err) {
+    return res.status(503).send(err);
+  }
 });
 
 router.post("/reports/generate", (req, res) => {
@@ -5945,6 +5982,7 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
     {
       $match: {
         "project.prjDescription": prjDescription,
+        workStartDate: { $lte: new Date() },
       },
     },
     {
@@ -5954,23 +5992,6 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
         preserveNullAndEmptyArrays: true,
       },
     },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "dailyWork.status": {
-    //           $exists: false,
-    //         },
-    //         siteWork: true,
-    //       },
-    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
-    //       {
-    //         status: "stopped",
-    //         siteWork: false,
-    //       },
-    //     ],
-    //   },
-    // },
     {
       $addFields: {
         transactionDate: {
@@ -6372,37 +6393,37 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
         preserveNullAndEmptyArrays: true,
       },
     },
-    {
-      $match: {
-        $or: [
-          {
-            "dailyWork.status": {
-              $exists: false,
-            },
-            siteWork: true,
-          },
-          {
-            "dailyWork.status": {
-              $exists: true,
-              $nin: ["created", "recalled"],
-            },
-            siteWork: true,
-          },
-          {
-            status: "stopped",
-            siteWork: false,
-          },
-          {
-            status: "approved",
-            siteWork: false,
-          },
-          {
-            status: "validated",
-            siteWork: false,
-          },
-        ],
-      },
-    },
+    // {
+    //   $match: {
+    //     $or: [
+    //       {
+    //         "dailyWork.status": {
+    //           $exists: false,
+    //         },
+    //         siteWork: true,
+    //       },
+    //       {
+    //         "dailyWork.status": {
+    //           $exists: true,
+    //           $ne: "recalled",
+    //         },
+    //         siteWork: true,
+    //       },
+    //       {
+    //         status: "stopped",
+    //         siteWork: false,
+    //       },
+    //       {
+    //         status: "approved",
+    //         siteWork: false,
+    //       },
+    //       {
+    //         status: "validated",
+    //         siteWork: false,
+    //       },
+    //     ],
+    //   },
+    // },
     {
       $addFields: {
         transactionDate: {
@@ -6464,7 +6485,6 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
 
   try {
     let jobs = await workData.model.aggregate(pipeline);
-    console.log("@@jobs", jobs.length);
     let _jobs = [...jobs];
 
     return _jobs;

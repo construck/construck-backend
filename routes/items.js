@@ -15,7 +15,7 @@ router.get('/items', async (req, res) => {
     const items = await itemsQuery;
     if(!items) return res.status(404).json({message: "No Items Found"});
 
-    res.status(200).send({items, totalItems})
+    return res.status(200).send({items, totalItems})
 })
 
 router.post('/items', async (req, res) => {

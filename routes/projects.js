@@ -3,9 +3,11 @@ const moment = require("moment");
 const NodeCache = require("node-cache");
 const prjData = require("../models/projects");
 const custData = require("../models/customers");
+const userData = require("../models/users");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const workData = require("../models/workData");
+const projects = require("../controllers/projects");
 const { default: mongoose } = require("mongoose");
 const cache = new NodeCache({ stdTTL: 7200 });
 
@@ -62,7 +64,6 @@ router.get("/v2", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
-  console.log("####DATA", id);
   try {
     // await assetAvblty.model.findOne({ date: today });
     const project = await prjData.model
@@ -71,8 +72,38 @@ router.get("/:id", async (req, res) => {
       .populate("projectAdmin", {
         password: 0,
       });
-    return res.status(200).send(project);
+    const siteManager = await userData.model.findOne(
+      {
+        userType: "customer-site-manager",
+        assignedProjects: {
+          $elemMatch: {
+            _id: project._id.toString(),
+          },
+        },
+      },
+      {
+        password: 0,
+        assignedProjects: 0,
+      }
+    );
+    const projectManager = await userData.model.findOne(
+      {
+        userType: "customer-project-manager",
+        assignedProjects: {
+          $elemMatch: {
+            _id: project._id.toString(),
+          },
+        },
+      },
+      {
+        password: 0,
+        assignedProjects: 0,
+      }
+    );
+    console.log("##project", siteManager);
+    return res.status(200).send({ project, siteManager, projectManager });
   } catch (err) {
+    console.log("eer", err);
     return res.status(500).send(err);
   }
 });
@@ -291,9 +322,9 @@ router.get("/approvedRevenue/:prjDescription", async (req, res) => {
 
     let worksCursor = await workData.model.aggregate(aggr);
 
-    res.send(worksCursor);
+    return res.status(200).send(worksCursor);
   } catch (err) {
-    res.send(err);
+    return res.status(503).send(err);
   }
 });
 
@@ -512,9 +543,9 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
     let worksCursor = await workData.model.aggregate(aggr);
 
     console.log(worksCursor);
-    res.send(worksCursor);
+    return res.send(worksCursor);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -690,9 +721,9 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
 
     let worksCursor = await workData.model.aggregate(pipeline);
 
-    res.send(worksCursor);
+    return res.send(worksCursor);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -707,45 +738,102 @@ router.get("/releasedRevenue/:projectName", async (req, res) => {
     return res.status(500).send(err);
   }
 });
-router.get("/:id/invoice", async (req, res) => {
+router.get("/invoice/:id", async (req, res) => {
   const { id } = req.params;
-  const { month, year } = req.query;
-  const date = moment(`${year}-${month}`);
-  console.log("&&&&date", date);
+  // const { month, year } = req.query;
+  // const date = moment(`${year}-${month}`);
   try {
-    let pipeline = [
+    // let pipeline = [
+    //   {
+    //     $match: {
+    //       "project._id": id,
+    //       status: "approved",
+    //     },
+    //   },
+    //   {
+    //     $unwind: {
+    //       path: "$dailyWork",
+    //       includeArrayIndex: "string",
+    //       preserveNullAndEmptyArrays: true,
+    //     },
+    //   },
+    //   {
+    //     $addFields: {
+    //       date: {
+    //         $cond: {
+    //           if: {
+    //             $eq: ["$siteWork", false],
+    //           },
+    //           then: "$workStartDate",
+    //           else: "$dailyWork.date",
+    //         },
+    //       },
+    //     },
+    //   },
+    //   {
+    //     $match: {
+    //       date: {
+    //         $gte: new Date(date),
+    //         $lt: new Date(moment(date).endOf("month")),
+    //       },
+    //     },
+    //   },
+    //   {
+    //     $addFields: {
+    //       amount: {
+    //         $cond: {
+    //           if: {
+    //             $eq: ["$siteWork", false],
+    //           },
+    //           then: "$totalRevenue",
+    //           else: "$dailyWork.totalRevenue",
+    //         },
+    //       },
+    //     },
+    //   },
+    //   {
+    //     $group: {
+    //       _id: "$equipment.plateNumber",
+    //       amount: {
+    //         $sum: "$amount",
+    //       },
+    //       duration: {
+    //         $sum: "$duration",
+    //       },
+    //       equipment: {
+    //         $first: "$equipment",
+    //       },
+    //     },
+    //   },
+    //   {
+    //     $project: {
+    //       _id: 1,
+    //       "equipment.eqDescription": 1,
+    //       "equipment.plateNumber": 1,
+    //       "equipment.uom": 1,
+    //       "dispatch.date": 1,
+    //       "dispatch.shift": 1,
+    //       duration: 1,
+    //       status: 1,
+    //       date: 1,
+    //       totalRevenue: 1,
+    //       siteWork: 1,
+    //       workStartDate: 1,
+    //       amount: 1,
+    //       siteWork: 1,
+    //     },
+    //   },
+    //   {
+    //     $sort: {
+    //       date: -1,
+    //     },
+    //   },
+    // ];
+
+    const pipeline = [
       {
         $match: {
-          "project._id": id,
-          status: "approved",
-        },
-      },
-      {
-        $unwind: {
-          path: "$dailyWork",
-          includeArrayIndex: "string",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $addFields: {
-          date: {
-            $cond: {
-              if: {
-                $eq: ["$siteWork", false],
-              },
-              then: "$workStartDate",
-              else: "$dailyWork.date",
-            },
-          },
-        },
-      },
-      {
-        $match: {
-          date: {
-            $gte: new Date(date),
-            $lt: new Date(moment(date).endOf("month")),
-          },
+          invoice: new mongoose.Types.ObjectId(id),
         },
       },
       {
@@ -799,8 +887,10 @@ router.get("/:id/invoice", async (req, res) => {
         },
       },
     ];
-
     const response = await workData.model.aggregate(pipeline);
+    // const response = await workData.model.find({
+    //   invoice: id,
+    // });
     const project = await prjData.model
       .findOne({ _id: id })
       .populate("client", { _id: 1, name: 1, tinNumber: 1 })
@@ -817,7 +907,9 @@ router.get("/:id/invoice", async (req, res) => {
     return res.status(500).send(err);
   }
 });
-
+router.get("/:id/invoices", async (req, res) => {
+  projects.getInvoicesByProject(req, res);
+});
 router.post("/", async (req, res) => {
   let { prjDescription, customer, startDate, endDate, status } = req.body;
   try {

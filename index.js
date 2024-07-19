@@ -87,11 +87,10 @@ app.use((req, res, next) => {
 
 //Basic Authorization
 let auth = (req, res, next) => {
-  // const auth = { login: "sh4b1k4", password: "@9T4Tr73%62l!iHqdhWv" }; // change this
   const auth = {
     login: process.env.CONS_API_USER,
     password: process.env.CONS_API_PASS,
-  }; // change this
+  }; 
   const b64auth = (req.headers.authorization || "").split(" ")[1] || "";
   const [login, password] = Buffer.from(b64auth, "base64")
     .toString()
@@ -99,13 +98,12 @@ let auth = (req, res, next) => {
   if (login && password && login === auth.login && password === auth.password) {
     return next();
   } else {
-    console.log("@@@AUTHED");
     if (NODE_ENV === "development") {
       return next();
     }
   }
-  res.set("WWW-Authenticate", 'Basic realm="401"'); // change this
-  res.status(401).send("Authentication required."); // custom message
+  res.set("WWW-Authenticate", 'Basic realm="401"'); 
+  res.status(401).send("Authentication required."); 
 };
 
 app.get("/", (req, res) => {

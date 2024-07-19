@@ -279,6 +279,10 @@ router.post("/login", async (req, res) => {
 });
 
 router.delete("/delete-account/:id", async (req, res) => {
+  return res.status(403).send({
+    code: "USER_DELETE_ERROR",
+    message: "Error occurred, Try again later or contact support",
+  });
   const { id } = req.params;
   const { password } = req.body;
   try {
