@@ -204,6 +204,7 @@ const WorkSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
 WorkSchema.pre("save", async function (next) {
   const dispatch = this;
   const idNotEmpty = !_.isEmpty(dispatch._id);
@@ -219,7 +220,7 @@ WorkSchema.pre("save", async function (next) {
   ) {
     const LogData = new LogDispatch.model({
       request: dispatch,
-      status: "checked",
+      status: "created",
       action: "save",
     });
     await LogData.save();
