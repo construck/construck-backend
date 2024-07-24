@@ -2293,12 +2293,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           },
         },
       },
-      // {
-      //   $addFields: {
-      //     turnboy1: { $arrayElemAt: ["$turnBoy", 0] },
-      //     turnboy2: { $arrayElemAt: ["$turnBoy", 1] },
-      //   },
-      // },
       {
         $lookup: {
           from: "users",
@@ -2405,27 +2399,19 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           .map((d) => {
             return d.date;
           });
-        console.log("@@w", w.workStartDate);
-        let workStartDate = moment(w.workStartDate).format("DD-MMM-YYYY");
-        console.log("w@@w", workStartDate);
+        let workStartDate = moment(w.workStartDate);
         let workDurationDays = w.workDurationDays;
 
         let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
         for (let i = 0; i < workDurationDays - 1; i++) {
           datesToPost.push(workStartDate.add(1, "days").format("DD-MMM-YYYY"));
         }
-        console.log("@@w", datesToPost);
-
-        // console.log("@@datePosted_Dates", datePosted_Dates);
-        // console.log("@@datesPendingPosted", datesPendingPosted);
-        // console.log("@@datesToPost", datesToPost);
         let dateNotPosted = datesToPost.filter(
           (d) =>
             !_.includes(datePosted_Dates, d) &&
             !_.includes(datesPendingPosted, d) &&
             moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
         );
-        console.log("@@dateNotPosted", dateNotPosted);
 
         datesPosted.map((dP) => {
           if (
@@ -2809,6 +2795,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     return res.status(200).send(orderedList.filter((w) => w !== null));
   } catch (err) {
+    console.log('@@ee', err)
     return res.send(err);
   }
 });
