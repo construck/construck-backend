@@ -4,6 +4,7 @@ const NodeCache = require("node-cache");
 const prjData = require("../models/projects");
 const custData = require("../models/customers");
 const userData = require("../models/users");
+const ProjectInvoice = require("../models//projectInvoices");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const workData = require("../models/workData");
@@ -100,10 +101,8 @@ router.get("/:id", async (req, res) => {
         assignedProjects: 0,
       }
     );
-    console.log("##project", siteManager);
     return res.status(200).send({ project, siteManager, projectManager });
   } catch (err) {
-    console.log("eer", err);
     return res.status(500).send(err);
   }
 });
@@ -271,21 +270,6 @@ router.get("/approvedRevenue/:prjDescription", async (req, res) => {
             },
           },
       },
-      // {
-      //   $addFields:
-      //     /**
-      //      * newField: The new field name.
-      //      * expression: The new field expression.
-      //      */
-      //     {
-      //       totalRevenue: {
-      //         $add: [
-      //           "$totalRevenueSw",
-      //           "$totalRevenueSd",
-      //         ],
-      //       },
-      //     },
-      // }
       {
         $match: {
           $or: [
@@ -491,21 +475,6 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
             },
           },
       },
-      // {
-      //   $addFields:
-      //     /**
-      //      * newField: The new field name.
-      //      * expression: The new field expression.
-      //      */
-      //     {
-      //       totalRevenue: {
-      //         $add: [
-      //           "$totalRevenueSw",
-      //           "$totalRevenueSd",
-      //         ],
-      //       },
-      //     },
-      // }
       {
         $match: {
           $or: [
@@ -740,96 +709,7 @@ router.get("/releasedRevenue/:projectName", async (req, res) => {
 });
 router.get("/invoice/:id", async (req, res) => {
   const { id } = req.params;
-  // const { month, year } = req.query;
-  // const date = moment(`${year}-${month}`);
   try {
-    // let pipeline = [
-    //   {
-    //     $match: {
-    //       "project._id": id,
-    //       status: "approved",
-    //     },
-    //   },
-    //   {
-    //     $unwind: {
-    //       path: "$dailyWork",
-    //       includeArrayIndex: "string",
-    //       preserveNullAndEmptyArrays: true,
-    //     },
-    //   },
-    //   {
-    //     $addFields: {
-    //       date: {
-    //         $cond: {
-    //           if: {
-    //             $eq: ["$siteWork", false],
-    //           },
-    //           then: "$workStartDate",
-    //           else: "$dailyWork.date",
-    //         },
-    //       },
-    //     },
-    //   },
-    //   {
-    //     $match: {
-    //       date: {
-    //         $gte: new Date(date),
-    //         $lt: new Date(moment(date).endOf("month")),
-    //       },
-    //     },
-    //   },
-    //   {
-    //     $addFields: {
-    //       amount: {
-    //         $cond: {
-    //           if: {
-    //             $eq: ["$siteWork", false],
-    //           },
-    //           then: "$totalRevenue",
-    //           else: "$dailyWork.totalRevenue",
-    //         },
-    //       },
-    //     },
-    //   },
-    //   {
-    //     $group: {
-    //       _id: "$equipment.plateNumber",
-    //       amount: {
-    //         $sum: "$amount",
-    //       },
-    //       duration: {
-    //         $sum: "$duration",
-    //       },
-    //       equipment: {
-    //         $first: "$equipment",
-    //       },
-    //     },
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 1,
-    //       "equipment.eqDescription": 1,
-    //       "equipment.plateNumber": 1,
-    //       "equipment.uom": 1,
-    //       "dispatch.date": 1,
-    //       "dispatch.shift": 1,
-    //       duration: 1,
-    //       status: 1,
-    //       date: 1,
-    //       totalRevenue: 1,
-    //       siteWork: 1,
-    //       workStartDate: 1,
-    //       amount: 1,
-    //       siteWork: 1,
-    //     },
-    //   },
-    //   {
-    //     $sort: {
-    //       date: -1,
-    //     },
-    //   },
-    // ];
-
     const pipeline = [
       {
         $match: {
@@ -861,6 +741,9 @@ router.get("/invoice/:id", async (req, res) => {
           equipment: {
             $first: "$equipment",
           },
+          project: {
+            $first: "$project",
+          },
         },
       },
       {
@@ -869,8 +752,10 @@ router.get("/invoice/:id", async (req, res) => {
           "equipment.eqDescription": 1,
           "equipment.plateNumber": 1,
           "equipment.uom": 1,
+          "equipment.rate": 1,
           "dispatch.date": 1,
           "dispatch.shift": 1,
+          project: 1,
           duration: 1,
           status: 1,
           date: 1,
@@ -888,18 +773,93 @@ router.get("/invoice/:id", async (req, res) => {
       },
     ];
     const response = await workData.model.aggregate(pipeline);
-    // const response = await workData.model.find({
-    //   invoice: id,
-    // });
-    const project = await prjData.model
-      .findOne({ _id: id })
-      .populate("client", { _id: 1, name: 1, tinNumber: 1 })
-      .populate("projectAdmin", {
-        password: 0,
+    // GET INVOICE INFORMATION
+    const invoice = await ProjectInvoice.model
+      .findOne({
+        _id: new mongoose.Types.ObjectId(id),
+      })
+      .populate("project", { _id: 1, prjDescription: 1 })
+      .populate("revenueAdmin", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+        signature: 1
+      })
+      .populate("accountManager", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+        signature: 1
+      })
+      .populate("siteManager", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+        signature: 1
+      })
+      .populate("projectManager", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+        signature: 1
       });
-    console.log("$$$$", response);
+    // GET PROJECT ID:
+    const project = await prjData.model
+      .findOne({
+        _id: invoice.project._id,
+      })
+      .populate("client", { _id: 1, name: 1, tinNumber: 1 });
+    let siteManager = null;
+    siteManager = await userData.model.findOne(
+      {
+        userType: "customer-site-manager",
+        assignedProjects: {
+          $elemMatch: {
+            _id: project._id.toString(),
+          },
+        },
+      },
+      {
+        firstName: 1,
+        lastName: 1,
+      }
+    );
+    let projectManager = null;
+    projectManager = await userData.model.findOne(
+      {
+        userType: "customer-project-manager",
+        assignedProjects: {
+          $elemMatch: {
+            _id: project._id.toString(),
+          },
+        },
+      },
+      {
+        firstName: 1,
+        lastName: 1,
+      }
+    );
+    let revenueAdmin = null;
+    revenueAdmin = await userData.model.findOne(
+      {
+        userType: "revenue",
+        assignedProjects: {
+          $elemMatch: {
+            _id: project._id.toString(),
+          },
+        },
+      },
+      {
+        firstName: 1,
+        lastName: 1,
+      }
+    );
     return res.status(200).send({
-      meta: project,
+      meta: { project, invoice, siteManager, projectManager, revenueAdmin },
       invoice: response,
     });
   } catch (err) {

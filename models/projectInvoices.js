@@ -26,6 +26,26 @@ const ProjectInvoicesSchema = mongoose.Schema(
     amount: {
       type: Number,
     },
+    revenueAdmin: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "users",
+    },
+    accountManager: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "users",
+    },
+    siteManager: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "users",
+    },
+    projectManager: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "users",
+    },
   },
   { timestamp: true }
 );

@@ -2355,9 +2355,18 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           preserveNullAndEmptyArrays: true,
         },
       },
+      {
+        $unwind: {
+          path: "$project",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
     ];
 
+    
     let workList = await workData.model.aggregate(pipeline);
+    console.log("workList", workList);
+    return;
 
     let listToSend = workList;
 
@@ -2365,6 +2374,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     let l = listToSend.map((w, index) => {
       let work = null;
+      // console.log("!!w", w);
+      console.log("!!w", w.workStartDate);
 
       if (w.siteWork && w.status !== "stopped") {
         let dailyWorks = w.dailyWork;
@@ -2396,20 +2407,27 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           .map((d) => {
             return d.date;
           });
-        let workStartDate = moment(w.workStartDate);
+        console.log("@@w", w.workStartDate);
+        let workStartDate = moment(w.workStartDate).format("DD-MMM-YYYY");
+        console.log("w@@w", workStartDate);
         let workDurationDays = w.workDurationDays;
 
         let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
         for (let i = 0; i < workDurationDays - 1; i++) {
           datesToPost.push(workStartDate.add(1, "days").format("DD-MMM-YYYY"));
         }
+        console.log("@@w", datesToPost);
 
+        // console.log("@@datePosted_Dates", datePosted_Dates);
+        // console.log("@@datesPendingPosted", datesPendingPosted);
+        // console.log("@@datesToPost", datesToPost);
         let dateNotPosted = datesToPost.filter(
           (d) =>
             !_.includes(datePosted_Dates, d) &&
             !_.includes(datesPendingPosted, d) &&
             moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
         );
+        console.log("@@dateNotPosted", dateNotPosted);
 
         datesPosted.map((dP) => {
           if (
@@ -2837,7 +2855,7 @@ router.get("/monthlyRevenuePerProject/:projectName", async (req, res) => {
     {
       $match: {
         status: "validated",
-        siteWork: false
+        siteWork: false,
         // $or: [
         //   {
         //     "dailyWork.status": status,
@@ -4204,8 +4222,8 @@ router.put("/reject/:id", async (req, res) => {
       .populate("workDone");
 
     work.status = "rejected";
-    // work.reasonForRejection = reasonForRejection;
-    work.reasonForRejection = "Reason";
+    work.reasonForRejection = reasonForRejection;
+    // work.reasonForRejection = "Reason";
     work.rejectedRevenue = work.totalRevenue;
     work.rejectedDuration = work.duration;
     work.rejectedExpenditure = work.totalExpenditure;
@@ -4454,8 +4472,8 @@ router.put("/reject/:id", async (req, res) => {
     let ownedByConstruck = workRec.equipment.eqOwner == "Construck";
 
     work.status = "rejected";
-    // work.reasonForRejection = reasonForRejection;
-    work.reasonForRejection = "Reason";
+    work.reasonForRejection = reasonForRejection;
+    // work.reasonForRejection = "Reason";
     work.rejectedRevenue = work.totalRevenue;
     work.totalRevenue = 0;
     work.totalExpenditure = 0;

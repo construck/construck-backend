@@ -75,6 +75,9 @@ const UserSchema = mongoose.Schema(
     lastBrowserVersion: {
       type: String,
     },
+    signature: {
+      type: String,
+    },
   },
 
   { timestamps: true }

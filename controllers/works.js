@@ -597,6 +597,7 @@ async function createDispatch(req, res) {
         firstName: 1,
         lastName: 1,
       });
+    console.log("@@@driverDispatched", driverDispatched);
     if (!_.isEmpty(driverDispatched)) {
       return res.status(409).send({
         message: `${data.equipment.plateNumber}: ${
@@ -648,6 +649,7 @@ async function createDispatch(req, res) {
       // response,
     });
   } catch (error) {
+    console.log("error", error);
     return res.status(503).send({
       message: "Something went wrong, refresh the page and try again",
       plateNumber: data.equipment.plateNumber,
@@ -794,14 +796,9 @@ async function releaseValidated(req, res) {
     if (!project) {
       return res.status(404).send({ message: "Project not found" });
     }
-    console.log("PROJECT:ID###", project._id)
     // TODO: FIND ALL WORKS WITH VALIDATED STATUS FOR GIVEN PROJECT, IF NONE, RETURN ERROR
     const dispatches = await Work.model.find({
       "project._id": project._id,
-      // workStartDate: {
-      //   $gte: moment(),
-      //   $lte: moment(),
-      // },
       status: "validated",
       siteWork: false,
     });
@@ -815,8 +812,6 @@ async function releaseValidated(req, res) {
     if (_.isEmpty(dispatches)) {
       return res.status(404).send({ message: "No validated dispatched found" });
     }
-    console.log('dispatches', dispatches.length)
-    // return;
 
     // TODO: GENERATE INVOICE FOR GIVEN MONTH/YEAR
     const invoice = await generateInvoice(
@@ -825,6 +820,7 @@ async function releaseValidated(req, res) {
       year,
       aggregatedRevenue
     );
+
     // TODO: UPDATE STATUS AND INVOICE ID OF ALL WORKS WITH VALIDATED STATUS
     const updatedDispatches = await Work.model.updateMany(
       {
