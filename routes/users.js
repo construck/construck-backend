@@ -237,7 +237,7 @@ router.put("/", async (req, res) => {
         user.password = hashedPassword;
         await user.save();
 
-        res.send({
+        return res.send({
           message: "Allowed",
           error: false,
           email: email,

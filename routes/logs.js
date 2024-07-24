@@ -28,9 +28,9 @@ router.get("/", async (req, res) => {
         totalRevenue: l.payload?.totalRevenue,
       };
     });
-    res.status(200).send(newObjs);
+    return res.status(200).send(newObjs);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -177,7 +177,7 @@ router.get("/filtered", async (req, res) => {
 
   let results = await logData.model.aggregate(pipeline);
 
-  res.send(results);
+  return res.status(200).send(results);
 });
 
 module.exports = router;

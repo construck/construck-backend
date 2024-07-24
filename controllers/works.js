@@ -11,6 +11,7 @@ const DispatchReport = require("./../models/dispatchReports");
 const mongoose = require("mongoose");
 const mailer = require("./../helpers/mailer/dispatchReport");
 const helpers = require("../helpers/generate/revenues");
+const { generateInvoice } = require("../helpers/generate/invoice");
 
 const isWorkNotPosted = (work, date) => {
   let start = moment(work?.workStartDate).format("YYYY-MM-DD");
@@ -151,137 +152,141 @@ async function getDispatchDailyReport(req, res) {
   let { date } = req.params;
   date = moment(date, "YYYY-MM-DD", "UTC");
   date = date.format("YYYY-MM-DDTHH:mm:ss.SSS") + "Z";
-  // 1. GET ALL PROJECTS
-  const projects = await Project.model
-    .find()
-    .populate("client", { _id: 1, name: 1, tinNumber: 1 });
-  // 2. GET DISPATCH REPORT
-  const query = {
-    $or: [
-      {
-        siteWork: false,
-        workStartDate: {
-          $eq: date,
+  try {
+    // 1. GET ALL PROJECTS
+    const projects = await Project.model
+      .find()
+      .populate("client", { _id: 1, name: 1, tinNumber: 1 });
+    // 2. GET DISPATCH REPORT
+    const query = {
+      $or: [
+        {
+          siteWork: false,
+          workStartDate: {
+            $eq: date,
+          },
         },
-      },
-      {
-        siteWork: true,
-        workStartDate: {
-          $lte: date,
+        {
+          siteWork: true,
+          workStartDate: {
+            $lte: date,
+          },
+          workEndDate: {
+            $gte: date,
+          },
         },
-        workEndDate: {
-          $gte: date,
-        },
-      },
-    ],
-  };
-  const works = await Work.model.find(query, {
-    status: 1,
-    workStartDate: 1,
-    workEndDate: 1,
-    workDurationDays: 1,
-    date: 1,
-    siteWork: 1,
-    dailyWork: 1,
-    "project._id": 1,
-    "dispatch.shift": 1,
-  });
+      ],
+    };
+    const works = await Work.model.find(query, {
+      status: 1,
+      workStartDate: 1,
+      workEndDate: 1,
+      workDurationDays: 1,
+      date: 1,
+      siteWork: 1,
+      dailyWork: 1,
+      "project._id": 1,
+      "dispatch.shift": 1,
+    });
 
-  let report = await Promise.all(
-    projects.map(async (project, index) => {
-      const projectId = new mongoose.Types.ObjectId(project._id);
-      const projectIdString = projectId.toString();
-      let count = {
-        stopped: 0,
-        created: 0,
-        inProgress: 0,
-        approved: 0,
-        rejected: 0,
-        validated: 0,
-        recalled: 0,
-        released: 0,
-      };
-      works.map((work) => {
-        if (work?.siteWork) {
-          if (projectIdString === work.project._id.toString()) {
-            // DEAL WITH SITE WORKS
-            if (work.status === "created") {
-              count.created++;
-            } else if (
-              work.status === "on going" ||
-              work.status === "in progress"
-            ) {
-              // 1. IS SITE WORK EMPTY: CREATED +
-              work?.dailyWork?.map((d) => {
-                if (
-                  moment(date).format("YYYY-MM-DD") ===
-                    moment(d?.date).format("YYYY-MM-DD") &&
-                  d.pending
-                ) {
-                  count.inProgress++;
-                } else if (
-                  moment(date).format("YYYY-MM-DD") ===
-                    moment(d?.date).format("YYYY-MM-DD") &&
-                  !d.pending
-                ) {
-                  count.stopped++;
-                } else {
-                }
-              });
-              const unpostedDates = getUnpostedDates(work);
-              if (unpostedDates.includes(moment(date).format("YYYY-MM-DD"))) {
+    let report = await Promise.all(
+      projects.map(async (project, index) => {
+        const projectId = new mongoose.Types.ObjectId(project._id);
+        const projectIdString = projectId.toString();
+        let count = {
+          stopped: 0,
+          created: 0,
+          inProgress: 0,
+          approved: 0,
+          rejected: 0,
+          validated: 0,
+          recalled: 0,
+          released: 0,
+        };
+        works.map((work) => {
+          if (work?.siteWork) {
+            if (projectIdString === work.project._id.toString()) {
+              // DEAL WITH SITE WORKS
+              if (work.status === "created") {
                 count.created++;
+              } else if (
+                work.status === "on going" ||
+                work.status === "in progress"
+              ) {
+                // 1. IS SITE WORK EMPTY: CREATED +
+                work?.dailyWork?.map((d) => {
+                  if (
+                    moment(date).format("YYYY-MM-DD") ===
+                      moment(d?.date).format("YYYY-MM-DD") &&
+                    d.pending
+                  ) {
+                    count.inProgress++;
+                  } else if (
+                    moment(date).format("YYYY-MM-DD") ===
+                      moment(d?.date).format("YYYY-MM-DD") &&
+                    !d.pending
+                  ) {
+                    count.stopped++;
+                  } else {
+                  }
+                });
+                const unpostedDates = getUnpostedDates(work);
+                if (unpostedDates.includes(moment(date).format("YYYY-MM-DD"))) {
+                  count.created++;
+                }
+                // 2. IS SITE WORK NOT EMPTY: NESTED CONDITIONS
               }
-              // 2. IS SITE WORK NOT EMPTY: NESTED CONDITIONS
+            }
+          } else {
+            if (projectIdString === work.project._id.toString()) {
+              if (work.status === "stopped") {
+                count.stopped++;
+              } else if (work.status === "created") {
+                count.created++;
+              } else if (work.status === "approved") {
+                count.approved++;
+              } else if (work.status === "rejected") {
+                count.rejected++;
+              } else if (work.status === "validated") {
+                count.validated++;
+              } else if (work.status === "recalled") {
+                count.recalled++;
+              } else if (work.status === "released") {
+                count.released++;
+              } else if (work.status === "in progress") {
+                count.inProgress++;
+              } else {
+              }
             }
           }
-        } else {
-          if (projectIdString === work.project._id.toString()) {
-            if (work.status === "stopped") {
-              count.stopped++;
-            } else if (work.status === "created") {
-              count.created++;
-            } else if (work.status === "approved") {
-              count.approved++;
-            } else if (work.status === "rejected") {
-              count.rejected++;
-            } else if (work.status === "validated") {
-              count.validated++;
-            } else if (work.status === "recalled") {
-              count.recalled++;
-            } else if (work.status === "released") {
-              count.released++;
-            } else if (work.status === "in progress") {
-              count.inProgress++;
-            } else {
-            }
-          }
-        }
-        return count;
+          return count;
+        });
+        // }
+        return { projectId, project: project.prjDescription, date, ...count };
+      })
+    );
+    if (report.length === 0) {
+      return res
+        .status(404)
+        .send({ count: 0, message: "No data found on the provided date" });
+    } else {
+      // REMOVE PROJECTS WITHOUT RECORDS
+      report = report.filter((r) => {
+        return !(r.stopped === 0 && r.created === 0 && r.inProgress === 0);
       });
-      // }
-      return { projectId, project: project.prjDescription, date, ...count };
-    })
-  );
-  if (report.length === 0) {
-    return res
-      .status(404)
-      .send({ count: 0, message: "No data found on the provided date" });
-  } else {
-    // REMOVE PROJECTS WITHOUT RECORDS
-    report = report.filter((r) => {
-      return !(r.stopped === 0 && r.created === 0 && r.inProgress === 0);
-    });
-    // SORT PROJECTS BY DESCENDING ORDER(sum of stopped, created, and in progress)
-    report.sort((a, b) => {
-      return (
-        b.stopped +
-        b.created +
-        b.inProgress -
-        (a.stopped + a.created + a.inProgress)
-      );
-    });
-    return res.status(200).send({ count: report.length, report });
+      // SORT PROJECTS BY DESCENDING ORDER(sum of stopped, created, and in progress)
+      report.sort((a, b) => {
+        return (
+          b.stopped +
+          b.created +
+          b.inProgress -
+          (a.stopped + a.created + a.inProgress)
+        );
+      });
+      return res.status(200).send({ count: report.length, report });
+    }
+  } catch (error) {
+    console.log("error: ", error);
   }
 }
 
@@ -347,7 +352,7 @@ async function postWorkForSitework(req, res) {
     // check if dispatch exists
     let dispatch = await Work.model.findById(id);
     if (_.isEmpty(dispatch) && dispatch.siteWork) {
-      res.status(503).send({
+      return res.status(503).send({
         error: "Dispatch is not found or it's not a site work",
       });
       return;
@@ -506,11 +511,11 @@ async function bulkPostSingleDispatch(req, res) {
         );
       });
     }
-    res.status(201).send({
+    return res.status(201).send({
       message: "Dispatches are updated successfully",
     });
   } catch (error) {
-    res.status(503).send({
+    return res.status(503).send({
       error: "Something went wrong, refresh the page and try again",
     });
   }
@@ -592,6 +597,7 @@ async function createDispatch(req, res) {
         firstName: 1,
         lastName: 1,
       });
+    console.log("@@@driverDispatched", driverDispatched);
     if (!_.isEmpty(driverDispatched)) {
       return res.status(409).send({
         message: `${data.equipment.plateNumber}: ${
@@ -643,6 +649,7 @@ async function createDispatch(req, res) {
       // response,
     });
   } catch (error) {
+    console.log("error", error);
     return res.status(503).send({
       message: "Something went wrong, refresh the page and try again",
       plateNumber: data.equipment.plateNumber,
@@ -777,6 +784,96 @@ async function editDispatch(req, res) {
   }
 }
 
+async function releaseValidated(req, res) {
+  let { month, year } = req.query;
+  let { projectName } = req.params;
+  console.log("Release###", month, year, projectName);
+  try {
+    // TODO: FIND PROJECT BY NAME
+    const project = await Project.model.findOne({
+      prjDescription: projectName,
+    });
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    // TODO: FIND ALL WORKS WITH VALIDATED STATUS FOR GIVEN PROJECT, IF NONE, RETURN ERROR
+    const dispatches = await Work.model.find({
+      "project._id": project._id,
+      status: "validated",
+      siteWork: false,
+    });
+    let dispatchIds = [];
+    let aggregatedRevenue = 0;
+    dispatches.map((dispatch) => {
+      dispatchIds.push(dispatch._id);
+      aggregatedRevenue += dispatch.totalRevenue;
+    });
+
+    if (_.isEmpty(dispatches)) {
+      return res.status(404).send({ message: "No validated dispatched found" });
+    }
+
+    // TODO: GENERATE INVOICE FOR GIVEN MONTH/YEAR
+    const invoice = await generateInvoice(
+      project._id,
+      month,
+      year,
+      aggregatedRevenue
+    );
+
+    // TODO: UPDATE STATUS AND INVOICE ID OF ALL WORKS WITH VALIDATED STATUS
+    const updatedDispatches = await Work.model.updateMany(
+      {
+        _id: { $in: dispatchIds },
+        status: "validated",
+      },
+      {
+        status: "released",
+        invoice: invoice._id,
+      }
+    );
+    return res.status(200).send(updatedDispatches);
+    // TODO: COMPUTE TOTAL REVENUE AND UPDATE PROJECT_INVOICE AMOUNT
+    if (month < 10) month = "0" + month;
+    const startOfMonth = moment()
+      .startOf("month")
+      .format(`${year}-${month}-DD`);
+    const endOfMonth = moment()
+      .endOf("month")
+      .format(
+        `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
+      );
+
+    let q2 = await Work.model.updateMany(
+      {
+        siteWork: true,
+        "project.prjDescription": projectName,
+      },
+      {
+        $set: {
+          "dailyWork.$[elem].status": "released",
+        },
+      },
+      {
+        arrayFilters: [
+          {
+            "elem.date": {
+              $gte: new Date(year, month - 1, 1),
+              $lt: new Date(year, month, 1),
+            },
+          },
+        ],
+        multi: true,
+      }
+    );
+
+    return res.status(200).send({ q2 });
+  } catch (err) {
+    console.log("err", err);
+    return res.status(503).send(err);
+  }
+}
+
 module.exports = {
   captureDispatchDailyReport,
   getDispatchDailyReport,
@@ -787,4 +884,5 @@ module.exports = {
   bulkPostSingleDispatch,
   createDispatch,
   editDispatch,
+  releaseValidated,
 };

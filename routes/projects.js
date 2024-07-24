@@ -3,9 +3,12 @@ const moment = require("moment");
 const NodeCache = require("node-cache");
 const prjData = require("../models/projects");
 const custData = require("../models/customers");
+const userData = require("../models/users");
+const ProjectInvoice = require("../models//projectInvoices");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const workData = require("../models/workData");
+const projects = require("../controllers/projects");
 const { default: mongoose } = require("mongoose");
 const cache = new NodeCache({ stdTTL: 7200 });
 
@@ -29,25 +32,6 @@ router.get("/", async (req, res) => {
 
 router.get("/v2", async (req, res) => {
   try {
-    // let customers = await custData.model.find().populate({
-    //   path: "projects",
-    //   populate: {
-    //     path: "projectAdmin",
-    //     model: "users",
-    //   },
-    // });
-    // let projects = [];
-    // customers.forEach((c) => {
-    //   let cProjects = c.projects;
-    //   if (cProjects && cProjects?.length > 0) {
-    //     cProjects.forEach((p) => {
-    //       let _p = { ...p._doc };
-    //       _p.customer = c?.name;
-    //       _p.customerId = c?._id;
-    //       projects.push(_p);
-    //     });
-    //   }
-    // });
     const projects = await prjData.model
       .find()
       .populate("client", { _id: 1, name: 1, tinNumber: 1 })
@@ -62,16 +46,42 @@ router.get("/v2", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
-  console.log("####DATA", id);
   try {
-    // await assetAvblty.model.findOne({ date: today });
     const project = await prjData.model
       .findOne({ _id: id })
       .populate("client", { _id: 1, name: 1, tinNumber: 1 })
       .populate("projectAdmin", {
         password: 0,
       });
-    return res.status(200).send(project);
+    const siteManager = await userData.model.findOne(
+      {
+        userType: "customer-site-manager",
+        assignedProjects: {
+          $elemMatch: {
+            _id: project._id.toString(),
+          },
+        },
+      },
+      {
+        password: 0,
+        assignedProjects: 0,
+      }
+    );
+    const projectManager = await userData.model.findOne(
+      {
+        userType: "customer-project-manager",
+        assignedProjects: {
+          $elemMatch: {
+            _id: project._id.toString(),
+          },
+        },
+      },
+      {
+        password: 0,
+        assignedProjects: 0,
+      }
+    );
+    return res.status(200).send({ project, siteManager, projectManager });
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -224,10 +234,6 @@ router.get("/approvedRevenue/:prjDescription", async (req, res) => {
       },
       {
         $addFields:
-          /**
-           * newField: The new field name.
-           * expression: The new field expression.
-           */
           {
             totalRevenue: {
               $cond: {
@@ -240,21 +246,6 @@ router.get("/approvedRevenue/:prjDescription", async (req, res) => {
             },
           },
       },
-      // {
-      //   $addFields:
-      //     /**
-      //      * newField: The new field name.
-      //      * expression: The new field expression.
-      //      */
-      //     {
-      //       totalRevenue: {
-      //         $add: [
-      //           "$totalRevenueSw",
-      //           "$totalRevenueSd",
-      //         ],
-      //       },
-      //     },
-      // }
       {
         $match: {
           $or: [
@@ -269,20 +260,12 @@ router.get("/approvedRevenue/:prjDescription", async (req, res) => {
       },
       {
         $project:
-          /**
-           * specifications: The fields to
-           *   include or exclude.
-           */
           {
             totalRevenue: 1,
           },
       },
       {
         $addFields:
-          /**
-           * newField: The new field name.
-           * expression: The new field expression.
-           */
           {
             _id: "approved",
           },
@@ -291,9 +274,9 @@ router.get("/approvedRevenue/:prjDescription", async (req, res) => {
 
     let worksCursor = await workData.model.aggregate(aggr);
 
-    res.send(worksCursor);
+    return res.status(200).send(worksCursor);
   } catch (err) {
-    res.send(err);
+    return res.status(503).send(err);
   }
 });
 
@@ -444,10 +427,6 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
       },
       {
         $addFields:
-          /**
-           * newField: The new field name.
-           * expression: The new field expression.
-           */
           {
             totalRevenue: {
               $cond: {
@@ -460,21 +439,6 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
             },
           },
       },
-      // {
-      //   $addFields:
-      //     /**
-      //      * newField: The new field name.
-      //      * expression: The new field expression.
-      //      */
-      //     {
-      //       totalRevenue: {
-      //         $add: [
-      //           "$totalRevenueSw",
-      //           "$totalRevenueSd",
-      //         ],
-      //       },
-      //     },
-      // }
       {
         $match: {
           $or: [
@@ -489,20 +453,12 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
       },
       {
         $project:
-          /**
-           * specifications: The fields to
-           *   include or exclude.
-           */
           {
             totalRevenue: 1,
           },
       },
       {
         $addFields:
-          /**
-           * newField: The new field name.
-           * expression: The new field expression.
-           */
           {
             _id: "rejected",
           },
@@ -511,10 +467,9 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
 
     let worksCursor = await workData.model.aggregate(aggr);
 
-    console.log(worksCursor);
-    res.send(worksCursor);
+    return res.send(worksCursor);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -522,11 +477,6 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
   let { prjDescription } = req.params;
 
   try {
-    /*
-     * Requires the MongoDB Node.js Driver
-     * https://mongodb.github.io/node-mongodb-native
-     */
-    console.log(prjDescription);
     let pipeline = [
       {
         $match: {
@@ -657,19 +607,12 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
       },
       {
         $sort:
-          /**
-           * Provide any number of field/order pairs.
-           */
           {
             transactionDate: 1,
           },
       },
       {
         $group:
-          /**
-           * _id: The id of the group.
-           * fieldN: The first field name.
-           */
           {
             _id: "$_id",
             doc: {
@@ -679,9 +622,6 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
       },
       {
         $replaceRoot:
-          /**
-           * replacementDocument: A document or string.
-           */
           {
             newRoot: "$doc",
           },
@@ -690,9 +630,9 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
 
     let worksCursor = await workData.model.aggregate(pipeline);
 
-    res.send(worksCursor);
+    return res.send(worksCursor);
   } catch (err) {
-    res.send(err);
+    return res.send(err);
   }
 });
 
@@ -707,45 +647,13 @@ router.get("/releasedRevenue/:projectName", async (req, res) => {
     return res.status(500).send(err);
   }
 });
-router.get("/:id/invoice", async (req, res) => {
+router.get("/invoice/:id", async (req, res) => {
   const { id } = req.params;
-  const { month, year } = req.query;
-  const date = moment(`${year}-${month}`);
-  console.log("&&&&date", date);
   try {
-    let pipeline = [
+    const pipeline = [
       {
         $match: {
-          "project._id": id,
-          status: "approved",
-        },
-      },
-      {
-        $unwind: {
-          path: "$dailyWork",
-          includeArrayIndex: "string",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $addFields: {
-          date: {
-            $cond: {
-              if: {
-                $eq: ["$siteWork", false],
-              },
-              then: "$workStartDate",
-              else: "$dailyWork.date",
-            },
-          },
-        },
-      },
-      {
-        $match: {
-          date: {
-            $gte: new Date(date),
-            $lt: new Date(moment(date).endOf("month")),
-          },
+          invoice: new mongoose.Types.ObjectId(id),
         },
       },
       {
@@ -773,6 +681,9 @@ router.get("/:id/invoice", async (req, res) => {
           equipment: {
             $first: "$equipment",
           },
+          project: {
+            $first: "$project",
+          },
         },
       },
       {
@@ -781,8 +692,10 @@ router.get("/:id/invoice", async (req, res) => {
           "equipment.eqDescription": 1,
           "equipment.plateNumber": 1,
           "equipment.uom": 1,
+          "equipment.rate": 1,
           "dispatch.date": 1,
           "dispatch.shift": 1,
+          project: 1,
           duration: 1,
           status: 1,
           date: 1,
@@ -799,25 +712,103 @@ router.get("/:id/invoice", async (req, res) => {
         },
       },
     ];
-
     const response = await workData.model.aggregate(pipeline);
-    const project = await prjData.model
-      .findOne({ _id: id })
-      .populate("client", { _id: 1, name: 1, tinNumber: 1 })
-      .populate("projectAdmin", {
-        password: 0,
+    // GET INVOICE INFORMATION
+    const invoice = await ProjectInvoice.model
+      .findOne({
+        _id: new mongoose.Types.ObjectId(id),
+      })
+      .populate("project", { _id: 1, prjDescription: 1 })
+      .populate("revenueAdmin", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+        signature: 1
+      })
+      .populate("accountManager", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+        signature: 1
+      })
+      .populate("siteManager", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+        signature: 1
+      })
+      .populate("projectManager", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+        signature: 1
       });
-    console.log("$$$$", response);
+    // GET PROJECT ID:
+    const project = await prjData.model
+      .findOne({
+        _id: invoice.project._id,
+      })
+      .populate("client", { _id: 1, name: 1, tinNumber: 1 });
+    let siteManager = null;
+    siteManager = await userData.model.findOne(
+      {
+        userType: "customer-site-manager",
+        assignedProjects: {
+          $elemMatch: {
+            _id: project._id.toString(),
+          },
+        },
+      },
+      {
+        firstName: 1,
+        lastName: 1,
+      }
+    );
+    let projectManager = null;
+    projectManager = await userData.model.findOne(
+      {
+        userType: "customer-project-manager",
+        assignedProjects: {
+          $elemMatch: {
+            _id: project._id.toString(),
+          },
+        },
+      },
+      {
+        firstName: 1,
+        lastName: 1,
+      }
+    );
+    let revenueAdmin = null;
+    revenueAdmin = await userData.model.findOne(
+      {
+        userType: "revenue",
+        assignedProjects: {
+          $elemMatch: {
+            _id: project._id.toString(),
+          },
+        },
+      },
+      {
+        firstName: 1,
+        lastName: 1,
+      }
+    );
     return res.status(200).send({
-      meta: project,
+      meta: { project, invoice, siteManager, projectManager, revenueAdmin },
       invoice: response,
     });
   } catch (err) {
-    console.log("##3ERR", err);
     return res.status(500).send(err);
   }
 });
-
+router.get("/:id/invoices", async (req, res) => {
+  projects.getInvoicesByProject(req, res);
+});
 router.post("/", async (req, res) => {
   let { prjDescription, customer, startDate, endDate, status } = req.body;
   try {
@@ -890,11 +881,6 @@ async function getReleasedPerMonth(prjDescription, month, year) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            // else: {
-            //   $dateFromString: {
-            //     dateString: "$dailyWork.date",
-            //   },
-            // },
             else: "$dailyWork.date",
           },
         },
@@ -923,12 +909,6 @@ async function getReleasedPerMonth(prjDescription, month, year) {
         },
       },
     },
-    // {
-    //   $match: {
-    //     month: parseInt(month),
-    //     year: parseInt(year),
-    //   },
-    // },
     {
       $group: {
         _id: {
@@ -967,7 +947,6 @@ async function getReleasedPerMonth(prjDescription, month, year) {
     });
     return list;
   } catch (err) {
-    console.log(err);
     err;
     return err;
   }
@@ -1042,7 +1021,6 @@ async function fetchProjects() {
         _p.description = p?.prjDescription;
         projects.push(_p);
       });
-      // .sort((a,b)=> a?.prjDescription.localeCompare(b?.prjDescription));
     }
   });
   //
