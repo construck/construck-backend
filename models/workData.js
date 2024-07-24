@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const prjSchema = require("./projects").schema;
 const dispSchema = require("./dispatches").schema;
 const eqSchema = require("./equipments").schema;
-// const { findOneAndUpdate } = require("./../helpers/hooks/dispatches/findOneAndUpdate");
 const LogDispatch = require("./logDispatch");
 
 const WorkSchema = new mongoose.Schema(

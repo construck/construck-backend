@@ -32,25 +32,6 @@ router.get("/", async (req, res) => {
 
 router.get("/v2", async (req, res) => {
   try {
-    // let customers = await custData.model.find().populate({
-    //   path: "projects",
-    //   populate: {
-    //     path: "projectAdmin",
-    //     model: "users",
-    //   },
-    // });
-    // let projects = [];
-    // customers.forEach((c) => {
-    //   let cProjects = c.projects;
-    //   if (cProjects && cProjects?.length > 0) {
-    //     cProjects.forEach((p) => {
-    //       let _p = { ...p._doc };
-    //       _p.customer = c?.name;
-    //       _p.customerId = c?._id;
-    //       projects.push(_p);
-    //     });
-    //   }
-    // });
     const projects = await prjData.model
       .find()
       .populate("client", { _id: 1, name: 1, tinNumber: 1 })
@@ -66,7 +47,6 @@ router.get("/v2", async (req, res) => {
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    // await assetAvblty.model.findOne({ date: today });
     const project = await prjData.model
       .findOne({ _id: id })
       .populate("client", { _id: 1, name: 1, tinNumber: 1 })
@@ -254,10 +234,6 @@ router.get("/approvedRevenue/:prjDescription", async (req, res) => {
       },
       {
         $addFields:
-          /**
-           * newField: The new field name.
-           * expression: The new field expression.
-           */
           {
             totalRevenue: {
               $cond: {
@@ -284,20 +260,12 @@ router.get("/approvedRevenue/:prjDescription", async (req, res) => {
       },
       {
         $project:
-          /**
-           * specifications: The fields to
-           *   include or exclude.
-           */
           {
             totalRevenue: 1,
           },
       },
       {
         $addFields:
-          /**
-           * newField: The new field name.
-           * expression: The new field expression.
-           */
           {
             _id: "approved",
           },
@@ -459,10 +427,6 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
       },
       {
         $addFields:
-          /**
-           * newField: The new field name.
-           * expression: The new field expression.
-           */
           {
             totalRevenue: {
               $cond: {
@@ -489,20 +453,12 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
       },
       {
         $project:
-          /**
-           * specifications: The fields to
-           *   include or exclude.
-           */
           {
             totalRevenue: 1,
           },
       },
       {
         $addFields:
-          /**
-           * newField: The new field name.
-           * expression: The new field expression.
-           */
           {
             _id: "rejected",
           },
@@ -511,7 +467,6 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
 
     let worksCursor = await workData.model.aggregate(aggr);
 
-    console.log(worksCursor);
     return res.send(worksCursor);
   } catch (err) {
     return res.send(err);
@@ -522,11 +477,6 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
   let { prjDescription } = req.params;
 
   try {
-    /*
-     * Requires the MongoDB Node.js Driver
-     * https://mongodb.github.io/node-mongodb-native
-     */
-    console.log(prjDescription);
     let pipeline = [
       {
         $match: {
@@ -657,19 +607,12 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
       },
       {
         $sort:
-          /**
-           * Provide any number of field/order pairs.
-           */
           {
             transactionDate: 1,
           },
       },
       {
         $group:
-          /**
-           * _id: The id of the group.
-           * fieldN: The first field name.
-           */
           {
             _id: "$_id",
             doc: {
@@ -679,9 +622,6 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
       },
       {
         $replaceRoot:
-          /**
-           * replacementDocument: A document or string.
-           */
           {
             newRoot: "$doc",
           },
@@ -863,7 +803,6 @@ router.get("/invoice/:id", async (req, res) => {
       invoice: response,
     });
   } catch (err) {
-    console.log("##3ERR", err);
     return res.status(500).send(err);
   }
 });
@@ -942,11 +881,6 @@ async function getReleasedPerMonth(prjDescription, month, year) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            // else: {
-            //   $dateFromString: {
-            //     dateString: "$dailyWork.date",
-            //   },
-            // },
             else: "$dailyWork.date",
           },
         },
@@ -975,12 +909,6 @@ async function getReleasedPerMonth(prjDescription, month, year) {
         },
       },
     },
-    // {
-    //   $match: {
-    //     month: parseInt(month),
-    //     year: parseInt(year),
-    //   },
-    // },
     {
       $group: {
         _id: {
@@ -1019,7 +947,6 @@ async function getReleasedPerMonth(prjDescription, month, year) {
     });
     return list;
   } catch (err) {
-    console.log(err);
     err;
     return err;
   }
@@ -1094,7 +1021,6 @@ async function fetchProjects() {
         _p.description = p?.prjDescription;
         projects.push(_p);
       });
-      // .sort((a,b)=> a?.prjDescription.localeCompare(b?.prjDescription));
     }
   });
   //
