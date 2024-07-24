@@ -2365,8 +2365,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     
     let workList = await workData.model.aggregate(pipeline);
-    console.log("workList", workList);
-    return;
 
     let listToSend = workList;
 
