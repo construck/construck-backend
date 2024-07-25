@@ -234,18 +234,17 @@ router.get("/approvedRevenue/:prjDescription", async (req, res) => {
         },
       },
       {
-        $addFields:
-          {
-            totalRevenue: {
-              $cond: {
-                if: {
-                  $eq: ["$_id.siteWork", false],
-                },
-                then: "$totalRevenueSd",
-                else: "$totalRevenueSw",
+        $addFields: {
+          totalRevenue: {
+            $cond: {
+              if: {
+                $eq: ["$_id.siteWork", false],
               },
+              then: "$totalRevenueSd",
+              else: "$totalRevenueSw",
             },
           },
+        },
       },
       {
         $match: {
@@ -260,16 +259,14 @@ router.get("/approvedRevenue/:prjDescription", async (req, res) => {
         },
       },
       {
-        $project:
-          {
-            totalRevenue: 1,
-          },
+        $project: {
+          totalRevenue: 1,
+        },
       },
       {
-        $addFields:
-          {
-            _id: "approved",
-          },
+        $addFields: {
+          _id: "approved",
+        },
       },
     ];
 
@@ -427,18 +424,17 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
         },
       },
       {
-        $addFields:
-          {
-            totalRevenue: {
-              $cond: {
-                if: {
-                  $eq: ["$_id.siteWork", false],
-                },
-                then: "$totalRevenueSd",
-                else: "$totalRevenueSw",
+        $addFields: {
+          totalRevenue: {
+            $cond: {
+              if: {
+                $eq: ["$_id.siteWork", false],
               },
+              then: "$totalRevenueSd",
+              else: "$totalRevenueSw",
             },
           },
+        },
       },
       {
         $match: {
@@ -453,16 +449,14 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
         },
       },
       {
-        $project:
-          {
-            totalRevenue: 1,
-          },
+        $project: {
+          totalRevenue: 1,
+        },
       },
       {
-        $addFields:
-          {
-            _id: "rejected",
-          },
+        $addFields: {
+          _id: "rejected",
+        },
       },
     ];
 
@@ -607,25 +601,22 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
         },
       },
       {
-        $sort:
-          {
-            transactionDate: 1,
-          },
+        $sort: {
+          transactionDate: 1,
+        },
       },
       {
-        $group:
-          {
-            _id: "$_id",
-            doc: {
-              $first: "$$ROOT",
-            },
+        $group: {
+          _id: "$_id",
+          doc: {
+            $first: "$$ROOT",
           },
+        },
       },
       {
-        $replaceRoot:
-          {
-            newRoot: "$doc",
-          },
+        $replaceRoot: {
+          newRoot: "$doc",
+        },
       },
     ];
 
@@ -725,28 +716,28 @@ router.get("/invoice/:id", async (req, res) => {
         lastName: 1,
         phone: 1,
         email: 1,
-        signature: 1
+        signature: 1,
       })
       .populate("accountManager", {
         firstName: 1,
         lastName: 1,
         phone: 1,
         email: 1,
-        signature: 1
+        signature: 1,
       })
       .populate("siteManager", {
         firstName: 1,
         lastName: 1,
         phone: 1,
         email: 1,
-        signature: 1
+        signature: 1,
       })
       .populate("projectManager", {
         firstName: 1,
         lastName: 1,
         phone: 1,
         email: 1,
-        signature: 1
+        signature: 1,
       });
     // GET PROJECT ID:
     const project = await prjData.model
@@ -811,11 +802,12 @@ router.get("/:id/invoices", async (req, res) => {
   projects.getInvoicesByProject(req, res);
 });
 router.post("/", async (req, res) => {
-  let { prjDescription, customer, startDate, endDate, status } = req.body;
+  let { prjDescription, customer, client, startDate, endDate, status } = req.body;
   try {
     let prjToCreate = new prjData.model({
       prjDescription,
       customer,
+      client,
       startDate,
       endDate,
       status,
@@ -823,12 +815,13 @@ router.post("/", async (req, res) => {
     let prjCreated = await prjToCreate.save();
     return res.status(201).send(prjCreated);
   } catch (err) {
+    console.log("22", err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
-    return res.send({
+    return res.status(400).send({
       error,
       key,
     });

@@ -2357,7 +2357,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       },
     ];
 
-    
     let workList = await workData.model.aggregate(pipeline);
 
     let listToSend = workList;
@@ -2366,8 +2365,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     let l = listToSend.map((w, index) => {
       let work = null;
-      // console.log("!!w", w);
-      console.log("!!w", w.workStartDate);
 
       if (w.siteWork && w.status !== "stopped") {
         let dailyWorks = w.dailyWork;
@@ -2795,14 +2792,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     return res.status(200).send(orderedList.filter((w) => w !== null));
   } catch (err) {
-    console.log('@@ee', err)
+    console.log("@@ee", err);
     return res.send(err);
   }
 });
 
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
-  // return;
   try {
     let work = await workData.model
       .findById(id)
@@ -4886,9 +4882,13 @@ router.put("/stop/:id", async (req, res) => {
             let tripRatio = tripsDone / targetTrips;
             work.duration = tripRatio;
             if (
-              tripsDone &&
-              targetTrips &&
-              equipment?.eqDescription === "TIPPER TRUCK"
+              (tripsDone &&
+                targetTrips &&
+                equipment?.eqDescription === "TIPPER TRUCK") ||
+              equipment?.eqDescription === "LOWBED" ||
+              equipment?.eqDescription === "CRANE TRUCKS" ||
+              equipment?.eqDescription === "WATER TANK TRUCK" ||
+              equipment?.eqDescription === "FUEL TANK TRUCK"
             ) {
               if (tripRatio >= 1) {
                 revenue = rate * tripRatio;
@@ -4898,22 +4898,32 @@ router.put("/stop/:id", async (req, res) => {
                 revenue = rate * tripRatio;
                 expenditure = supplierRate * tripRatio;
               }
+            } else {
+              let targetDuration = 5;
+              let durationRation =
+                duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
+              work.duration = duration / HOURS_IN_A_DAY;
+              // revenue = rate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
+              revenue = duration === 0 ? 0 : rate;
+              expenditure = 0 ? 0 : supplierRate;
+              // supplierRate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
             }
-            if (
-              !targetTrips ||
-              targetTrips == "0" ||
-              equipment?.eqDescription !== "TIPPER TRUCK"
-            ) {
-              {
-                let targetDuration = 5;
-                let durationRation =
-                  duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
-                work.duration = duration / HOURS_IN_A_DAY;
-                revenue = rate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
-                expenditure =
-                  supplierRate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
-              }
-            }
+            // if (
+            //   !targetTrips ||
+            //   targetTrips == "0" ||
+            //   equipment?.eqDescription !== "TIPPER TRUCK"
+            // ) {
+            //   {
+            //     let targetDuration = 5;
+            //     let durationRation =
+            //       duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
+            //     work.duration = duration / HOURS_IN_A_DAY;
+            //     // revenue = rate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
+            //     revenue = duration === 0 ? 0 : rate;
+            //     expenditure =
+            //       supplierRate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
+            //   }
+            // }
           }
         }
 

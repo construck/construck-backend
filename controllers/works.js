@@ -450,7 +450,7 @@ async function worksByEquipment(req, res) {
   projects = projects.split(",").filter((r) => !_.isEmpty(r));
   // startdate = moment(startdate).startOf("day");
   // enddate = moment(enddate).endOf("day");
-  console.log("id", id);
+  console.log("#@@@id", id);
   try {
     // Query
     let query;
