@@ -4882,13 +4882,14 @@ router.put("/stop/:id", async (req, res) => {
             let tripRatio = tripsDone / targetTrips;
             work.duration = tripRatio;
             if (
-              (tripsDone &&
-                targetTrips &&
-                equipment?.eqDescription === "TIPPER TRUCK") ||
-              equipment?.eqDescription === "LOWBED" ||
-              equipment?.eqDescription === "CRANE TRUCKS" ||
-              equipment?.eqDescription === "WATER TANK TRUCK" ||
-              equipment?.eqDescription === "FUEL TANK TRUCK"
+              tripsDone &&
+              targetTrips &&
+              comment === "Ibibazo bya panne" &&
+              (equipment?.eqDescription === "TIPPER TRUCK" ||
+                equipment?.eqDescription === "LOWBED" ||
+                equipment?.eqDescription === "CRANE TRUCKS" ||
+                equipment?.eqDescription === "WATER TANK TRUCK" ||
+                equipment?.eqDescription === "FUEL TANK TRUCK")
             ) {
               if (tripRatio >= 1) {
                 revenue = rate * tripRatio;
