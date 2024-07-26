@@ -680,7 +680,6 @@ async function editDispatch(req, res) {
       response: {},
     });
   }
-  console.log("check dates", data?.workStartDate === originalWorkStartDate);
   // CHECK IF DISPATCH EXIST
   if (data?.workStartDate !== originalWorkStartDate) {
     const isExist = await Work.model.findOne(
@@ -749,20 +748,37 @@ async function editDispatch(req, res) {
     }
   }
   try {
+    const newData = {
+      "dispatch.equipment": {
+        ...data.equipment,
+        _id: new mongoose.Types.ObjectId(data.equipment._id),
+      },
+      "dispatch.project": {
+        ...data.project,
+        _id: new mongoose.Types.ObjectId(data.project._id),
+      },
+      "dispatch.shift": data.dispatch.shift,
+      "dispatch.date": data.workStartDate,
+      "dispatch.astDriver": data.dispatch.astDriver,
+      project: {
+        ...data.project,
+        _id: new mongoose.Types.ObjectId(data.project._id),
+      },
+      equipment: {
+        ...data.equipment,
+        _id: new mongoose.Types.ObjectId(data.equipment._id),
+      },
+      equipmentId: new mongoose.Types.ObjectId(data.equipment._id),
+      driver: new mongoose.Types.ObjectId(data.driver),
+      workDone: new mongoose.Types.ObjectId(data.workDone),
+      workStartDate: data.workStartDate,
+      workEndDate: data.workStartDate,
+      uom: data.equipment.uom,
+    };
     const response = await Work.model.findOneAndUpdate(
       { _id: id },
       {
-        $set: {
-          dispatch: data.dispatch,
-          project: data.project,
-          equipment: data.equipment,
-          equipmentId: new mongoose.Types.ObjectId(data.equipment._id),
-          driver: new mongoose.Types.ObjectId(data.driver),
-          workDone: new mongoose.Types.ObjectId(data.workDone),
-          workStartDate: data.workStartDate,
-          workEndDate: data.workedDate,
-          uom: data.equipment.uom,
-        },
+        $set: newData,
       }
     );
     return res.status(201).send({
@@ -773,7 +789,6 @@ async function editDispatch(req, res) {
       response,
     });
   } catch (error) {
-    console.log("error", error);
     return res.status(503).send({
       message: "Something went wrong, refresh the page and try again",
       plateNumber: data.equipment.plateNumber,
@@ -787,7 +802,6 @@ async function editDispatch(req, res) {
 async function releaseValidated(req, res) {
   let { month, year } = req.query;
   let { projectName } = req.params;
-  console.log("Release###", month, year, projectName);
   try {
     // TODO: FIND PROJECT BY NAME
     const project = await Project.model.findOne({
