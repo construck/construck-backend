@@ -18,11 +18,21 @@ const ProjectSchema = new mongoose.Schema({
     transform: (v) => (v === "" ? null : v),
     ref: "customers",
   },
+  siteManager: {
+    type: mongoose.Schema.Types.ObjectId,
+    transform: (v) => (v === "" ? null : v),
+    ref: "users",
+  },
+  projectManager: {
+    type: mongoose.Schema.Types.ObjectId,
+    transform: (v) => (v === "" ? null : v),
+    ref: "users",
+  },
   startDate: {
-    type: Date, // can refer to vendors
+    type: Date, 
   },
   endDate: {
-    type: Date, // can refer to vendors
+    type: Date,
   },
   status: {
     type: String,
