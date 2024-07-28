@@ -2815,62 +2815,25 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.get("/monthlyRevenuePerProject/:projectName", async (req, res) => {
-  let { projectName } = req.params;
+router.get("/monthlyRevenuePerProject/:id", async (req, res) => {
+  let { id } = req.params;
   let { status } = req.query;
+  console.log("id", id);
 
   let pipeline = [
     {
       $match: {
-        "project.prjDescription": projectName,
-        // siteWork: false,
-      },
-    },
-    {
-      $unwind: {
-        path: "$dailyWork",
-        includeArrayIndex: "string",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $match: {
-        status: "validated",
+        "project._id": new mongoose.Types.ObjectId(id),
+        workStartDate: { $gte: new Date("2024-01-01") },
         siteWork: false,
-        // $or: [
-        //   {
-        //     "dailyWork.status": status,
-        //   },
-        //   {
-        //     status,
-        //   },
-        // ],
+        status: "validated",
+        $or: [{ invoice: { $exists: false } }, { invoice: null }],
       },
     },
     {
       $addFields: {
-        transactionDate: {
-          $cond: {
-            if: {
-              $eq: ["$siteWork", false],
-            },
-            then: "$workStartDate",
-            else: "$dailyWork.date",
-          },
-        },
-      },
-    },
-    {
-      $addFields: {
-        newTotalRevenue: {
-          $cond: {
-            if: {
-              $eq: ["$siteWork", false],
-            },
-            then: "$totalRevenue",
-            else: "$dailyWork.totalRevenue",
-          },
-        },
+        transactionDate: "$workStartDate",
+        newTotalRevenue: "$totalRevenue",
       },
     },
     {
@@ -2890,18 +2853,19 @@ router.get("/monthlyRevenuePerProject/:projectName", async (req, res) => {
     },
     {
       $sort: {
-        "_id.year": 1,
+        "_id.month": 1,
       },
     },
     {
       $sort: {
-        "_id.month": 1,
+        "_id.year": -1,
       },
     },
   ];
 
   try {
-    let monthlyRevenues = await workData.model.aggregate(pipeline);
+    const monthlyRevenues = await workData.model.aggregate(pipeline);
+    console.log("monthlyRevenues", monthlyRevenues);
     return res.status(200).send(monthlyRevenues);
   } catch (err) {
     console.log("@@@", err);
@@ -2910,7 +2874,7 @@ router.get("/monthlyRevenuePerProject/:projectName", async (req, res) => {
 });
 
 router.get("/monthlyValidatedRevenues/:projectName", async (req, res) => {
-  let { projectName } = req.params;
+  const { projectName } = req.params;
   try {
     let result = await getValidatedRevenuesByProject(projectName);
     return res.send(result);
@@ -4288,7 +4252,7 @@ router.put("/reject/:id", async (req, res) => {
 //   }
 // });
 
-router.put("/releaseValidated/:projectName", (req, res) => {
+router.put("/releaseValidated/:id", (req, res) => {
   works.releaseValidated(req, res);
 });
 

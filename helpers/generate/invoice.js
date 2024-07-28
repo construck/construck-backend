@@ -4,6 +4,7 @@ const { ACCOUNT_MANAGER } = process.env;
 
 async function generateInvoice(id, month, year, aggregatedRevenue) {
   // FIND RECENT INVOICE
+
   const recentInvoice = await ProjectInvoice.model
     .findOne({ project: id, month, year })
     .sort({ increment: -1 });
@@ -56,6 +57,11 @@ async function generateInvoice(id, month, year, aggregatedRevenue) {
     }
   );
   const increment = recentInvoice ? recentInvoice.increment + 1 : 1;
+
+  // console.log("@@@really", revenueAdmin);
+  // console.log("@@@really", siteManager);
+  // console.log("@@@really", projectManager);
+  // return;
   const Invoice = new ProjectInvoice.model({
     project: id,
     month,
@@ -64,8 +70,8 @@ async function generateInvoice(id, month, year, aggregatedRevenue) {
     amount: aggregatedRevenue,
     revenueAdmin: revenueAdmin._id,
     accountManager: ACCOUNT_MANAGER,
-    siteManager: siteManager._id,
-    projectManager: projectManager._id,
+    siteManager: siteManager ? siteManager._id : null,
+    projectManager: projectManager ? projectManager._id : null,
   });
   const response = await Invoice.save();
   return response;
