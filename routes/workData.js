@@ -4736,7 +4736,7 @@ router.put("/stop/:id", async (req, res) => {
           if (comment === "Should neve happen") {
             //reason that does not exist
             dailyWork.duration = duration / HOURS_IN_A_DAY;
-            revenue = rate * (duration >= 1 ? 1 : 0);
+            revenue = _.round(rate * (duration >= 1 ? 1 : 0), 1);
             expenditure = supplierRate * (duration >= 1 ? 1 : 0);
           } else {
             dailyWork.duration = duration / HOURS_IN_A_DAY;
@@ -4750,7 +4750,7 @@ router.put("/stop/:id", async (req, res) => {
               comment === "Ibibazo bya panne"
                 ? duration >= 5
                   ? rate
-                  : rate * _.round(duration / HOURS_IN_A_DAY, 2)
+                  : rate * _.round(duration / HOURS_IN_A_DAY, 1)
                 : rate;
             expenditure =
               supplierRate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
@@ -4884,7 +4884,7 @@ router.put("/stop/:id", async (req, res) => {
             if (
               tripsDone &&
               targetTrips &&
-              comment === "Ibibazo bya panne" &&
+              // comment === "Ibibazo bya panne" &&
               (equipment?.eqDescription === "TIPPER TRUCK" ||
                 equipment?.eqDescription === "LOWBED" ||
                 equipment?.eqDescription === "CRANE TRUCKS" ||
@@ -4892,11 +4892,10 @@ router.put("/stop/:id", async (req, res) => {
                 equipment?.eqDescription === "FUEL TANK TRUCK")
             ) {
               if (tripRatio >= 1) {
-                revenue = rate * tripRatio;
+                revenue = rate;
                 expenditure = supplierRate;
-                // revenue = rate;
               } else {
-                revenue = rate * tripRatio;
+                revenue = _.round(rate * tripRatio, 1);
                 expenditure = supplierRate * tripRatio;
               }
             } else {
