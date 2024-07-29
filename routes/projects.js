@@ -51,37 +51,52 @@ router.get("/:id", async (req, res) => {
       .findOne({ _id: id })
       .populate("client", { _id: 1, name: 1, tinNumber: 1 })
       .populate("projectAdmin", {
-        password: 0,
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+      })
+      .populate("siteManager", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+      })
+      .populate("projectManager", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
       });
-    const siteManager = await userData.model.findOne(
-      {
-        userType: "customer-site-manager",
-        assignedProjects: {
-          $elemMatch: {
-            _id: project._id.toString(),
-          },
-        },
-      },
-      {
-        password: 0,
-        assignedProjects: 0,
-      }
-    );
-    const projectManager = await userData.model.findOne(
-      {
-        userType: "customer-project-manager",
-        assignedProjects: {
-          $elemMatch: {
-            _id: project._id.toString(),
-          },
-        },
-      },
-      {
-        password: 0,
-        assignedProjects: 0,
-      }
-    );
-    return res.status(200).send({ project, siteManager, projectManager });
+    // const siteManager = await userData.model.findOne(
+    //   {
+    //     userType: "customer-site-manager",
+    //     assignedProjects: {
+    //       $elemMatch: {
+    //         _id: project._id.toString(),
+    //       },
+    //     },
+    //   },
+    //   {
+    //     password: 0,
+    //     assignedProjects: 0,
+    //   }
+    // );
+    // const projectManager = await userData.model.findOne(
+    //   {
+    //     userType: "customer-project-manager",
+    //     assignedProjects: {
+    //       $elemMatch: {
+    //         _id: project._id.toString(),
+    //       },
+    //     },
+    //   },
+    //   {
+    //     password: 0,
+    //     assignedProjects: 0,
+    //   }
+    // );
+    return res.status(200).send({ project });
   } catch (err) {
     console.log("eer", err);
     return res.status(500).send(err);
@@ -653,7 +668,8 @@ router.get("/invoice/preview/:id/:month/:year", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  let { prjDescription, customer, client, startDate, endDate, status } = req.body;
+  let { prjDescription, customer, client, startDate, endDate, status } =
+    req.body;
   try {
     let prjToCreate = new prjData.model({
       prjDescription,
