@@ -35,10 +35,13 @@ router.get("/v2", async (req, res) => {
     const projects = await prjData.model
       .find()
       .populate("client", { _id: 1, name: 1, tinNumber: 1 })
+      .populate("projectAdmin", { firstName: 1, lastName: 1 })
+      .populate("siteManager", { firstName: 1, lastName: 1 })
+      .populate("projectManager", { firstName: 1, lastName: 1 })
       .sort({
         prjDescription: 1,
       });
-    return res.send(projects);
+    return res.status(200).send(projects);
   } catch (err) {
     return res.send(err);
   }
@@ -68,34 +71,6 @@ router.get("/:id", async (req, res) => {
         phone: 1,
         email: 1,
       });
-    // const siteManager = await userData.model.findOne(
-    //   {
-    //     userType: "customer-site-manager",
-    //     assignedProjects: {
-    //       $elemMatch: {
-    //         _id: project._id.toString(),
-    //       },
-    //     },
-    //   },
-    //   {
-    //     password: 0,
-    //     assignedProjects: 0,
-    //   }
-    // );
-    // const projectManager = await userData.model.findOne(
-    //   {
-    //     userType: "customer-project-manager",
-    //     assignedProjects: {
-    //       $elemMatch: {
-    //         _id: project._id.toString(),
-    //       },
-    //     },
-    //   },
-    //   {
-    //     password: 0,
-    //     assignedProjects: 0,
-    //   }
-    // );
     return res.status(200).send({ project });
   } catch (err) {
     console.log("eer", err);

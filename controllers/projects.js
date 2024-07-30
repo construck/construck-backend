@@ -59,7 +59,7 @@ async function getInvoicePerProject(req, res) {
           "equipment.rate": 1,
           "dispatch.date": 1,
           "dispatch.shift": 1,
-          project: 1,
+          "project.prjDescription": 1,
           duration: 1,
           status: 1,
           date: 1,
@@ -171,9 +171,9 @@ async function getInvoicePerProject(req, res) {
       meta: {
         project,
         invoice,
-        siteManager: siteManager || null,
-        projectManager: projectManager || null,
-        revenueAdmin: revenueAdmin || null,
+        // siteManager: siteManager || null,
+        // projectManager: projectManager || null,
+        // revenueAdmin: revenueAdmin || null,
       },
       invoice: response,
     });
@@ -396,7 +396,18 @@ async function signInvoice(req, res) {
         $set: data,
       }
     );
-    console.log("MMM", invoice);
+    if (type === "authorizer") {
+      // TODO: UPDATE STATUS AND INVOICE ID OF ALL WORKS WITH VALIDATED STATUS
+      const updatedDispatches = await Work.model.updateMany(
+        {
+          invoice: id,
+          status: "validated",
+        },
+        {
+          status: "released",
+        }
+      );
+    }
     return res.status(200).send({
       message: "Signed",
       invoice,
