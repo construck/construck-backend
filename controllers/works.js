@@ -801,20 +801,30 @@ async function editDispatch(req, res) {
 
 async function releaseValidated(req, res) {
   let { month, year } = req.query;
-  let { projectName } = req.params;
+  let { id } = req.params;
+  const startDate = moment([year, month - 1, 1]).format(
+    "YYYY-MM-DDTHH:mm:ss.SSS"
+  );
+  const endDate = moment([year, month - 1, 1])
+    .endOf("month")
+    .format("YYYY-MM-DD");
   try {
     // TODO: FIND PROJECT BY NAME
     const project = await Project.model.findOne({
-      prjDescription: projectName,
+      _id: new mongoose.Types.ObjectId(id),
     });
     if (!project) {
       return res.status(404).send({ message: "Project not found" });
     }
     // TODO: FIND ALL WORKS WITH VALIDATED STATUS FOR GIVEN PROJECT, IF NONE, RETURN ERROR
     const dispatches = await Work.model.find({
-      "project._id": project._id,
+      "project._id": new mongoose.Types.ObjectId(id),
       status: "validated",
       siteWork: false,
+      workStartDate: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      },
     });
     let dispatchIds = [];
     let aggregatedRevenue = 0;
@@ -828,12 +838,9 @@ async function releaseValidated(req, res) {
     }
 
     // TODO: GENERATE INVOICE FOR GIVEN MONTH/YEAR
-    const invoice = await generateInvoice(
-      project._id,
-      month,
-      year,
-      aggregatedRevenue
-    );
+    const invoice = await generateInvoice(id, month, year, aggregatedRevenue, project);
+
+    
     // TODO: UPDATE STATUS AND INVOICE ID OF ALL WORKS WITH VALIDATED STATUS
     const updatedDispatches = await Work.model.updateMany(
       {
@@ -841,46 +848,45 @@ async function releaseValidated(req, res) {
         status: "validated",
       },
       {
-        status: "released",
         invoice: invoice._id,
       }
     );
     return res.status(200).send(updatedDispatches);
     // TODO: COMPUTE TOTAL REVENUE AND UPDATE PROJECT_INVOICE AMOUNT
-    if (month < 10) month = "0" + month;
-    const startOfMonth = moment()
-      .startOf("month")
-      .format(`${year}-${month}-DD`);
-    const endOfMonth = moment()
-      .endOf("month")
-      .format(
-        `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
-      );
+    // if (month < 10) month = "0" + month;
+    // const startOfMonth = moment()
+    //   .startOf("month")
+    //   .format(`${year}-${month}-DD`);
+    // const endOfMonth = moment()
+    //   .endOf("month")
+    //   .format(
+    //     `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
+    //   );
 
-    let q2 = await Work.model.updateMany(
-      {
-        siteWork: true,
-        "project.prjDescription": projectName,
-      },
-      {
-        $set: {
-          "dailyWork.$[elem].status": "released",
-        },
-      },
-      {
-        arrayFilters: [
-          {
-            "elem.date": {
-              $gte: new Date(year, month - 1, 1),
-              $lt: new Date(year, month, 1),
-            },
-          },
-        ],
-        multi: true,
-      }
-    );
+    // let q2 = await Work.model.updateMany(
+    //   {
+    //     siteWork: true,
+    //     "project.prjDescription": projectName,
+    //   },
+    //   {
+    //     $set: {
+    //       "dailyWork.$[elem].status": "released",
+    //     },
+    //   },
+    //   {
+    //     arrayFilters: [
+    //       {
+    //         "elem.date": {
+    //           $gte: new Date(year, month - 1, 1),
+    //           $lt: new Date(year, month, 1),
+    //         },
+    //       },
+    //     ],
+    //     multi: true,
+    //   }
+    // );
 
-    return res.status(200).send({ q2 });
+    // return res.status(200).send({ q2 });
   } catch (err) {
     console.log("err", err);
     return res.status(503).send(err);

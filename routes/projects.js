@@ -35,10 +35,13 @@ router.get("/v2", async (req, res) => {
     const projects = await prjData.model
       .find()
       .populate("client", { _id: 1, name: 1, tinNumber: 1 })
+      .populate("projectAdmin", { firstName: 1, lastName: 1 })
+      .populate("siteManager", { firstName: 1, lastName: 1 })
+      .populate("projectManager", { firstName: 1, lastName: 1 })
       .sort({
         prjDescription: 1,
       });
-    return res.send(projects);
+    return res.status(200).send(projects);
   } catch (err) {
     return res.send(err);
   }
@@ -51,37 +54,24 @@ router.get("/:id", async (req, res) => {
       .findOne({ _id: id })
       .populate("client", { _id: 1, name: 1, tinNumber: 1 })
       .populate("projectAdmin", {
-        password: 0,
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+      })
+      .populate("siteManager", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+      })
+      .populate("projectManager", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
       });
-    const siteManager = await userData.model.findOne(
-      {
-        userType: "customer-site-manager",
-        assignedProjects: {
-          $elemMatch: {
-            _id: project._id.toString(),
-          },
-        },
-      },
-      {
-        password: 0,
-        assignedProjects: 0,
-      }
-    );
-    const projectManager = await userData.model.findOne(
-      {
-        userType: "customer-project-manager",
-        assignedProjects: {
-          $elemMatch: {
-            _id: project._id.toString(),
-          },
-        },
-      },
-      {
-        password: 0,
-        assignedProjects: 0,
-      }
-    );
-    return res.status(200).send({ project, siteManager, projectManager });
+    return res.status(200).send({ project });
   } catch (err) {
     console.log("eer", err);
     return res.status(500).send(err);
@@ -639,170 +629,22 @@ router.get("/releasedRevenue/:projectName", async (req, res) => {
     return res.status(500).send(err);
   }
 });
-router.get("/invoice/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const pipeline = [
-      {
-        $match: {
-          invoice: new mongoose.Types.ObjectId(id),
-        },
-      },
-      {
-        $addFields: {
-          amount: {
-            $cond: {
-              if: {
-                $eq: ["$siteWork", false],
-              },
-              then: "$totalRevenue",
-              else: "$dailyWork.totalRevenue",
-            },
-          },
-        },
-      },
-      {
-        $group: {
-          _id: "$equipment.plateNumber",
-          amount: {
-            $sum: "$amount",
-          },
-          duration: {
-            $sum: "$duration",
-          },
-          equipment: {
-            $first: "$equipment",
-          },
-          project: {
-            $first: "$project",
-          },
-        },
-      },
-      {
-        $project: {
-          _id: 1,
-          "equipment.eqDescription": 1,
-          "equipment.plateNumber": 1,
-          "equipment.uom": 1,
-          "equipment.rate": 1,
-          "dispatch.date": 1,
-          "dispatch.shift": 1,
-          project: 1,
-          duration: 1,
-          status: 1,
-          date: 1,
-          totalRevenue: 1,
-          siteWork: 1,
-          workStartDate: 1,
-          amount: 1,
-          siteWork: 1,
-        },
-      },
-      {
-        $sort: {
-          date: -1,
-        },
-      },
-    ];
-    const response = await workData.model.aggregate(pipeline);
-    // GET INVOICE INFORMATION
-    const invoice = await ProjectInvoice.model
-      .findOne({
-        _id: new mongoose.Types.ObjectId(id),
-      })
-      .populate("project", { _id: 1, prjDescription: 1 })
-      .populate("revenueAdmin", {
-        firstName: 1,
-        lastName: 1,
-        phone: 1,
-        email: 1,
-        signature: 1,
-      })
-      .populate("accountManager", {
-        firstName: 1,
-        lastName: 1,
-        phone: 1,
-        email: 1,
-        signature: 1,
-      })
-      .populate("siteManager", {
-        firstName: 1,
-        lastName: 1,
-        phone: 1,
-        email: 1,
-        signature: 1,
-      })
-      .populate("projectManager", {
-        firstName: 1,
-        lastName: 1,
-        phone: 1,
-        email: 1,
-        signature: 1,
-      });
-    // GET PROJECT ID:
-    const project = await prjData.model
-      .findOne({
-        _id: invoice.project._id,
-      })
-      .populate("client", { _id: 1, name: 1, tinNumber: 1 });
-    let siteManager = null;
-    siteManager = await userData.model.findOne(
-      {
-        userType: "customer-site-manager",
-        assignedProjects: {
-          $elemMatch: {
-            _id: project._id.toString(),
-          },
-        },
-      },
-      {
-        firstName: 1,
-        lastName: 1,
-      }
-    );
-    let projectManager = null;
-    projectManager = await userData.model.findOne(
-      {
-        userType: "customer-project-manager",
-        assignedProjects: {
-          $elemMatch: {
-            _id: project._id.toString(),
-          },
-        },
-      },
-      {
-        firstName: 1,
-        lastName: 1,
-      }
-    );
-    let revenueAdmin = null;
-    revenueAdmin = await userData.model.findOne(
-      {
-        userType: "revenue",
-        assignedProjects: {
-          $elemMatch: {
-            _id: project._id.toString(),
-          },
-        },
-      },
-      {
-        firstName: 1,
-        lastName: 1,
-      }
-    );
-    return res.status(200).send({
-      meta: { project, invoice, siteManager, projectManager, revenueAdmin },
-      invoice: response,
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-});
 router.get("/:id/invoices", async (req, res) => {
   projects.getInvoicesByProject(req, res);
 });
+router.get("/invoice/:id", async (req, res) => {
+  projects.getInvoicePerProject(req, res);
+});
+router.put("/invoice/sign/:id", async (req, res) => {
+  projects.signInvoice(req, res);
+});
+router.get("/invoice/preview/:id/:month/:year", async (req, res) => {
+  projects.getInvoicePreviewPerProject(req, res);
+});
+
 router.post("/", async (req, res) => {
-  let { prjDescription, customer, client, startDate, endDate, status } = req.body;
+  let { prjDescription, customer, client, startDate, endDate, status } =
+    req.body;
   try {
     let prjToCreate = new prjData.model({
       prjDescription,

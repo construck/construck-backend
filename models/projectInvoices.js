@@ -26,6 +26,11 @@ const ProjectInvoicesSchema = mongoose.Schema(
     amount: {
       type: Number,
     },
+    status: {
+      type: String,
+      enum: ["created", "reviewed", "approved", "authorized"],
+      default: "created",
+    },
     revenueAdmin: {
       type: mongoose.SchemaTypes.ObjectId,
       transform: (v) => (v === "" ? null : v),
@@ -36,18 +41,34 @@ const ProjectInvoicesSchema = mongoose.Schema(
       transform: (v) => (v === "" ? null : v),
       ref: "users",
     },
+    reviewedAt: {
+      type: mongoose.SchemaTypes.Date,
+      default: null,
+    },
     siteManager: {
       type: mongoose.SchemaTypes.ObjectId,
       transform: (v) => (v === "" ? null : v),
       ref: "users",
+    },
+    approvedAt: {
+      type: mongoose.SchemaTypes.Date,
+      default: null,
     },
     projectManager: {
       type: mongoose.SchemaTypes.ObjectId,
       transform: (v) => (v === "" ? null : v),
       ref: "users",
     },
+    authorizedAt: {
+      type: mongoose.SchemaTypes.Date,
+      default: null,
+    },
+    createdAt: {
+      type: mongoose.SchemaTypes.Date,
+      default: Date.now(),
+    },
   },
-  { timestamp: true }
+  // { timestamp: true }
 );
 
 module.exports = {

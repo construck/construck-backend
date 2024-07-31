@@ -28,6 +28,11 @@ const ProjectSchema = new mongoose.Schema({
     transform: (v) => (v === "" ? null : v),
     ref: "users",
   },
+  invoiceAuthorizer: {
+    type: mongoose.Schema.Types.ObjectId,
+    transform: (v) => (v === "" ? null : v),
+    ref: "users",
+  },
   startDate: {
     type: Date, 
   },
