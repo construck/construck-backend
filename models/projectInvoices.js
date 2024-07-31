@@ -68,7 +68,7 @@ const ProjectInvoicesSchema = mongoose.Schema(
       default: Date.now(),
     },
   },
-  { timestamp: true }
+  // { timestamp: true }
 );
 
 module.exports = {

@@ -2818,13 +2818,12 @@ router.get("/:id", async (req, res) => {
 router.get("/monthlyRevenuePerProject/:id", async (req, res) => {
   let { id } = req.params;
   let { status } = req.query;
-  console.log("id", id);
 
   let pipeline = [
     {
       $match: {
         "project._id": new mongoose.Types.ObjectId(id),
-        workStartDate: { $gte: new Date("2024-01-01") },
+        workStartDate: { $gte: new Date("2024-06-01") },
         siteWork: false,
         status: "validated",
         $or: [{ invoice: { $exists: false } }, { invoice: null }],

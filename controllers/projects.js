@@ -121,7 +121,14 @@ async function getInvoicePerProject(req, res) {
       .findOne({
         _id: invoice.project,
       })
-      .populate("client", { _id: 1, name: 1, tinNumber: 1 });
+      .populate("client", { _id: 1, name: 1, tinNumber: 1 })
+      .populate("invoiceAuthorizer", {
+        _id: 1,
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+      });
     let siteManager = null;
     siteManager = await User.model.findOne(
       {
