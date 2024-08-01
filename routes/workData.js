@@ -2819,6 +2819,8 @@ router.get("/monthlyRevenuePerProject/:id", async (req, res) => {
   let { id } = req.params;
   let { status } = req.query;
 
+  console.log('##', id)
+
   let pipeline = [
     {
       $match: {
@@ -2864,10 +2866,8 @@ router.get("/monthlyRevenuePerProject/:id", async (req, res) => {
 
   try {
     const monthlyRevenues = await workData.model.aggregate(pipeline);
-    console.log("monthlyRevenues", monthlyRevenues);
     return res.status(200).send(monthlyRevenues);
   } catch (err) {
-    console.log("@@@", err);
     return res.send(err);
   }
 });
