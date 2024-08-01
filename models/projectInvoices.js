@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const moment = require("moment");
 const ProjectInvoicesSchema = mongoose.Schema(
   {
     project: {
@@ -9,7 +10,7 @@ const ProjectInvoicesSchema = mongoose.Schema(
     },
     date: {
       type: mongoose.SchemaTypes.Date,
-      default: Date.now(),
+      default: moment(),
     },
     increment: {
       type: Number,
@@ -67,7 +68,7 @@ const ProjectInvoicesSchema = mongoose.Schema(
       type: mongoose.SchemaTypes.Date,
       default: Date.now(),
     },
-  },
+  }
   // { timestamp: true }
 );
 

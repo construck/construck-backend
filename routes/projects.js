@@ -65,6 +65,12 @@ router.get("/:id", async (req, res) => {
         phone: 1,
         email: 1,
       })
+      .populate("invoiceAuthorizer", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+      })
       .populate("projectManager", {
         firstName: 1,
         lastName: 1,
@@ -631,6 +637,9 @@ router.get("/releasedRevenue/:projectName", async (req, res) => {
 });
 router.get("/:id/invoices", async (req, res) => {
   projects.getInvoicesByProject(req, res);
+});
+router.put("/:id/authorizer", async (req, res) => {
+  projects.assignAuthorizer(req, res);
 });
 router.get("/invoice/:id", async (req, res) => {
   projects.getInvoicePerProject(req, res);

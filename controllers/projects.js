@@ -420,14 +420,51 @@ async function signInvoice(req, res) {
       invoice,
     });
   } catch (err) {
-    console.log("##err", err);
     return res.status(500).send(err);
   }
 }
 
+async function assignAuthorizer(req, res) {
+  const { id } = req.params;
+  const { authorizer } = req.body;
+  try {
+    // CHECK IF USER IS NOT INACTIVE
+    const user = await User.model.findOne({
+      _id: authorizer,
+      status: { $ne: "inactive" },
+    });
+    if (_.isEmpty(user)) {
+      return res.status(404).send({
+        message: "Authorizer not found",
+      });
+    }
+    // ASSIGN USER TO THE PROJECT
+    const response = await Project.model.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(id),
+      },
+      {
+        $set: {
+          invoiceAuthorizer: new mongoose.Types.ObjectId(authorizer),
+        },
+      }
+    );
+
+    return res.status(201).send({
+      message: "Authorizer has been assigned successfully",
+      response,
+    });
+  } catch (error) {
+    return res.status(400).send({
+      error: error.message || null,
+    });
+  }
+  return;
+}
 module.exports = {
   getInvoicesByProject,
   getInvoicePerProject,
   getInvoicePreviewPerProject,
   signInvoice,
+  assignAuthorizer,
 };
