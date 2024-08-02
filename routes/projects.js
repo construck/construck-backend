@@ -47,7 +47,7 @@ router.get("/v2", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id/details", async (req, res) => {
   const { id } = req.params;
   try {
     const project = await prjData.model

@@ -194,7 +194,7 @@ router.get("/filtered/:page", async (req, res) => {
     userProject,
     userProjects,
   } = req.query;
-  console.log("##dates", startDate, endDate);
+  console.log("##searchText", searchText);
   let { page } = req.params;
   let perPage = 15;
   let query = {};
@@ -271,9 +271,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $gte: moment(startDate),
               },
 
-              "project.prjDescription": {
-                $regex: project,
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
               "equipment.eqOwner": vendorName,
             },
 
@@ -286,9 +284,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
               "equipment.eqOwner": vendorName,
             },
           ],
@@ -301,13 +297,8 @@ router.get("/filtered/:page", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate),
               },
-
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "equipment.eqOwner": vendorName,
             },
 
@@ -320,12 +311,8 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "equipment.eqOwner": vendorName,
             },
           ],
@@ -378,10 +365,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.customer": companyName,
             },
 
@@ -394,9 +378,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.customer": companyName,
             },
           ],
@@ -417,9 +399,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
 
-              "project.prjDescription": {
-                $regex: project,
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
               "project.customer": companyName,
             },
 
@@ -432,9 +412,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
               "project.customer": companyName,
             },
           ],
@@ -454,13 +432,8 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.customer": companyName,
             },
 
@@ -473,12 +446,8 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.customer": companyName,
             },
           ],
@@ -534,11 +503,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
-
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.prjDescription": { $in: prjs },
             },
 
@@ -551,10 +516,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
-
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.prjDescription": { $in: prjs },
             },
           ],
@@ -575,10 +537,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
 
-              "project.prjDescription": {
-                $regex: project,
-              },
-
+              "project._id": new mongoose.Types.ObjectId(project),
               "project.prjDescription": { $in: prjs },
             },
 
@@ -591,10 +550,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
-
+              "project._id": new mongoose.Types.ObjectId(project),
               "project.prjDescription": { $in: prjs },
             },
           ],
@@ -614,13 +570,8 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
-
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.prjDescription": { $in: prjs },
             },
 
@@ -633,13 +584,8 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
-
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.prjDescription": { $in: prjs },
             },
           ],
@@ -695,11 +641,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
-
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.prjDescription": { $in: prjs },
             },
 
@@ -712,10 +654,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
-
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.prjDescription": { $in: prjs },
             },
           ],
@@ -735,11 +674,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-
-              "project.prjDescription": {
-                $regex: project,
-              },
-
+              "project._id": new mongoose.Types.ObjectId(project),
               "project.prjDescription": { $in: prjs },
             },
 
@@ -752,10 +687,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
-
+              "project._id": new mongoose.Types.ObjectId(project),
               "project.prjDescription": { $in: prjs },
             },
           ],
@@ -776,13 +708,8 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
 
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
-
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.prjDescription": { $in: prjs },
             },
 
@@ -795,13 +722,8 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
-
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.prjDescription": { $in: prjs },
             },
           ],
@@ -851,9 +773,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
             },
 
             {
@@ -865,9 +785,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
             },
           ],
         };
@@ -885,9 +803,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
             },
 
             {
@@ -899,9 +815,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
             },
           ],
         };
@@ -919,12 +833,8 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
             },
 
             {
@@ -936,12 +846,8 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "minutes")
                   .add(59, "seconds"),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
             },
           ],
         };
@@ -1568,10 +1474,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "equipment.eqOwner": vendorName,
             },
 
@@ -1586,9 +1489,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "equipment.eqOwner": vendorName,
             },
           ],
@@ -1602,10 +1503,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-
-              "project.prjDescription": {
-                $regex: project,
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
               "equipment.eqOwner": vendorName,
             },
 
@@ -1620,9 +1518,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
               "equipment.eqOwner": vendorName,
             },
           ],
@@ -1636,13 +1532,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "equipment.eqOwner": vendorName,
             },
 
@@ -1657,12 +1548,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "equipment.eqOwner": vendorName,
             },
           ],
@@ -1706,10 +1593,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.customer": companyName,
             },
 
@@ -1724,9 +1608,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.customer": companyName,
             },
           ],
@@ -1740,10 +1622,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-
-              "project.prjDescription": {
-                $regex: project,
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
               "project.customer": companyName,
             },
 
@@ -1758,9 +1637,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
               "project.customer": companyName,
             },
           ],
@@ -1774,13 +1651,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.customer": companyName,
             },
 
@@ -1795,12 +1667,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.customer": companyName,
             },
           ],
@@ -1846,11 +1714,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
-
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.prjDescription": { $in: prjs },
             },
 
@@ -1865,10 +1729,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
-
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.prjDescription": { $in: prjs },
             },
           ],
@@ -1882,11 +1743,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-
-              "project.prjDescription": {
-                $regex: project,
-              },
-
+              "project._id": new mongoose.Types.ObjectId(project),
               "project.prjDescription": { $in: prjs },
             },
 
@@ -1901,10 +1758,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
-
+              "project._id": new mongoose.Types.ObjectId(project),
               "project.prjDescription": { $in: prjs },
             },
           ],
@@ -1918,14 +1772,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
-
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.prjDescription": { $in: prjs },
             },
 
@@ -1940,13 +1788,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
-
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.prjDescription": { $in: prjs },
             },
           ],
@@ -1993,10 +1836,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 $gte: moment(startDate).toDate(),
               },
 
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
-
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.prjDescription": { $in: prjs },
             },
 
@@ -2011,10 +1851,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
-
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.prjDescription": { $in: prjs },
             },
           ],
@@ -2029,10 +1866,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 $gte: moment(startDate).toDate(),
               },
 
-              "project.prjDescription": {
-                $regex: project,
-              },
-
+              "project._id": new mongoose.Types.ObjectId(project),
               "project.prjDescription": { $in: prjs },
             },
 
@@ -2047,10 +1881,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
-
+              "project._id": new mongoose.Types.ObjectId(project),
               "project.prjDescription": { $in: prjs },
             },
           ],
@@ -2064,14 +1895,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
-
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.prjDescription": { $in: prjs },
             },
 
@@ -2086,13 +1911,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
-
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
               "project.prjDescription": { $in: prjs },
             },
           ],
@@ -2134,10 +1954,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
             },
 
             {
@@ -2151,9 +1968,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
             },
           ],
         };
@@ -2166,10 +1981,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-
-              "project.prjDescription": {
-                $regex: project,
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
             },
 
             {
@@ -2182,9 +1994,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
             },
           ],
         };
@@ -2197,13 +2007,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
             },
 
             {
@@ -2217,12 +2022,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "project.prjDescription": {
-                $regex: project,
-              },
-              "equipment.plateNumber": {
-                $regex: searchText.toUpperCase(),
-              },
+              "project._id": new mongoose.Types.ObjectId(project),
+              "equipment._id": new mongoose.Types.ObjectId(searchText),
             },
           ],
         };
@@ -2818,8 +2619,6 @@ router.get("/:id", async (req, res) => {
 router.get("/monthlyRevenuePerProject/:id", async (req, res) => {
   let { id } = req.params;
   let { status } = req.query;
-
-  console.log('##', id)
 
   let pipeline = [
     {

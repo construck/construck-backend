@@ -129,7 +129,7 @@ router.get("/v2", async (req, res) => {
       .populate("equipmentType");
     return res.status(200).send(equipments);
   } catch (err) {
-    return res.status(500).send(error);
+    return res.status(500).send(err);
   }
 });
 router.get("/:id", async (req, res) => {

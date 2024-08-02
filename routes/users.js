@@ -20,8 +20,6 @@ router.get("/", async (req, res) => {
   ignoreCache = parseInt(ignoreCache) || 0;
   const cacheKey = "get-users-cache-key";
   const cachedData = cache.get(cacheKey);
-  console.log("ignoreCache !== 1", ignoreCache !== 1);
-  console.log("!_.isEmpty(cachedData)", !_.isEmpty(cachedData));
   if (ignoreCache !== 1 && !_.isEmpty(cachedData)) {
     return res.status(200).send(cachedData);
   }
