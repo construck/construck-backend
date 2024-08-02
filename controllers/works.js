@@ -760,6 +760,9 @@ async function editDispatch(req, res) {
       "dispatch.shift": data.dispatch.shift,
       "dispatch.date": data.workStartDate,
       "dispatch.astDriver": data.dispatch.astDriver,
+      ...(data.dispatch.targetTrips && {
+        "dispatch.targetTrips": data.dispatch.targetTrips,
+      }),
       project: {
         ...data.project,
         _id: new mongoose.Types.ObjectId(data.project._id),
@@ -838,9 +841,14 @@ async function releaseValidated(req, res) {
     }
 
     // TODO: GENERATE INVOICE FOR GIVEN MONTH/YEAR
-    const invoice = await generateInvoice(id, month, year, aggregatedRevenue, project);
+    const invoice = await generateInvoice(
+      id,
+      month,
+      year,
+      aggregatedRevenue,
+      project
+    );
 
-    
     // TODO: UPDATE STATUS AND INVOICE ID OF ALL WORKS WITH VALIDATED STATUS
     const updatedDispatches = await Work.model.updateMany(
       {

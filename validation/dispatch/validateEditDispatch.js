@@ -5,6 +5,7 @@ const editDispatchSchema = Joi.object({
   dispatch: Joi.object({
     shift: Joi.any().required().valid("dayShift", "nightShift"),
     date: Joi.any().required(),
+    targetTrips: Joi.any().optional(),
   }).unknown(true),
   equipment: Joi.object().required(),
   equipmentId: Joi.string().required(),
