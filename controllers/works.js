@@ -822,7 +822,7 @@ async function releaseValidated(req, res) {
     // TODO: FIND ALL WORKS WITH VALIDATED STATUS FOR GIVEN PROJECT, IF NONE, RETURN ERROR
     const dispatches = await Work.model.find({
       "project._id": new mongoose.Types.ObjectId(id),
-      status: "validated",
+      status: { $in: ["stopped", "approved", "validated"] },
       siteWork: false,
       workStartDate: {
         $gte: new Date(startDate),
@@ -853,7 +853,7 @@ async function releaseValidated(req, res) {
     const updatedDispatches = await Work.model.updateMany(
       {
         _id: { $in: dispatchIds },
-        status: "validated",
+        status: { $in: ["stopped", "approved", "validated"] },
       },
       {
         invoice: invoice._id,

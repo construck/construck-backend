@@ -185,7 +185,6 @@ async function getInvoicePerProject(req, res) {
       invoice: response,
     });
   } catch (err) {
-    console.log("ee", err);
     return res.status(500).send(err);
   }
 }
@@ -203,7 +202,7 @@ async function getInvoicePreviewPerProject(req, res) {
       {
         $match: {
           "project._id": new mongoose.Types.ObjectId(id),
-          status: "validated",
+          status: { $in: ["stopped", "approved", "validated"] },
           siteWork: false,
           workStartDate: {
             $gte: new Date(startDate),
