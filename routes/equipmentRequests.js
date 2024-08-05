@@ -12,6 +12,15 @@ const equipmentRequestDetails = require("../models/equipmentRequestDetails");
 
 router.get("/", async (req, res) => {
   let { pageNumber, pageSize, owner } = req.query;
+  if (_.isEmpty(pageNumber) || _.isEmpty(pageSize) || _.isEmpty(owner)) {
+    return res.status(400).send({
+      message: "Error occured",
+      plateNumber: "",
+      status: "ERROR",
+      date: "",
+      response: {},
+    });
+  }
   try {
     let pipeline = [
       {

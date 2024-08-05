@@ -1217,7 +1217,8 @@ router.get("/v3/driver/:driverId", async (req, res) => {
     let finalList = l.concat(siteWorkList);
 
     let orderedList = _.orderBy(finalList, "dispatchDate", "desc");
-
+    // const newResponse = orderedList.filter((d) => !_.isNull(d));
+    // const oneEl = newResponse.slice(0, 6);
     return res.status(200).send(orderedList.filter((d) => !_.isNull(d)));
   } catch (err) {
     return res.send(err);
