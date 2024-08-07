@@ -407,7 +407,7 @@ async function signInvoice(req, res) {
       const updatedDispatches = await Work.model.updateMany(
         {
           invoice: id,
-          status: "validated",
+          status: { $in: ["stopped", "approved", "validated"] },
         },
         {
           status: "released",
