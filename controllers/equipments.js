@@ -434,6 +434,31 @@ async function checkEquipmentAvailabilityForDispatch(req, res) {
     return res.send(err);
   }
 }
+async function checkEquipmentDispatchable(req, res) {
+  let { date, shift } = req.params;
+  let { workStartDate, workEndDate, siteWork } = req.query;
+  if (siteWork !== "true") {
+    workStartDate = date;
+    workEndDate = date;
+  }
+  try {
+    // 1: GET A LIST OF DISPOSED EQUIPMENT
+    let listDisposed = await getListOfDisposedEquipments();
+    let listDisposedEquip = listDisposed?.map((e) => {
+      return e.plateNumber;
+    });
+    // 4. COMBINED ALL LISTS
+    let combined = _.uniq([
+      ...listDisposedEquip,
+    ]);
+    let availableEquipment = await Equipment.model.find({
+      plateNumber: { $nin: combined },
+    });
+    return res.status(200).send(availableEquipment);
+  } catch (err) {
+    return res.send(err);
+  }
+}
 
 module.exports = {
   changeEquipmentStatus,
@@ -441,4 +466,5 @@ module.exports = {
   getEquipmentUtilizationByDate,
   downloadEquipmentUtilizationByDates,
   checkEquipmentAvailabilityForDispatch,
+  checkEquipmentDispatchable,
 };

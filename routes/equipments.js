@@ -132,6 +132,9 @@ router.get("/v2", async (req, res) => {
     return res.status(500).send(err);
   }
 });
+router.get("/can-be-dispatched", async (req, res) => {
+  EquipmentController.checkEquipmentDispatchable(req, res);
+});
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
 
@@ -228,10 +231,8 @@ router.get("/type/:type/:date/:shift", async (req, res) => {
   }
 });
 
+
 router.get("/:date/:shift", async (req, res) => {
-  EquipmentController.checkEquipmentAvailabilityForDispatch(req, res);
-});
-router.get("/dispatchable", async (req, res) => {
   EquipmentController.checkEquipmentAvailabilityForDispatch(req, res);
 });
 
