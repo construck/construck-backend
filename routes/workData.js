@@ -4647,7 +4647,7 @@ router.put("/stop/:id", async (req, res) => {
             if (
               tripsDone &&
               targetTrips &&
-              // comment === "Ibibazo bya panne" &&
+              comment === "Ibibazo bya panne" &&
               (equipment?.eqDescription === "TIPPER TRUCK" ||
                 equipment?.eqDescription === "LOWBED" ||
                 equipment?.eqDescription === "CRANE TRUCKS" ||
