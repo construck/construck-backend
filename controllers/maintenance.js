@@ -153,6 +153,7 @@ async function updateJobCard(req, res) {
     return res.status(404).send("The Job Card with the given ID was not found");
   // update equipment status
   if (supervisorApproval) {
+    // UPDATE EQUIPMENT,
     await Equipment.model.updateOne(
       {
         plateNumber: jobCard.plate.text,
@@ -161,6 +162,21 @@ async function updateJobCard(req, res) {
         $set: {
           eqStatus: "workshop",
         },
+      }
+    );
+    // UPDATE FUTURE DISPATCHES
+    const response = await Work.model.updateMany(
+      {
+        "equipment.plateNumber": req.body.payload.carPlate.text,
+        status: "stopped",
+        totalRevenue: 0,
+        workStartDate: {
+          $gte: moment().format("YYYY-MM-DD"),
+        },
+      },
+      {
+        status: "created",
+        totalRevenue: 0,
       }
     );
   } else {
@@ -178,7 +194,13 @@ async function equipmentWasInWorkshop(req, res) {
   const response = await checkIfEquipmentWasInWorkshop(id, startdate, enddate);
   if (!_.isEmpty(response)) {
     return res.status(409).send({
-      error: `Equipment with "${response?.plate?.text}" plate number was in the workshop between ${moment(response?.entryDate).format("MMMM DD, YYYY")} and ${moment(response?.endRepair).format("MMMM DD, YYYY")}`,
+      error: `Equipment with "${
+        response?.plate?.text
+      }" plate number was in the workshop between ${moment(
+        response?.entryDate
+      ).format("MMMM DD, YYYY")} and ${moment(response?.endRepair).format(
+        "MMMM DD, YYYY"
+      )}`,
     });
   } else {
     return res.status(200).send({
