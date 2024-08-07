@@ -949,7 +949,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               workStartDate: {
                 $lte: today,
                 $gte: moment()
-                  .subtract(1, "month")
+                  .subtract(2, "month")
                   .startOf("month")
                   .format("YYYY-MM-DD"),
               },
@@ -960,7 +960,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               workStartDate: {
                 $lte: today,
                 $gte: moment()
-                  .subtract(1, "month")
+                  .subtract(2, "month")
                   .startOf("month")
                   .format("YYYY-MM-DD"),
               },
@@ -986,7 +986,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
       .populate("approvedBy")
       .populate("createdBy")
       .populate("workDone")
-      .sort({ _id: -1 });
+      .sort({ workStartDate: -1 });
 
     let listToSend = workList.filter(
       (w) =>
