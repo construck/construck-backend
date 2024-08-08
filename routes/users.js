@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const NodeCache = require("node-cache");
+const { default: mongoose, Types } = require("mongoose");
 const userData = require("../models/users");
 const Driver = require("../models/drivers");
 const Vendor = require("../models/vendors");
@@ -160,11 +161,21 @@ router.put("/:id/assign-projects", async (req, res) => {
     const { projectId, type } = req.body;
     if (_.isEmpty(type) || _.isEmpty(projectId)) {
       return res.status(400).send({
-        message: "Project and account type is missing, please try again",
+        message: "Project or account type is missing, please try again",
         error: true,
       });
     }
+
     // EXIST? REMOVE ASSIGNEE FROM PROJECT AND USER COLLECTION
+    const user = await userData.model.findOne({
+      _id: new mongoose.Types.ObjectId(id),
+      userType: type,
+      assignedProjects: { $elemMatch: { _id: projectId } },
+    });
+    // IF USER EXISTS, SKIP
+
+    console.log("##USER", user);
+    return;
     // ASSIGN TO USER
     // ASSIGN TO PROJECT
     const response = await userData.model.findByIdAndUpdate(
