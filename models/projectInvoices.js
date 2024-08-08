@@ -10,7 +10,11 @@ const ProjectInvoicesSchema = mongoose.Schema(
     },
     date: {
       type: mongoose.SchemaTypes.Date,
-      default: moment(),
+      default: () => {
+        const date = new Date();
+        date.setUTCHours(date.getUTCHours());
+        return date;
+      },
     },
     increment: {
       type: Number,
