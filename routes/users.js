@@ -12,7 +12,7 @@ const UserController = require("./../controllers/users");
 const cache = new NodeCache({ stdTTL: 7200 });
 const moment = require("moment");
 const { DEFAULT_PASSWORD } = process.env;
-const useragent = require('express-useragent');
+const useragent = require("express-useragent");
 router.use(useragent.express());
 
 router.get("/", async (req, res) => {
@@ -157,11 +157,20 @@ router.put("/status", async (req, res) => {
 router.put("/:id/assign-projects", async (req, res) => {
   try {
     const { id } = req.params;
-    const { assignedProjects } = req.body;
+    const { projectId, type } = req.body;
+    if (_.isEmpty(type) || _.isEmpty(projectId)) {
+      return res.status(400).send({
+        message: "Project and account type is missing, please try again",
+        error: true,
+      });
+    }
+    // EXIST? REMOVE ASSIGNEE FROM PROJECT AND USER COLLECTION
+    // ASSIGN TO USER
+    // ASSIGN TO PROJECT
     const response = await userData.model.findByIdAndUpdate(
       id,
       {
-        assignedProjects,
+        projectId,
       },
       {
         password: 0,

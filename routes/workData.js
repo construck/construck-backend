@@ -6271,10 +6271,12 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
 }
 
 async function getNotPostedListByDay(userId, transactionDate) {
+  const user = await userData.model.findById(userId);
   let pipeline = [
     {
       $match: {
-        "equipment.vendor": new mongoose.Types.ObjectId(userId),
+        // "equipment.vendor": new mongoose.Types.ObjectId(userId),
+        "equipment.vendor": user?.vendor.toString(),
       },
     },
     {
@@ -6614,7 +6616,8 @@ async function getDailyNotPostedRevenues(month, year, userId) {
   let pipeline = [
     {
       $match: {
-        "equipment.vendor": new mongoose.Types.ObjectId(user),
+        // "equipment.vendor": new mongoose.Types.ObjectId(user),
+        "equipment.vendor": user?.vendor.toString(),
       },
     },
     {
@@ -6855,11 +6858,12 @@ async function getDailyNotPostedRevenues(month, year, userId) {
 async function getNotPostedRevenuedByVendor(userId) {
   //get vendor from vendor collection
   const user = await userData.model.findById(userId);
+  console.log("@@user", user?.vendor);
 
   let pipeline = [
     {
       $match: {
-        "equipment.vendor": new ObjectId(user.vendor),
+        "equipment.vendor": user?.vendor.toString(),
       },
     },
     {
@@ -6980,7 +6984,6 @@ async function getNotPostedRevenuedByVendor(userId) {
         },
       },
     },
-
     {
       $lookup: {
         from: "users",
