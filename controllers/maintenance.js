@@ -168,7 +168,7 @@ async function updateJobCard(req, res) {
     const response = await Work.model.updateMany(
       {
         "equipment.plateNumber": req.body.payload.carPlate.text,
-        status: "stopped",
+        status: "recalled",
         totalRevenue: 0,
         workStartDate: {
           $gte: moment().format("YYYY-MM-DD"),

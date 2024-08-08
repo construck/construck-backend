@@ -49,7 +49,7 @@ async function findAndUpdateDispatchByEquipment(plateNumber, date) {
       } else {
         await Work.model.updateOne(
           { _id: work._id },
-          { $set: { status: "stopped" } }
+          { $set: { status: "recalled" } }
         );
       }
     });
