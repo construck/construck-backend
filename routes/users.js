@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const NodeCache = require("node-cache");
 const { default: mongoose, Types } = require("mongoose");
 const userData = require("../models/users");
+const Project = require("../models/projects");
 const Driver = require("../models/drivers");
 const Vendor = require("../models/vendors");
 const Customer = require("../models/customers");
@@ -158,36 +159,79 @@ router.put("/status", async (req, res) => {
 router.put("/:id/assign-projects", async (req, res) => {
   try {
     const { id } = req.params;
-    const { projectId, type } = req.body;
-    if (_.isEmpty(type) || _.isEmpty(projectId)) {
+    const { project, type } = req.body;
+    if (_.isEmpty(type) || _.isEmpty(project)) {
       return res.status(400).send({
         message: "Project or account type is missing, please try again",
         error: true,
       });
     }
 
-    // EXIST? REMOVE ASSIGNEE FROM PROJECT AND USER COLLECTION
-    const user = await userData.model.findOne({
-      _id: new mongoose.Types.ObjectId(id),
-      userType: type,
-      assignedProjects: { $elemMatch: { _id: projectId } },
-    });
-    // IF USER EXISTS, SKIP
-
-    console.log("##USER", user);
-    return;
-    // ASSIGN TO USER
-    // ASSIGN TO PROJECT
-    const response = await userData.model.findByIdAndUpdate(
-      id,
+    // REMOVE PROJECT FROM EXISTING USER
+    const userWithSameProject = await userData.model.updateOne(
       {
-        projectId,
+        _id: { $ne: new mongoose.Types.ObjectId(id) },
+        userType: type,
+        assignedProjects: { $elemMatch: { _id: project._id } },
       },
       {
-        password: 0,
+        $pull: {
+          assignedProjects: {
+            _id: project._id,
+          },
+        },
       }
     );
-    return res.status(201).send(response);
+
+    // ASSIGN PROJECT TO USER
+    const user = await userData.model.updateOne(
+      {
+        _id: new mongoose.Types.ObjectId(id),
+        userType: type,
+      },
+      {
+        $addToSet: {
+          assignedProjects: {
+            _id: project._id,
+            prjDescription: project.prjDescription,
+            customer: project.client.name || null,
+            customerId: project.client._id || null,
+          },
+        },
+      }
+    );
+
+    // UPDATE PROJECT DATA
+    let dataToUpdate = {};
+    if (type === "customer-project-manager") {
+      dataToUpdate = {
+        ...dataToUpdate,
+        projectManager: new mongoose.Types.ObjectId(id),
+      };
+    }
+    if (type === "customer-site-manager") {
+      dataToUpdate = {
+        ...dataToUpdate,
+        siteManager: new mongoose.Types.ObjectId(id),
+      };
+    }
+    if (type === "revenue") {
+      dataToUpdate = {
+        ...dataToUpdate,
+        projectAdmin: new mongoose.Types.ObjectId(id),
+      };
+    }
+    const projectResponse = await Project.model.updateOne(
+      {
+        _id: new mongoose.Types.ObjectId(project._id),
+      },
+      dataToUpdate
+    );
+    return res.status(201).send({
+      message: "Project assigned successfully",
+      user,
+      project: projectResponse,
+    });
   } catch (err) {
     return res.status(500).send({
       message: `${err}`,
