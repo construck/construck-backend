@@ -521,6 +521,35 @@ async function bulkPostSingleDispatch(req, res) {
   }
   return;
 }
+async function bulkRecallDispatches(req, res) {
+  const { ids } = req.body;
+  console.log("ids", ids);
+  try {
+    if (!_.isEmpty(ids)) {
+      const r = ids.map(async (id) => {
+        await Work.model.updateOne(
+          {
+            _id: new mongoose.Types.ObjectId(id),
+            status: "created",
+          },
+          {
+            status: "recalled",
+          }
+        );
+      });
+      console.log("r", r);
+    }
+    return res.status(201).send({
+      message: "Dispatches are recalled successfully",
+    });
+  } catch (error) {
+    console.log("error", error);
+    return res.status(503).send({
+      error: "Something went wrong, refresh the page and try again",
+    });
+  }
+  return;
+}
 
 async function createDispatch(req, res) {
   let data = req.body;
@@ -941,4 +970,5 @@ module.exports = {
   createDispatch,
   editDispatch,
   releaseValidated,
+  bulkRecallDispatches,
 };

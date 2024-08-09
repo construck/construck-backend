@@ -3553,16 +3553,19 @@ router.post("/getAnalytics", async (req, res) => {
     });
   }
 });
+router.put("/bulk-recall", (req, res) => {
+  works.bulkRecallDispatches(req, res);
+});
 
 router.put("/:id", async (req, res) => {
   let { id } = req.params;
   let projectId = req.body?.project?._id;
   let customerName = req.body?.project?.customer;
-  let equipmentOwner = req.body?.equipment?.eqOwner;
+  const equipmentOwner = req.body?.equipment?.eqOwner;
   let driver = req.body?.driver;
 
   let updateObj = {};
-  if (equipmentOwner.toLowerCase() === "construck") {
+  if (equipmentOwner && equipmentOwner.toLowerCase() === "construck") {
     updateObj = req.body;
   } else {
     delete req.body.driver;
@@ -4092,6 +4095,7 @@ router.put("/rejectValidated/:projectName", async (req, res) => {
     return res.send(err);
   }
 });
+
 
 router.put("/recall/:id", async (req, res) => {
   let { id } = req.params;
