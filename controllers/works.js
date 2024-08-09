@@ -542,6 +542,35 @@ async function createDispatch(req, res) {
     }
 
     // TODO: CHECK IF EQUIPMENT IS IN WORKSHOP -> EQUIPMENTS IN WORKSHOP ARE FILTERED ON THE DISPATCH FORM, SKIP THIS
+
+    const inWorkshop = await Maintenance.model.find(
+      {
+        jobCard_status: "opened",
+        "plate.text": data?.equipment?.plateNumber,
+        entryDate: { $lte: data.workStartDate },
+      },
+      {
+        plate: 1,
+        status: 1,
+        jobCard_status: 1,
+        entryDate: 1,
+      }
+    );
+
+    if (!_.isEmpty(inWorkshop)) {
+      return res.status(409).send({
+        message: `Equipment(${
+          data.equipment.plateNumber
+        }) is in workshop from ${moment(inWorkshop.entryDate).format(
+          "MMM DD, YYYY"
+        )}`,
+        plateNumber: data.equipment.plateNumber,
+        status: "ERROR",
+        date: inWorkshop.workStartDate,
+        response: null,
+      });
+    }
+
     // CHECK IF DISPATCH EXIST
     const isExist = await Work.model.findOne(
       {
