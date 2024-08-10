@@ -12,6 +12,7 @@ const mongoose = require("mongoose");
 const mailer = require("./../helpers/mailer/dispatchReport");
 const helpers = require("../helpers/generate/revenues");
 const { generateInvoice } = require("../helpers/generate/invoice");
+const helper = require("../helpers/mailer/invoice/notifyNextApprover");
 
 const isWorkNotPosted = (work, date) => {
   let start = moment(work?.workStartDate).format("YYYY-MM-DD");
@@ -860,7 +861,7 @@ async function editDispatch(req, res) {
   }
 }
 
-async function releaseValidated(req, res) {
+async function createInvoice(req, res) {
   let { month, year } = req.query;
   let { id } = req.params;
   const startDate = moment([year, month - 1, 1]).format(
@@ -917,42 +918,8 @@ async function releaseValidated(req, res) {
         invoice: invoice._id,
       }
     );
+    await helper.notifyNextApprover(invoice);
     return res.status(200).send(updatedDispatches);
-    // TODO: COMPUTE TOTAL REVENUE AND UPDATE PROJECT_INVOICE AMOUNT
-    // if (month < 10) month = "0" + month;
-    // const startOfMonth = moment()
-    //   .startOf("month")
-    //   .format(`${year}-${month}-DD`);
-    // const endOfMonth = moment()
-    //   .endOf("month")
-    //   .format(
-    //     `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
-    //   );
-
-    // let q2 = await Work.model.updateMany(
-    //   {
-    //     siteWork: true,
-    //     "project.prjDescription": projectName,
-    //   },
-    //   {
-    //     $set: {
-    //       "dailyWork.$[elem].status": "released",
-    //     },
-    //   },
-    //   {
-    //     arrayFilters: [
-    //       {
-    //         "elem.date": {
-    //           $gte: new Date(year, month - 1, 1),
-    //           $lt: new Date(year, month, 1),
-    //         },
-    //       },
-    //     ],
-    //     multi: true,
-    //   }
-    // );
-
-    // return res.status(200).send({ q2 });
   } catch (err) {
     console.log("err", err);
     return res.status(503).send(err);
@@ -969,6 +936,6 @@ module.exports = {
   bulkPostSingleDispatch,
   createDispatch,
   editDispatch,
-  releaseValidated,
+  createInvoice,
   bulkRecallDispatches,
 };

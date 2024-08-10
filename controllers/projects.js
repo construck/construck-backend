@@ -5,6 +5,7 @@ const ProjectInvoice = require("./../models/projectInvoices");
 const Work = require("./../models/workData");
 const Project = require("../models/projects");
 const User = require("../models/users");
+const helper = require("../helpers/mailer/invoice/notifyNextApprover");
 
 async function getInvoicesByProject(req, res) {
   const { id } = req.params;
@@ -400,7 +401,8 @@ async function signInvoice(req, res) {
       },
       {
         $set: data,
-      }
+      },
+      { new: true }
     );
     if (type === "authorizer") {
       // TODO: UPDATE STATUS AND INVOICE ID OF ALL WORKS WITH VALIDATED STATUS
@@ -414,11 +416,13 @@ async function signInvoice(req, res) {
         }
       );
     }
+    await helper.notifyNextApprover(invoice);
     return res.status(200).send({
       message: "Signed",
       invoice,
     });
   } catch (err) {
+    console.log("err", err);
     return res.status(500).send(err);
   }
 }

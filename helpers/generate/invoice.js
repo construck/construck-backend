@@ -19,7 +19,7 @@ async function generateInvoice(id, month, year, aggregatedRevenue, project) {
     revenueAdmin: project.projectAdmin || null,
     accountManager: ACCOUNT_MANAGER,
     siteManager: project.siteManager || null,
-    projectManager: project.projectManager || null,
+    projectManager: project.projectManager || project.invoiceAuthorizer || null,
   });
   const response = await Invoice.save();
   return response;

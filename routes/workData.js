@@ -4054,8 +4054,8 @@ router.put("/reject/:id", async (req, res) => {
 //   }
 // });
 
-router.put("/releaseValidated/:id", (req, res) => {
-  works.releaseValidated(req, res);
+router.put("/create-invoice/:id", (req, res) => {
+  works.createInvoice(req, res);
 });
 
 router.put("/rejectValidated/:projectName", async (req, res) => {
