@@ -1437,7 +1437,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
   let prjs = projects?.map((p) => {
     return p?.prjDescription;
   });
-
   switch (userType) {
     case "vendor":
       if (!searchByPlateNumber && !searchByProject) {
@@ -1455,7 +1454,9 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               siteWork: false,
               status: { $ne: "recalled" },
               workStartDate: {
-                $gte: moment(startDate),
+                $gte: moment(startDate).toDate(),
+              },
+              workStartDate: {
                 $lte: moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
@@ -1482,8 +1483,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             {
               siteWork: false,
               status: { $ne: "recalled" },
+
               workStartDate: {
                 $gte: moment(startDate).toDate(),
+              },
+              workStartDate: {
                 $lte: moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
@@ -1511,8 +1515,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             {
               siteWork: false,
               status: { $ne: "recalled" },
+
               workStartDate: {
-                $gte: moment(startDate),
+                $gte: moment(startDate).toDate(),
+              },
+              workStartDate: {
                 $lte: moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
@@ -1541,8 +1548,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             {
               siteWork: false,
               status: { $ne: "recalled" },
+
               workStartDate: {
                 $gte: moment(startDate).toDate(),
+              },
+              workStartDate: {
                 $lte: moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
@@ -2550,6 +2560,9 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   ? w.equipment?.rate * 5
                   : w.equipment?.rate,
               "Actual Revenue": w.totalRevenue,
+              "Vendor payment": w.totalExpenditure,
+            }),
+            ...((userType === "vendor") && {
               "Vendor payment": w.totalExpenditure,
             }),
             "Driver Names": w.driver
@@ -4095,7 +4108,6 @@ router.put("/rejectValidated/:projectName", async (req, res) => {
     return res.send(err);
   }
 });
-
 
 router.put("/recall/:id", async (req, res) => {
   let { id } = req.params;
