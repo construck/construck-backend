@@ -53,7 +53,7 @@ async function accountManager(invoice, project, user) {
       <p>Greetings ${user.firstName},</p>
       <p>Invoice #${invoice.year}-${invoice.month}-${
       invoice.increment
-    } has been generated. Your approval is required to proceed with the billing process.</p>
+    } has been generated. Your review is required to proceed with the billing process.</p>
 
       <h3>Invoice Details:</h3>
       <ul style="list-style-type: none; padding-left: 0;">
@@ -78,7 +78,7 @@ async function accountManager(invoice, project, user) {
       </div>
 
       <h3>Action Required:</h3>
-      <p>Please review the invoice by clicking on the button above. After your review, kindly approve the invoice through the Shabika Platform.</p>
+      <p>Please review the invoice by clicking on the button above. After your review, kindly digitally sign the invoice through Shabika Platform.</p>
 
       <p>If you have any questions or concerns regarding the invoice, please don't hesitate to reach out to:</p>
       <p>${invoice.revenueAdmin.firstName} ${
@@ -114,7 +114,7 @@ async function siteManager(invoice, project, user) {
       <h3>Invoice Details:</h3>
       <ul style="list-style-type: none; padding-left: 0;">
           <li>Project: ${project.prjDescription} / ${project.client.name}</li>
-          <li>Status: Waiting for review</li>
+          <li>Status: Waiting for approval</li>
           <li>Invoice number: ${invoice.year}-${invoice.month}-${
       invoice.increment
     }</li>
@@ -134,7 +134,7 @@ async function siteManager(invoice, project, user) {
       </div>
 
       <h3>Action Required:</h3>
-      <p>Please review the invoice by clicking on the button above. After your review, kindly approve the invoice through the Shabika Platform.</p>
+      <p>Please review the invoice by clicking on the button above. After your review, kindly digitally sign the invoice through Shabika Platform.</p>
 
       <p>If you have any questions or concerns regarding the invoice, please don't hesitate to reach out to:</p>
       <p>${invoice.revenueAdmin.firstName} ${
@@ -170,12 +170,12 @@ async function projectManager(invoice, project, user) {
       <p>Greetings ${user.firstName},</p>
       <p>Invoice #${invoice.year}-${invoice.month}-${
       invoice.increment
-    } is ready to be authorized. Your approval is required to proceed with the billing process.</p>
+    } is ready for your authorization</p>
 
       <h3>Invoice Details:</h3>
       <ul style="list-style-type: none; padding-left: 0;">
           <li>Project: ${project.prjDescription} / ${project.client.name}</li>
-          <li>Status: Waiting for review</li>
+          <li>Status: Waiting for authorization</li>
           <li>Invoice number: ${invoice.year}-${invoice.month}-${
       invoice.increment
     }</li>
@@ -195,7 +195,7 @@ async function projectManager(invoice, project, user) {
       </div>
 
       <h3>Action Required:</h3>
-      <p>Please review the invoice by clicking on the button above. After your review, kindly approve the invoice through the Shabika Platform.</p>
+      <p>Please review the invoice by clicking on the button above. After your review, kindly digitally sign the invoice through Shabika Platform.</p>
 
       <p>If you have any questions or concerns regarding the invoice, please don't hesitate to reach out to:</p>
       <p>${invoice.siteManager.firstName} ${
