@@ -77,7 +77,7 @@ async function notifyNextApprover(data) {
     case "created":
       to =
         NODE_ENV === "production"
-          ? ["gkagarama@construck.rw"] //[invoice.accountManager.email]
+          ?  [invoice.accountManager.email]
           : ["gkagarama@construck.rw"];
       title = `Invoice ${invoice.year}-${invoice.month}-${invoice.increment} | ${project.prjDescription} | Waiting for review`;
       htmlTable = await signer.accountManager(invoice, project, user);
@@ -85,7 +85,7 @@ async function notifyNextApprover(data) {
     case "reviewed":
       to =
         NODE_ENV === "production"
-          ? ["gkagarama@construck.rw"] //[invoice.siteManager.email]
+          ? [invoice.siteManager.email]
           : ["gkagarama@construck.rw"];
       title = `Invoice ${invoice.year}-${invoice.month}-${invoice.increment} | ${project.prjDescription} | Waiting for approval`;
       htmlTable = await signer.siteManager(invoice, project, user);
@@ -93,7 +93,7 @@ async function notifyNextApprover(data) {
     case "approved":
       to =
         NODE_ENV === "production"
-          ? ["gkagarama@construck.rw"] //[invoice.projectManager.email]
+          ? [invoice.projectManager.email]
           : ["gkagarama@construck.rw"];
       title = `Invoice ${invoice.year}-${invoice.month}-${invoice.increment} | ${project.prjDescription} | Waiting for authorization`;
       htmlTable = await signer.projectManager(invoice, project, user);
@@ -101,7 +101,7 @@ async function notifyNextApprover(data) {
     case "authorized":
       to =
         NODE_ENV === "production"
-          ? ["gkagarama@construck.rw"] //[invoice.accountManager.email, invoice.revenueAdmin.email]
+          ? [invoice.accountManager.email, invoice.revenueAdmin.email]
           : ["gkagarama@construck.rw"];
       title = `Invoice ${invoice.year}-${invoice.month}-${invoice.increment} | ${project.prjDescription} | Authorized`;
       htmlTable = await signer.projectAdmin(invoice, project, user);
