@@ -12,7 +12,7 @@ const mongoose = require("mongoose");
 const mailer = require("./../helpers/mailer/dispatchReport");
 const helpers = require("../helpers/generate/revenues");
 const { generateInvoice } = require("../helpers/generate/invoice");
-const helper = require("../helpers/mailer/invoice/notifyNextApprover");
+const helper = require("../helpers/mailer/projectInvoice/notifyNextApprover");
 
 const isWorkNotPosted = (work, date) => {
   let start = moment(work?.workStartDate).format("YYYY-MM-DD");

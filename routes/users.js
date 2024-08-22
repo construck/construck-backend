@@ -85,7 +85,6 @@ router.post("/login", async (req, res) => {
     // CHECK IF PASSWORD IF CORRECT
     let allowed = await bcrypt.compare(password, user?.password);
     const isDefaultPassword = bcrypt.compareSync(password, "12345");
-    console.log("###:password", isDefaultPassword, password);
 
     if (!allowed) {
       return res.status(401).send({

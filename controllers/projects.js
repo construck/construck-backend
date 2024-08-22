@@ -5,7 +5,7 @@ const ProjectInvoice = require("./../models/projectInvoices");
 const Work = require("./../models/workData");
 const Project = require("../models/projects");
 const User = require("../models/users");
-const helper = require("../helpers/mailer/invoice/notifyNextApprover");
+const projectInvoiceHelper = require("../helpers/mailer/projectInvoice/notifyNextApprover");
 
 async function getInvoicesByProject(req, res) {
   const { id } = req.params;
@@ -422,7 +422,6 @@ async function signInvoice(req, res) {
       invoice,
     });
   } catch (err) {
-    console.log("err", err);
     return res.status(500).send(err);
   }
 }
