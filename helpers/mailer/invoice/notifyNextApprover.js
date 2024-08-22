@@ -67,7 +67,6 @@ async function notifyNextApprover(data) {
     )
     .populate("client", { name: 1 });
 
-
   let to = [];
   let title = "";
 
@@ -77,7 +76,7 @@ async function notifyNextApprover(data) {
     case "created":
       to =
         NODE_ENV === "production"
-          ?  [invoice.accountManager.email]
+          ? [invoice.accountManager.email]
           : ["gkagarama@construck.rw"];
       title = `Invoice ${invoice.year}-${invoice.month}-${invoice.increment} | ${project.prjDescription} | Waiting for review`;
       htmlTable = await signer.accountManager(invoice, project, user);
@@ -101,7 +100,11 @@ async function notifyNextApprover(data) {
     case "authorized":
       to =
         NODE_ENV === "production"
-          ? [invoice.accountManager.email, invoice.revenueAdmin.email]
+          ? [
+              invoice.accountManager.email,
+              invoice.revenueAdmin.email,
+              "kntaganda@construck.rw",
+            ]
           : ["gkagarama@construck.rw"];
       title = `Invoice ${invoice.year}-${invoice.month}-${invoice.increment} | ${project.prjDescription} | Authorized`;
       htmlTable = await signer.projectAdmin(invoice, project, user);
