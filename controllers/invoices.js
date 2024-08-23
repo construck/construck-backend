@@ -262,7 +262,7 @@ async function fetchInvoiceDetailsPerVendor(req, res) {
           "equipment.eqDescription": 1,
           "equipment.plateNumber": 1,
           "equipment.uom": 1,
-          "equipment.rate": 1,
+          "equipment.supplierRate": 1,
           "dispatch.date": 1,
           "dispatch.shift": 1,
           project: 1,
