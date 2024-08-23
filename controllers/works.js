@@ -308,13 +308,6 @@ async function forceStopDispatches(req, res) {
     let workDurationDays = dispatch.workDurationDays;
     workDurationDays =
       moment(date).diff(moment(dispatch.workStartDate), "days") + 1;
-    console.log(
-      "id",
-      workDurationDays,
-      dispatch.workStartDate,
-      dispatch.workEndDate,
-      moment().format("YYYY-MM-DD")
-    );
     await Work.model.updateOne(
       {
         _id: dispatch._id,
@@ -451,7 +444,6 @@ async function worksByEquipment(req, res) {
   projects = projects.split(",").filter((r) => !_.isEmpty(r));
   // startdate = moment(startdate).startOf("day");
   // enddate = moment(enddate).endOf("day");
-  console.log("#@@@id", id);
   try {
     // Query
     let query;
@@ -488,7 +480,6 @@ async function worksByEquipment(req, res) {
       });
     }
   } catch (error) {
-    console.log("@@err", error);
     return res.status(409).send({
       error: "Something went wrong, try again later",
     });
@@ -524,7 +515,6 @@ async function bulkPostSingleDispatch(req, res) {
 }
 async function bulkRecallDispatches(req, res) {
   const { ids } = req.body;
-  console.log("ids", ids);
   try {
     if (!_.isEmpty(ids)) {
       const r = ids.map(async (id) => {
@@ -538,13 +528,11 @@ async function bulkRecallDispatches(req, res) {
           }
         );
       });
-      console.log("r", r);
     }
     return res.status(201).send({
       message: "Dispatches are recalled successfully",
     });
   } catch (error) {
-    console.log("error", error);
     return res.status(503).send({
       error: "Something went wrong, refresh the page and try again",
     });
@@ -656,7 +644,6 @@ async function createDispatch(req, res) {
         firstName: 1,
         lastName: 1,
       });
-    console.log("@@@driverDispatched", driverDispatched);
     if (!_.isEmpty(driverDispatched)) {
       return res.status(409).send({
         message: `${data.equipment.plateNumber}: ${
@@ -708,7 +695,6 @@ async function createDispatch(req, res) {
       // response,
     });
   } catch (error) {
-    console.log("error", error);
     return res.status(503).send({
       message: "Something went wrong, refresh the page and try again",
       plateNumber: data.equipment.plateNumber,
@@ -921,7 +907,6 @@ async function createInvoice(req, res) {
     await helper.notifyNextApprover(invoice);
     return res.status(200).send(updatedDispatches);
   } catch (err) {
-    console.log("err", err);
     return res.status(503).send(err);
   }
 }

@@ -32,7 +32,7 @@ const VendorInvoicesSchema = mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["created", "approved"],
+    enum: ["created", "reviewed", "approved"],
     default: "created",
   },
   revenueAdmin: {
@@ -40,13 +40,9 @@ const VendorInvoicesSchema = mongoose.Schema({
     transform: (v) => (v === "" ? null : v),
     ref: "users",
   },
-  revenueAt: {
+  reviewedAt: {
     type: mongoose.SchemaTypes.Date,
-    default: () => {
-      const date = new Date();
-      date.setUTCHours(date.getUTCHours());
-      return date;
-    },
+    default: null,
   },
   accountManager: {
     type: mongoose.SchemaTypes.ObjectId,
@@ -55,11 +51,7 @@ const VendorInvoicesSchema = mongoose.Schema({
   },
   approvedAt: {
     type: mongoose.SchemaTypes.Date,
-    default: () => {
-      const date = new Date();
-      date.setUTCHours(date.getUTCHours());
-      return date;
-    },
+    default: null,
   },
   vendorAdmin: {
     type: mongoose.SchemaTypes.ObjectId,

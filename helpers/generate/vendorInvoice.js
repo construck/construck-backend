@@ -1,7 +1,14 @@
 const VendorInvoice = require("../../models/vendorInvoices");
 const { ACCOUNT_MANAGER } = process.env;
 
-async function generateVendorInvoice(id, month, year, amount, vendorAdmin) {
+async function generateVendorInvoice(
+  id,
+  month,
+  year,
+  amount,
+  vendorAdmin,
+  revenueAdmin
+) {
   // FIND RECENT INVOICE
 
   const recentInvoice = await VendorInvoice.model
@@ -16,10 +23,12 @@ async function generateVendorInvoice(id, month, year, amount, vendorAdmin) {
     increment,
     amount: parseInt(amount, 10),
     vendorAdmin,
+    revenueAdmin,
     accountManager: ACCOUNT_MANAGER,
+    reviewedAt: null,
+    approvedAt: null,
   });
   const response = await Invoice.save();
-  console.log("created", response);
   return response;
 }
 

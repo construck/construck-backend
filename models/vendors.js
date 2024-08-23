@@ -18,6 +18,11 @@ const VendorSchema = mongoose.Schema({
   tinNumber: {
     type: String,
   },
+  revenueAdmin: {
+    type: mongoose.SchemaTypes.ObjectId,
+    transform: (v) => (v === "" ? null : v),
+    ref: "users",
+  },
   createdOn: {
     type: mongoose.SchemaTypes.Date,
     default: Date.now(),

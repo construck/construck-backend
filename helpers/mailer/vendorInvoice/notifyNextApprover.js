@@ -12,7 +12,9 @@ async function notifyNextApprover(data) {
     .findOne({
       _id: data._id,
     })
+    .populate("vendor")
     .populate("vendorAdmin", { lastName: 1, firstName: 1, email: 1, phone: 1 })
+    .populate("revenueAdmin", { lastName: 1, firstName: 1, email: 1, phone: 1 })
     .populate("accountManager", {
       lastName: 1,
       firstName: 1,
@@ -31,6 +33,8 @@ async function notifyNextApprover(data) {
   // FETCH USERS TO NOTIFY
   let notifier = null;
   if (invoice.status === "created") {
+    notifier = invoice.revenueAdmin;
+  } else if (invoice.status === "reviewed") {
     notifier = invoice.accountManager;
   } else if (invoice.status === "approved") {
     notifier = invoice.vendorAdmin;
@@ -51,19 +55,6 @@ async function notifyNextApprover(data) {
     }
   );
 
-  // FIND PROJECT
-  const project = await Project.model
-    .findOne(
-      {
-        _id: invoice.project,
-      },
-      {
-        prjDescription: 1,
-        client: 1,
-      }
-    )
-    .populate("client", { name: 1 });
-
   let to = [];
   let title = "";
 
@@ -73,9 +64,17 @@ async function notifyNextApprover(data) {
     case "created":
       to =
         NODE_ENV === "production"
-          ? [invoice.accountManager.email]
+          ? [invoice.revenueAdmin.email]
           : ["gkagarama@construck.rw"];
       title = `Invoice ${invoice.year}-${invoice.month}-${invoice.increment} | Waiting for review`;
+      htmlTable = await signer.revenueAdmin(invoice, user);
+      break;
+    case "reviewed":
+      to =
+        NODE_ENV === "production"
+          ? [invoice.accountManager.email]
+          : ["gkagarama@construck.rw"];
+      title = `Invoice ${invoice.year}-${invoice.month}-${invoice.increment} | Waiting for approval`;
       htmlTable = await signer.accountManager(invoice, user);
       break;
     case "approved":

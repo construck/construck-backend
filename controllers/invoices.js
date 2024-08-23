@@ -6,7 +6,9 @@ const { default: mongoose, Types } = require("mongoose");
 const moment = require("moment");
 const _ = require("lodash");
 const { generateVendorInvoice } = require("../helpers/generate/vendorInvoice");
+const getInvoicedDispatchesByVendors = require("../helpers/generate/getInvoicedDispatchesByVendors");
 const vendorInvoiceHelper = require("../helpers/mailer/vendorInvoice/notifyNextApprover");
+const { revenueAdmin } = require("../helpers/mailer/vendorInvoice/signer");
 
 async function fetchInvoices(req, res) {
   try {
@@ -69,29 +71,15 @@ async function fetchAllVendorInvoices(req, res) {
       });
     return res.status(200).send(response);
   } catch (err) {
-    console.log("err", err);
     return res.status(404).send(err);
   }
 }
 async function vendorInvoicePreview(req, res) {
   const { month, year } = req.query;
   const { vendor } = req.params;
-  const startOfMonth = new Date(year, month - 1, 1);
-  const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
   try {
-    const response = await Work.model.find({
-      workStartDate: {
-        $gte: startOfMonth,
-        $lt: endOfMonth,
-      },
-      totalRevenue: { $gt: 0 },
-      status: "released",
-      "equipment.eqOwner": vendor,
-      invoice: { $exists: true },
-      vendorInvoice: { $exists: false },
-      vendorInvoice: { $eq: "" },
-      vendorInvoice: { $eq: null },
-    });
+    const response = await getInvoicedDispatchesByVendors(vendor, year, month);
+
     return res.status(200).send(response);
   } catch (err) {
     return res.status(404).send(err);
@@ -101,19 +89,51 @@ async function vendorInvoicePreview(req, res) {
 async function createVendorInvoice(req, res) {
   const { month, year } = req.query;
   const vendorName = req.params.vendor;
-  const { dispatches, amount, vendorAdmin } = req.body;
+  const { amount, vendorAdmin, revenueAdmin } = req.body;
+
+  const startOfMonth = new Date(year, month - 1, 1);
+  const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
   try {
     // FIND VENDOR BY NAME
-    const vendor = await Vendor.model.findOne({
-      name: vendorName,
-    });
+    const vendor = await Vendor.model
+      .findOne({
+        name: vendorName,
+      })
+      .populate("revenueAdmin", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+      });
     if (!vendor) {
       return res.status(404).send({ message: "Vendor not found" });
     }
+    //
+    // FIND DISPATCHES TO ASSIGN INVOICE TO
+    const query = {
+      "equipment.eqOwner": vendorName,
+      status: "released",
+      totalExpenditure: { $gt: 0 },
+      siteWork: false,
+      workStartDate: {
+        $gte: startOfMonth,
+        $lt: endOfMonth,
+      },
+      vendorInvoice: { $exists: false },
+      vendorInvoice: { $eq: "" },
+      vendorInvoice: { $eq: null },
+    };
+
+    const dispatches = await Work.model.find(query, {
+      _id: 1,
+      totalExpenditure: 1,
+    });
+
     let dispatchIds = [];
-    let aggregatedRevenue = 0;
+    let totalExpenditure = 0;
     dispatches.map((dispatch) => {
-      dispatchIds.push(new mongoose.Types.ObjectId(dispatch));
+      dispatchIds.push(new mongoose.Types.ObjectId(dispatch._id));
+      totalExpenditure += dispatch.totalExpenditure;
     });
 
     if (_.isEmpty(dispatches)) {
@@ -125,8 +145,9 @@ async function createVendorInvoice(req, res) {
       vendor._id,
       month,
       year,
-      amount,
-      vendorAdmin
+      totalExpenditure,
+      vendorAdmin,
+      vendor?.revenueAdmin?._id || null
     );
 
     // UPDATE STATUS AND INVOICE ID OF ALL WORKS WITH VALIDATED STATUS
@@ -143,6 +164,7 @@ async function createVendorInvoice(req, res) {
       message: "Invoice is successfully created",
     });
   } catch (err) {
+    console.log(err);
     return res.status(503).send(err);
   }
 }
@@ -188,15 +210,74 @@ async function fetchInvoiceDetailsPerVendor(req, res) {
         phone: 1,
         email: 1,
       })
+      .populate("revenueAdmin", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+      })
       .populate("accountManager", {
         firstName: 1,
         lastName: 1,
         phone: 1,
         email: 1,
       });
-    const response = await Work.model.find({
-      vendorInvoice: new mongoose.Types.ObjectId(id),
-    });
+    const pipeline = [
+      {
+        $match: {
+          vendorInvoice: new mongoose.Types.ObjectId(id),
+        },
+      },
+      {
+        $addFields: {
+          amount: "$totalExpenditure",
+        },
+      },
+      {
+        $group: {
+          _id: "$equipment.plateNumber",
+          amount: {
+            $sum: "$amount",
+          },
+          duration: {
+            $sum: "$duration",
+          },
+          equipment: {
+            $first: "$equipment",
+          },
+          project: {
+            $first: "$project",
+          },
+          workStartDate: {
+            $first: "$workStartDate",
+          },
+          siteWork: {
+            $first: "$siteWork",
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          "equipment.eqDescription": 1,
+          "equipment.plateNumber": 1,
+          "equipment.uom": 1,
+          "equipment.rate": 1,
+          "dispatch.date": 1,
+          "dispatch.shift": 1,
+          project: 1,
+          duration: 1,
+          status: 1,
+          date: 1,
+          totalExpenditure: 1,
+          siteWork: 1,
+          workStartDate: 1,
+          amount: 1,
+          siteWork: 1,
+        },
+      },
+    ];
+    const response = await Work.model.aggregate(pipeline);
     return res.status(200).send({ meta: vendorInvoice, response });
   } catch (err) {
     return res.status(404).send(err);
@@ -205,18 +286,33 @@ async function fetchInvoiceDetailsPerVendor(req, res) {
 
 async function signVendorInvoice(req, res) {
   const { id } = req.params;
-  const { signer } = req.body;
+  const { signer, type } = req.body;
+
+  let data = {};
+  if (type === "reviewer") {
+    data = {
+      revenueAdmin: signer,
+      reviewedAt: new Date(),
+      status: "reviewed",
+    };
+  } else if (type === "approver") {
+    data = {
+      accountManager: signer,
+      approvedAt: new Date(),
+      status: "approved",
+    };
+  } else {
+    return res.status(400).send({
+      message: "Signer is invalid or not authorized",
+    });
+  }
   try {
     const invoice = await VendorInvoice.model.findOneAndUpdate(
       {
         _id: new mongoose.Types.ObjectId(id),
       },
       {
-        $set: {
-          accountManager: signer,
-          approvedAt: new Date(),
-          status: "approved",
-        },
+        $set: data,
       },
       { new: true }
     );
@@ -226,7 +322,7 @@ async function signVendorInvoice(req, res) {
       invoice,
     });
   } catch (err) {
-    console.log("error", err);
+    console.log("err", err);
     return res.status(500).send(err);
   }
 }
