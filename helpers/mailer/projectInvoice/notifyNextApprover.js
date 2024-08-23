@@ -78,7 +78,7 @@ async function notifyNextApprover(data) {
         NODE_ENV === "production"
           ? [invoice.accountManager.email]
           : ["gkagarama@construck.rw"];
-      title = `Invoice ${invoice.year}-${invoice.month}-${invoice.increment} | ${project.prjDescription} | Waiting for review`;
+      title = `${project.prjDescription} | Invoice ${invoice.year}-${invoice.month}-${invoice.increment} | Waiting for review`;
       htmlTable = await signer.accountManager(invoice, project, user);
       break;
     case "reviewed":
@@ -86,7 +86,7 @@ async function notifyNextApprover(data) {
         NODE_ENV === "production"
           ? [invoice.siteManager.email]
           : ["gkagarama@construck.rw"];
-      title = `Invoice ${invoice.year}-${invoice.month}-${invoice.increment} | ${project.prjDescription} | Waiting for approval`;
+      title = `${project.prjDescription} | Invoice ${invoice.year}-${invoice.month}-${invoice.increment} | Waiting for approval`;
       htmlTable = await signer.siteManager(invoice, project, user);
       break;
     case "approved":
@@ -94,7 +94,7 @@ async function notifyNextApprover(data) {
         NODE_ENV === "production"
           ? [invoice.projectManager.email]
           : ["gkagarama@construck.rw"];
-      title = `Invoice ${invoice.year}-${invoice.month}-${invoice.increment} | ${project.prjDescription} | Waiting for authorization`;
+      title = `${project.prjDescription} | Invoice ${invoice.year}-${invoice.month}-${invoice.increment} | Waiting for authorization`;
       htmlTable = await signer.projectManager(invoice, project, user);
       break;
     case "authorized":
@@ -106,7 +106,7 @@ async function notifyNextApprover(data) {
               "kntaganda@construck.rw",
             ]
           : ["gkagarama@construck.rw"];
-      title = `Invoice ${invoice.year}-${invoice.month}-${invoice.increment} | ${project.prjDescription} | Authorized`;
+      title = `${project.prjDescription} | Invoice ${invoice.year}-${invoice.month}-${invoice.increment} | Authorized`;
       htmlTable = await signer.projectAdmin(invoice, project, user);
       break;
     default:

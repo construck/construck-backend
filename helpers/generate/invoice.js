@@ -1,5 +1,5 @@
-const ProjectInvoice = require("./../../models/projectInvoices");
-const User = require("./../../models/users");
+const ProjectInvoice = require("../../models/projectInvoices");
+const User = require("../../models/users");
 const { ACCOUNT_MANAGER } = process.env;
 
 async function generateInvoice(id, month, year, aggregatedRevenue, project) {

@@ -22,11 +22,9 @@ async function requestChangePassword(req, res) {
         error: "User not found",
       });
     }
-    console.log("user", user);
     // 2. create password reset requests
     const token = uuidv4();
     const response = await PasswordRequest.model.create({ email, token });
-    console.log("response", response);
     // 3. send email
     await mailer.resetPassword(email, user.firstName, token);
     return res.status(200).send({
@@ -135,7 +133,6 @@ async function createUser(req, res) {
         { driver: driverResponse._id },
         { new: true }
       );
-      console.log("driverResponse", driverResponse);
     }
 
     return res.status(201).send(response);

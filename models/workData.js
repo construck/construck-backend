@@ -198,6 +198,11 @@ const WorkSchema = new mongoose.Schema(
       transform: (v) => (v === "" ? null : v),
       ref: "projectInvoices",
     },
+    vendorInvoice: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "vendorInvoices",
+    },
   },
   {
     timestamps: true,

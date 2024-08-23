@@ -194,7 +194,6 @@ router.get("/filtered/:page", async (req, res) => {
     userProject,
     userProjects,
   } = req.query;
-  console.log("##searchText", searchText);
   let { page } = req.params;
   let perPage = 15;
   let query = {};
@@ -790,6 +789,7 @@ router.get("/filtered/:page", async (req, res) => {
           ],
         };
       } else if (!searchByPlateNumber && searchByProject) {
+        console.log('hano?')
         query = {
           $or: [
             {
@@ -820,6 +820,7 @@ router.get("/filtered/:page", async (req, res) => {
           ],
         };
       } else if (searchByPlateNumber && searchByProject) {
+        console.log('cg hano?')
         query = {
           $or: [
             {
