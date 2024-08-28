@@ -84,21 +84,18 @@ async function equipmentReport(date, utilization) {
   </table>
   `;
   NODE_ENV === "production" &&
-    (await mailer
-      .send(
-        "appinfo@construck.rw",
-        to,
-        `Equipment availability report - ${moment(date).format(
-          "MMMM DD, YYYY"
-        )}`,
-        "Daily availability utilization",
-        await template.layout(htmlTable)
-      )
+    send(
+      "appinfo@construck.rw",
+      to,
+      `Equipment availability report - ${moment(date).format("MMMM DD, YYYY")}`,
+      "Daily availability utilization",
+      await template.layout(htmlTable)
+    )
       .then(() => console.log("Sent"))
       .catch((err) => {
         console.log("err", err);
         return err;
-      }));
+      });
 }
 
 module.exports = {
