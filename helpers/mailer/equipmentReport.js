@@ -15,14 +15,18 @@ const getPercentAvailable = (row) => {
 };
 
 async function equipmentReport(date, utilization) {
-  const { EMAIL_EQUIPMENT_REPORT_RECEIVER, } = process.env;
+  const { EMAIL_EQUIPMENT_REPORT_RECEIVER, NODE_ENV } = process.env;
   let to = EMAIL_EQUIPMENT_REPORT_RECEIVER;
   const tableBody = utilization.reduce((acc, item, currentIndex) => {
     return (
       acc +
       `
       <tr style="text-align: left;border-bottom:1px solid #CDCDCD;padding:5px;" bgcolor="${
-        currentIndex < 5 ? "#FFF4EB" : currentIndex >= 5 && currentIndex < 10 ? "#EBF0FF" :""
+        currentIndex < 5
+          ? "#FFF4EB"
+          : currentIndex >= 5 && currentIndex < 10
+          ? "#EBF0FF"
+          : ""
       }">
         <td style="border: 1px solid #BABABA;padding: 4px 10px;text-align:left"> ${
           currentIndex + 1
@@ -56,7 +60,9 @@ async function equipmentReport(date, utilization) {
       <div style="text-align:left">
       Greetings,<br />
         <p>
-          Please see below the equipment availability report for <b><u>${moment(date).format("MMMM DD, YYYY")}</u></b>
+          Please see below the equipment availability report for <b><u>${moment(
+            date
+          ).format("MMMM DD, YYYY")}</u></b>
         <br />
         </p>
       </div>
@@ -77,18 +83,22 @@ async function equipmentReport(date, utilization) {
     </tr>
   </table>
   `;
-  send(
-    "appinfo@construck.rw",
-    to,
-    `Equipment availability report - ${moment(date).format("MMMM DD, YYYY")}`,
-    "Daily availability utilization",
-    await template.layout(htmlTable)
-  )
-    .then(() => console.log("Sent"))
-    .catch((err) => {
-      console.log("err", err);
-      return err;
-    });
+  NODE_ENV === "production" &&
+    (await mailer
+      .send(
+        "appinfo@construck.rw",
+        to,
+        `Equipment availability report - ${moment(date).format(
+          "MMMM DD, YYYY"
+        )}`,
+        "Daily availability utilization",
+        await template.layout(htmlTable)
+      )
+      .then(() => console.log("Sent"))
+      .catch((err) => {
+        console.log("err", err);
+        return err;
+      }));
 }
 
 module.exports = {
