@@ -415,7 +415,7 @@ async function signInvoice(req, res) {
         }
       );
     }
-    await helper.notifyNextApprover(invoice);
+    await projectInvoiceHelper.notifyNextApprover(invoice);
     return res.status(200).send({
       message: "Signed",
       invoice,
