@@ -22,6 +22,12 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
+  console.log('id', id)
+  if(id === "eqType") {
+    return res.status(500).send({
+      error: "Id is required",
+    });
+  }
   try {
     const jobType = await jobTypeData.model.findById(id);
     return res.status(200).send(jobType);
@@ -31,11 +37,18 @@ router.get("/:id", async (req, res) => {
 });
 
 router.get("/eqType/:eqType", async (req, res) => {
+  
   let { eqType } = req.params;
+  if(_.isEmpty(eqType)) {
+    return res.status(500).send({
+      error: "eqType is required",
+    });
+  }
   try {
     const jobType = await jobTypeData.model.find({ eqType });
     return res.status(200).send(jobType);
   } catch (err) {
+    console.log('err', err)
     return res.status(500).send(err);
   }
 });
