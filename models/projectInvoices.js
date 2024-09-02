@@ -72,6 +72,12 @@ const ProjectInvoicesSchema = mongoose.Schema(
       type: mongoose.SchemaTypes.Date,
       default: Date.now(),
     },
+    customerInvoice: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "customerInvoices",
+      required: false,
+    },
   }
   // { timestamp: true }
 );

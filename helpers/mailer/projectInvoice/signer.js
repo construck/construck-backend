@@ -42,7 +42,6 @@ async function projectAdmin(invoice, project, user) {
   `;
     return htmlBody;
   } catch (error) {
-    console.log("err", err);
     return;
   }
 }
@@ -98,7 +97,6 @@ async function accountManager(invoice, project, user) {
   `;
     return htmlBody;
   } catch (error) {
-    console.log("err", err);
     return;
   }
 }
@@ -159,7 +157,6 @@ async function siteManager(invoice, project, user) {
   `;
     return htmlBody;
   } catch (error) {
-    console.log("err", err);
     return;
   }
 }
@@ -215,7 +212,6 @@ async function projectManager(invoice, project, user) {
   `;
     return htmlBody;
   } catch (error) {
-    console.log("err", err);
     return;
   }
 }

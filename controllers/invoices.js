@@ -6,9 +6,15 @@ const { default: mongoose, Types } = require("mongoose");
 const moment = require("moment");
 const _ = require("lodash");
 const { generateVendorInvoice } = require("../helpers/generate/vendorInvoice");
+const {
+  generateCustomerConsolidatedInvoice,
+} = require("../helpers/generate/generateCustomerConsolidatedInvoice");
 const getInvoicedDispatchesByVendors = require("../helpers/generate/getInvoicedDispatchesByVendors");
 const vendorInvoiceHelper = require("../helpers/mailer/vendorInvoice/notifyNextApprover");
+const customerInvoiceHelper = require("../helpers/mailer/customerInvoice/notifyNextApprover");
 const { revenueAdmin } = require("../helpers/mailer/vendorInvoice/signer");
+const Project = require("../models/projects");
+const CustomerInvoice = require("../models/customerInvoices");
 
 async function fetchInvoices(req, res) {
   try {
@@ -49,6 +55,7 @@ async function fetchInvoices(req, res) {
     return res.status(404).send(err);
   }
 }
+
 async function fetchAllVendorInvoices(req, res) {
   try {
     const response = await VendorInvoice.model
@@ -197,6 +204,108 @@ async function fetchVendorInvoices(req, res) {
     return res.status(404).send(err);
   }
 }
+async function fetchPreviewInvoicesByCustomer(req, res) {
+  const { id } = req.params;
+  const { month, year } = req.query;
+  try {
+    const projects = await Project.model.find(
+      {
+        client: new mongoose.Types.ObjectId(id),
+      },
+      {
+        _id: 1,
+        client: 1,
+      }
+    );
+    // get all projects ids in array
+    const projectIds = projects.map((project) => project._id);
+
+    // GET INVOICES BY PROJECTS IDS
+    const invoices = await ProjectInvoice.model
+      .find({
+        project: { $in: projectIds },
+        customerInvoice: { $exists: false },
+        customerInvoice: { $eq: "" },
+        customerInvoice: { $eq: null },
+        year,
+        month,
+      })
+      .populate("project", { prjDescription: 1 });
+
+    return res.status(200).send(invoices);
+  } catch (err) {
+    console.log("err", err);
+    return res.status(404).send(err);
+  }
+}
+async function createConsolidatedInvoice(req, res) {
+  const { id } = req.params;
+  const { month, year, amount, invoices } = req.body;
+  try {
+    const projects = await Project.model.find(
+      {
+        client: new mongoose.Types.ObjectId(id),
+      },
+      {
+        _id: 1,
+        client: 1,
+      }
+    );
+
+    // CREATE CONSOLIDATED INVOICE/CUSTOMER/MONTH/YEAR
+    const invoice = await generateCustomerConsolidatedInvoice(
+      id,
+      month,
+      year,
+      amount,
+      invoices
+    );
+
+    console.log("invoice_id", invoice._id);
+
+    let ids = [];
+    // LOOP AND CREATE ARRAY OF INVOICE IDS WITH MOONGOSE OBJECT ID
+    invoices.forEach((invoice) => {
+      ids.push(new mongoose.Types.ObjectId(invoice));
+    });
+
+    //  UPDATE PROJECT INVOICE OF THE CLIENT
+    await ProjectInvoice.model.updateMany(
+      {
+        _id: { $in: ids },
+      },
+      {
+        customerInvoice: invoice._id,
+      }
+    );
+
+    await customerInvoiceHelper.notifyNextApprover(invoice);
+
+    return res.status(200).send(invoice);
+  } catch (err) {
+    console.log("err", err);
+    return res.status(404).send(err);
+  }
+}
+
+async function fetchCustomerInvoices(req, res) {
+  try {
+    const response = await CustomerInvoice.model
+      .find()
+      .sort({ _id: -1 })
+      .populate("customer", { _id: 1, name: 1 })
+      .populate("accountManager", {
+        _id: 1,
+        firstName: 1,
+        lastName: 1,
+        email: 1,
+      })
+      .populate("reviewer", { _id: 1, firstName: 1, lastName: 1, email: 1 });
+    return res.status(200).send(response);
+  } catch (err) {
+    return res.status(404).send(err);
+  }
+}
 
 async function fetchInvoiceDetailsPerVendor(req, res) {
   const { id } = req.params;
@@ -327,6 +436,142 @@ async function signVendorInvoice(req, res) {
   }
 }
 
+async function fetchInvoiceDetailsPerCustomer(req, res) {
+  const { id } = req.params;
+  try {
+    const customerInvoice = await CustomerInvoice.model
+      .findById(id)
+      .populate("customer", { name: 1 })
+      .populate("reviewer", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+      })
+      .populate("accountManager", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+      })
+      .populate("reviewer", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+      });
+    const projectInvoices = await ProjectInvoice.model
+      .find({
+        customerInvoice: id,
+      })
+      .populate("project", {
+        prjDescription: 1,
+      });
+    // const pipeline = [
+    //   {
+    //     $match: {
+    //       vendorInvoice: new mongoose.Types.ObjectId(id),
+    //     },
+    //   },
+    //   {
+    //     $addFields: {
+    //       amount: "$totalExpenditure",
+    //     },
+    //   },
+    //   {
+    //     $group: {
+    //       _id: "$equipment.plateNumber",
+    //       amount: {
+    //         $sum: "$amount",
+    //       },
+    //       duration: {
+    //         $sum: "$duration",
+    //       },
+    //       equipment: {
+    //         $first: "$equipment",
+    //       },
+    //       project: {
+    //         $first: "$project",
+    //       },
+    //       workStartDate: {
+    //         $first: "$workStartDate",
+    //       },
+    //       siteWork: {
+    //         $first: "$siteWork",
+    //       },
+    //     },
+    //   },
+    //   {
+    //     $project: {
+    //       _id: 1,
+    //       "equipment.eqDescription": 1,
+    //       "equipment.plateNumber": 1,
+    //       "equipment.uom": 1,
+    //       "equipment.supplierRate": 1,
+    //       "dispatch.date": 1,
+    //       "dispatch.shift": 1,
+    //       project: 1,
+    //       duration: 1,
+    //       status: 1,
+    //       date: 1,
+    //       totalExpenditure: 1,
+    //       siteWork: 1,
+    //       workStartDate: 1,
+    //       amount: 1,
+    //       siteWork: 1,
+    //     },
+    //   },
+    // ];
+    // const response = await Work.model.aggregate(pipeline);
+    return res
+      .status(200)
+      .send({ meta: customerInvoice, response: projectInvoices });
+  } catch (err) {
+    return res.status(404).send(err);
+  }
+}
+
+async function signCustomerInvoice(req, res) {
+  const { id } = req.params;
+  const { signer, type } = req.body;
+
+  let data = {};
+  if (type === "reviewer") {
+    data = {
+      reviewer: new mongoose.Types.ObjectId(signer),
+      reviewedAt: new Date(),
+      status: "reviewed",
+    };
+  } else {
+    return res.status(400).send({
+      message: "Signer is invalid or not authorized",
+    });
+  }
+  try {
+    const invoice = await CustomerInvoice.model
+      .findOneAndUpdate(
+        {
+          _id: new mongoose.Types.ObjectId(id),
+        },
+        {
+          $set: data,
+        },
+        { new: true }
+      )
+      .populate("customer", {
+        name: 1,
+      });
+    await customerInvoiceHelper.notifyNextApprover(invoice);
+    return res.status(200).send({
+      message: "Signed",
+      invoice,
+    });
+  } catch (err) {
+    console.log("err", err);
+    return res.status(500).send(err);
+  }
+}
+
 module.exports = {
   fetchInvoices,
   vendorInvoicePreview,
@@ -335,4 +580,9 @@ module.exports = {
   fetchInvoiceDetailsPerVendor,
   fetchAllVendorInvoices,
   signVendorInvoice,
+  fetchPreviewInvoicesByCustomer,
+  createConsolidatedInvoice,
+  fetchCustomerInvoices,
+  fetchInvoiceDetailsPerCustomer,
+  signCustomerInvoice,
 };
