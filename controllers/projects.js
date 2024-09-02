@@ -368,7 +368,7 @@ async function getInvoicePreviewPerProject(req, res) {
 async function signInvoice(req, res) {
   const { id } = req.params;
   const { type } = req.query;
-  const { signer } = req.body;
+  const { signer, amount } = req.body;
   let data = {};
   if (type === "reviewer") {
     data = {
@@ -387,6 +387,7 @@ async function signInvoice(req, res) {
       projectManager: signer,
       authorizedAt: new Date(),
       status: "authorized",
+      amount
     };
   } else {
     return res.status(400).send({
