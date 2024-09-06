@@ -65,7 +65,7 @@ router.post("/login", async (req, res) => {
     let query = {
       status: "active",
     };
-    if (email) {
+    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) === true) {
       query = {
         ...query,
         email: email.trim(),
@@ -73,7 +73,7 @@ router.post("/login", async (req, res) => {
     } else {
       query = {
         ...query,
-        phone: phone.trim(),
+        phone: !_.isEmpty(phone) ? phone : email,
       };
     }
     let user = await userData.model
@@ -82,6 +82,8 @@ router.post("/login", async (req, res) => {
       .populate("driver")
       .populate("vendor");
     // CHECK IF PASSWORD IF CORRECT
+    console.log("password", user?.password);
+    console.log("user?.password", password);
     let allowed = await bcrypt.compare(password, user?.password);
     const isDefaultPassword = bcrypt.compareSync(password, "12345");
 
