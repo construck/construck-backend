@@ -868,6 +868,9 @@ async function createInvoice(req, res) {
     const dispatches = await Work.model.find({
       "project._id": new mongoose.Types.ObjectId(id),
       status: { $in: ["stopped", "approved", "validated"] },
+      invoice: {$ne: ""},
+      invoice: {$ne: null},
+      invoice: {$exists: false},
       siteWork: false,
       workStartDate: {
         $gte: new Date(startDate),

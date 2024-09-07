@@ -204,19 +204,14 @@ async function getInvoicePreviewPerProject(req, res) {
         $match: {
           "project._id": new mongoose.Types.ObjectId(id),
           status: { $in: ["stopped", "approved", "validated"] },
+          invoice: {$ne: ""},
+          invoice: {$ne: null},
+          invoice: {$exists: false},
           siteWork: false,
           workStartDate: {
             $gte: new Date(startDate),
             $lte: new Date(endDate),
           },
-          // workStartDate: {
-          //   // $gte: moment("2024-01-01").format("YYYY-MM-DD"),
-          //   $eq: startDate,
-
-          // },
-          // workStartDate: {
-          //   $lte: moment(endDate).format("YYYY-MM-DD"),
-          // },
         },
       },
       {
