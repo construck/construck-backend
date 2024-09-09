@@ -33,7 +33,7 @@ router.get("/", async (req, res) => {
       }
     );
     ignoreCache !== 1 && cache.set(cacheKey, users);
-    return res.status(200).send(gusers);
+    return res.status(200).send(users);
   } catch (err) {
     return res.send(err);
   }
