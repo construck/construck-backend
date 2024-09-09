@@ -442,14 +442,13 @@ async function worksByEquipment(req, res) {
   let { id, startdate, enddate } = req.params;
   let projects = req.query.projects;
   projects = projects.split(",").filter((r) => !_.isEmpty(r));
-  // startdate = moment(startdate).startOf("day");
-  // enddate = moment(enddate).endOf("day");
   try {
     // Query
     let query;
     query = {
       siteWork: false,
       "equipment._id": new mongoose.Types.ObjectId(id),
+      status: { $nin: ["approved", "released"] },
       workStartDate: {
         $gte: startdate,
         $lte: enddate,
@@ -868,9 +867,9 @@ async function createInvoice(req, res) {
     const dispatches = await Work.model.find({
       "project._id": new mongoose.Types.ObjectId(id),
       status: { $in: ["stopped", "approved", "validated"] },
-      invoice: {$ne: ""},
-      invoice: {$ne: null},
-      invoice: {$exists: false},
+      invoice: { $ne: "" },
+      invoice: { $ne: null },
+      invoice: { $exists: false },
       siteWork: false,
       workStartDate: {
         $gte: new Date(startDate),
