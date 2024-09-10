@@ -22,6 +22,9 @@ router.get("/vendors/summary/list", async (req, res) => {
 router.get("/vendors/:id/summary/details", async (req, res) => {
   Invoices.fetchVendorSummaryInvoiceDetails(req, res);
 });
+router.put("/vendors/summary/sign/:id", async (req, res) => {
+  Invoices.signVendorSummaryInvoice(req, res);
+});
 router.get("/customer/list", async (req, res) => {
   Invoices.fetchCustomerInvoices(req, res);
 });

@@ -30,6 +30,9 @@ const VendorInvoicesSchema = mongoose.Schema({
   amount: {
     type: Number,
   },
+  totalRevenue: {
+    type: Number,
+  },
   status: {
     type: String,
     enum: ["created", "reviewed", "approved"],

@@ -138,13 +138,16 @@ async function createVendorInvoice(req, res) {
     const dispatches = await Work.model.find(query, {
       _id: 1,
       totalExpenditure: 1,
+      totalRevenue: 1
     });
 
     let dispatchIds = [];
     let totalExpenditure = 0;
+    let totalRevenue = 0;
     dispatches.map((dispatch) => {
       dispatchIds.push(new mongoose.Types.ObjectId(dispatch._id));
       totalExpenditure += dispatch.totalExpenditure;
+      totalRevenue += dispatch.totalRevenue;
     });
 
     if (_.isEmpty(dispatches)) {
@@ -157,6 +160,7 @@ async function createVendorInvoice(req, res) {
       month,
       year,
       totalExpenditure,
+      totalRevenue,
       vendorAdmin,
       vendor?.revenueAdmin?._id || null
     );
@@ -249,7 +253,7 @@ async function fetchPreviewVendorInvoicesPerPeriod(req, res) {
       .find({
         month,
         year,
-        // status: "approved",
+        status: "approved",
         monthlyInvoiceId: { $exists: false },
         monthlyInvoiceId: { $eq: "" },
         monthlyInvoiceId: { $eq: null },
@@ -363,7 +367,6 @@ async function fetchCustomerInvoices(req, res) {
   }
 }
 async function fetchVendorSummaryInvoices(req, res) {
-  console.log("@@fetchVendorSummaryInvoices");
   try {
     const response = await MonthlyVendorInvoice.model
       .find()
@@ -375,7 +378,6 @@ async function fetchVendorSummaryInvoices(req, res) {
         lastName: 1,
         email: 1,
       });
-    console.log("fetchVendorSummaryInvoices", response);
     return res.status(200).send(response);
   } catch (err) {
     return res.status(404).send(err);
@@ -623,6 +625,43 @@ async function fetchVendorSummaryInvoiceDetails(req, res) {
   }
 }
 
+async function signVendorSummaryInvoice(req, res) {
+  const { id } = req.params;
+  const { signer, type } = req.body;
+
+  let data = {};
+  if (type === "approver") {
+    data = {
+      businessManager: signer,
+      approvedAt: new Date(),
+      status: "approved",
+    };
+  } else {
+    return res.status(400).send({
+      message: "Signer is invalid or not authorized",
+    });
+  }
+  try {
+    const invoice = await MonthlyVendorInvoice.model.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(id),
+      },
+      {
+        $set: data,
+      },
+      { new: true }
+    );
+    // await vendorInvoiceHelper.notifyNextApprover(invoice);
+    return res.status(200).send({
+      message: "Signed",
+      invoice,
+    });
+  } catch (err) {
+    console.log("err", err);
+    return res.status(500).send(err);
+  }
+}
+
 module.exports = {
   fetchInvoices,
   vendorInvoicePreview,
@@ -640,4 +679,5 @@ module.exports = {
   createConsolidatedVendorInvoice,
   fetchVendorSummaryInvoices,
   fetchVendorSummaryInvoiceDetails,
+  signVendorSummaryInvoice,
 };
