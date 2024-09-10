@@ -1,12 +1,5 @@
 const mongoose = require("mongoose");
-const moment = require("moment");
-const VendorInvoicesSchema = mongoose.Schema({
-  vendor: {
-    type: mongoose.SchemaTypes.ObjectId,
-    transform: (v) => (v === "" ? null : v),
-    ref: "vendors",
-    required: true,
-  },
+const MonthlyVendorInvoicesSchema = mongoose.Schema({
   date: {
     type: mongoose.SchemaTypes.Date,
     default: () => {
@@ -30,24 +23,20 @@ const VendorInvoicesSchema = mongoose.Schema({
   amount: {
     type: Number,
   },
-  totalRevenue: {
+  expenditureRevenue: {
     type: Number,
   },
   status: {
     type: String,
-    enum: ["created", "reviewed", "approved"],
+    enum: ["created", "approved"],
     default: "created",
   },
-  revenueAdmin: {
+  accountManager: {
     type: mongoose.SchemaTypes.ObjectId,
     transform: (v) => (v === "" ? null : v),
     ref: "users",
   },
-  reviewedAt: {
-    type: mongoose.SchemaTypes.Date,
-    default: null,
-  },
-  accountManager: {
+  businessManager: {
     type: mongoose.SchemaTypes.ObjectId,
     transform: (v) => (v === "" ? null : v),
     ref: "users",
@@ -56,23 +45,13 @@ const VendorInvoicesSchema = mongoose.Schema({
     type: mongoose.SchemaTypes.Date,
     default: null,
   },
-  vendorAdmin: {
-    type: mongoose.SchemaTypes.ObjectId,
-    transform: (v) => (v === "" ? null : v),
-    ref: "users",
-  },
   createdAt: {
     type: mongoose.SchemaTypes.Date,
     default: Date.now(),
   },
-  monthlyInvoiceId: {
-    type: mongoose.SchemaTypes.ObjectId,
-    transform: (v) => (v === "" ? null : v),
-    ref: "monthlyVendorInvoices",
-  },
 });
 
 module.exports = {
-  model: mongoose.model("vendorInvoices", VendorInvoicesSchema),
-  schema: VendorInvoicesSchema,
+  model: mongoose.model("monthlyVendorInvoices", MonthlyVendorInvoicesSchema),
+  schema: MonthlyVendorInvoicesSchema,
 };

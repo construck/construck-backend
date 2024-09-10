@@ -5,7 +5,8 @@ async function generateVendorInvoice(
   id,
   month,
   year,
-  amount,
+  totalExpenditure,
+  totalRevenue,
   vendorAdmin,
   revenueAdmin
 ) {
@@ -21,7 +22,8 @@ async function generateVendorInvoice(
     month,
     year,
     increment,
-    amount: parseInt(amount, 10),
+    amount: parseInt(totalExpenditure, 10),
+    totalRevenue: parseInt(totalRevenue, 10),
     vendorAdmin,
     revenueAdmin,
     accountManager: ACCOUNT_MANAGER,

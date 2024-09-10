@@ -9,7 +9,7 @@ const assetAvblty = require("../models/assetAvailability");
 const userData = require("../models/users");
 const logData = require("../models/logs");
 const eqData = require("../models/equipments");
-const prjData = require("../models/projects");
+const Project = require("../models/projects");
 const moment = require("moment");
 const e = require("express");
 const { default: mongoose, Types } = require("mongoose");
@@ -3973,7 +3973,6 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
 
     let receipts =
       false && (await getProjectAdminEmail(workRec.project.prjDescription));
-    // let receipts = ["bhigiro@cvl.co.rw"];
 
     if (receipts.length > 0) {
       await sendEmail(
@@ -4015,7 +4014,7 @@ router.put("/reject/:id", async (req, res) => {
     // work.reasonForRejection = "Reason";
     work.rejectedRevenue = work.totalRevenue;
     work.rejectedDuration = work.duration;
-    work.rejectedExpenditure = work.totalExpenditure;
+    // work.rejectedExpenditure = work.totalExpenditure;
     // work.projectedRevenue = 0;
 
     let savedRecord = await work.save();
@@ -4029,7 +4028,6 @@ router.put("/reject/:id", async (req, res) => {
     await logTobeSaved.save();
 
     let receipts = await getProjectAdminEmail(work.project.prjDescription);
-    // let receipts = ["bhigiro@cvl.co.rw"];
 
     if (receipts.length > 0) {
       await sendEmail(
@@ -5418,52 +5416,16 @@ async function getReceiverEmailList(userType) {
 
 async function getProjectAdminEmail(project) {
   try {
-    let pipeline = [
-      {
-        $unwind: {
-          path: "$projects",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $match: {
-          "projects.prjDescription": project,
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "projects.projectAdmin",
-          foreignField: "_id",
-          as: "projectAdmin",
-        },
-      },
-      {
-        $unwind: {
-          path: "$projectAdmin",
-          preserveNullAndEmptyArrays: false,
-        },
-      },
-      {
-        $addFields: {
-          projectAdminEmail: "$projectAdmin.email",
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          projectAdminEmail: 1,
-        },
-      },
-    ];
+    const response = await Project.model
+      .findOne({
+        prjDescription: project,
+      })
+      .populate("projectAdmin", {
+        email: 1,
+      });
+    const emails = [response.projectAdmin.email];
 
-    let emails = await customers.model.aggregate(pipeline);
-
-    let _emails = emails.map((e) => {
-      return e.projectAdminEmail;
-    });
-
-    return _emails;
+    return emails;
   } catch (err) {
     console.log(err);
   }

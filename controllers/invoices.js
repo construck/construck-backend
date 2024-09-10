@@ -2,6 +2,7 @@ const ProjectInvoice = require("../models/projectInvoices");
 const Work = require("../models/workData");
 const Vendor = require("../models/vendors");
 const VendorInvoice = require("../models/vendorInvoices");
+const MonthlyVendorInvoice = require("../models/monthlyVendorInvoices");
 const { default: mongoose, Types } = require("mongoose");
 const moment = require("moment");
 const _ = require("lodash");
@@ -9,6 +10,9 @@ const { generateVendorInvoice } = require("../helpers/generate/vendorInvoice");
 const {
   generateCustomerConsolidatedInvoice,
 } = require("../helpers/generate/generateCustomerConsolidatedInvoice");
+const {
+  generateVendorConsolidatedInvoice,
+} = require("../helpers/generate/generateVendorConsolidatedInvoice");
 const getInvoicedDispatchesByVendors = require("../helpers/generate/getInvoicedDispatchesByVendors");
 const vendorInvoiceHelper = require("../helpers/mailer/vendorInvoice/notifyNextApprover");
 const customerInvoiceHelper = require("../helpers/mailer/customerInvoice/notifyNextApprover");
@@ -134,13 +138,16 @@ async function createVendorInvoice(req, res) {
     const dispatches = await Work.model.find(query, {
       _id: 1,
       totalExpenditure: 1,
+      totalRevenue: 1
     });
 
     let dispatchIds = [];
     let totalExpenditure = 0;
+    let totalRevenue = 0;
     dispatches.map((dispatch) => {
       dispatchIds.push(new mongoose.Types.ObjectId(dispatch._id));
       totalExpenditure += dispatch.totalExpenditure;
+      totalRevenue += dispatch.totalRevenue;
     });
 
     if (_.isEmpty(dispatches)) {
@@ -153,6 +160,7 @@ async function createVendorInvoice(req, res) {
       month,
       year,
       totalExpenditure,
+      totalRevenue,
       vendorAdmin,
       vendor?.revenueAdmin?._id || null
     );
@@ -238,6 +246,25 @@ async function fetchPreviewInvoicesByCustomer(req, res) {
     return res.status(404).send(err);
   }
 }
+async function fetchPreviewVendorInvoicesPerPeriod(req, res) {
+  const { month, year } = req.query;
+  try {
+    const invoices = await VendorInvoice.model
+      .find({
+        month,
+        year,
+        status: "approved",
+        monthlyInvoiceId: { $exists: false },
+        monthlyInvoiceId: { $eq: "" },
+        monthlyInvoiceId: { $eq: null },
+      })
+      .populate("vendor", { name: 1 });
+    return res.status(200).send(invoices);
+  } catch (err) {
+    console.log("err", err);
+    return res.status(404).send(err);
+  }
+}
 async function createConsolidatedInvoice(req, res) {
   const { id } = req.params;
   const { month, year, amount, invoices } = req.body;
@@ -261,8 +288,6 @@ async function createConsolidatedInvoice(req, res) {
       invoices
     );
 
-    console.log("invoice_id", invoice._id);
-
     let ids = [];
     // LOOP AND CREATE ARRAY OF INVOICE IDS WITH MOONGOSE OBJECT ID
     invoices.forEach((invoice) => {
@@ -276,6 +301,41 @@ async function createConsolidatedInvoice(req, res) {
       },
       {
         customerInvoice: invoice._id,
+      }
+    );
+
+    await customerInvoiceHelper.notifyNextApprover(invoice);
+
+    return res.status(200).send(invoice);
+  } catch (err) {
+    return res.status(404).send(err);
+  }
+}
+async function createConsolidatedVendorInvoice(req, res) {
+  const { month, year, amount, invoices } = req.body;
+  try {
+    // CREATE CONSOLIDATED INVOICE/CUSTOMER/MONTH/YEAR
+    const invoice = await generateVendorConsolidatedInvoice(
+      month,
+      year,
+      amount
+    );
+
+    console.log("@@@invoice", invoice);
+
+    let ids = [];
+    // LOOP AND CREATE ARRAY OF INVOICE IDS WITH MOONGOSE OBJECT ID
+    invoices.forEach((invoice) => {
+      ids.push(new mongoose.Types.ObjectId(invoice));
+    });
+
+    //  UPDATE PROJECT INVOICE OF THE CLIENT
+    await VendorInvoice.model.updateMany(
+      {
+        _id: { $in: ids },
+      },
+      {
+        monthlyInvoiceId: invoice._id,
       }
     );
 
@@ -301,6 +361,23 @@ async function fetchCustomerInvoices(req, res) {
         email: 1,
       })
       .populate("reviewer", { _id: 1, firstName: 1, lastName: 1, email: 1 });
+    return res.status(200).send(response);
+  } catch (err) {
+    return res.status(404).send(err);
+  }
+}
+async function fetchVendorSummaryInvoices(req, res) {
+  try {
+    const response = await MonthlyVendorInvoice.model
+      .find()
+      .sort({ _id: -1 })
+      .populate("businessManager", { _id: 1, lastName: 1, firstName: 1 })
+      .populate("accountManager", {
+        _id: 1,
+        firstName: 1,
+        lastName: 1,
+        email: 1,
+      });
     return res.status(200).send(response);
   } catch (err) {
     return res.status(404).send(err);
@@ -467,62 +544,6 @@ async function fetchInvoiceDetailsPerCustomer(req, res) {
       .populate("project", {
         prjDescription: 1,
       });
-    // const pipeline = [
-    //   {
-    //     $match: {
-    //       vendorInvoice: new mongoose.Types.ObjectId(id),
-    //     },
-    //   },
-    //   {
-    //     $addFields: {
-    //       amount: "$totalExpenditure",
-    //     },
-    //   },
-    //   {
-    //     $group: {
-    //       _id: "$equipment.plateNumber",
-    //       amount: {
-    //         $sum: "$amount",
-    //       },
-    //       duration: {
-    //         $sum: "$duration",
-    //       },
-    //       equipment: {
-    //         $first: "$equipment",
-    //       },
-    //       project: {
-    //         $first: "$project",
-    //       },
-    //       workStartDate: {
-    //         $first: "$workStartDate",
-    //       },
-    //       siteWork: {
-    //         $first: "$siteWork",
-    //       },
-    //     },
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 1,
-    //       "equipment.eqDescription": 1,
-    //       "equipment.plateNumber": 1,
-    //       "equipment.uom": 1,
-    //       "equipment.supplierRate": 1,
-    //       "dispatch.date": 1,
-    //       "dispatch.shift": 1,
-    //       project: 1,
-    //       duration: 1,
-    //       status: 1,
-    //       date: 1,
-    //       totalExpenditure: 1,
-    //       siteWork: 1,
-    //       workStartDate: 1,
-    //       amount: 1,
-    //       siteWork: 1,
-    //     },
-    //   },
-    // ];
-    // const response = await Work.model.aggregate(pipeline);
     return res
       .status(200)
       .send({ meta: customerInvoice, response: projectInvoices });
@@ -572,6 +593,75 @@ async function signCustomerInvoice(req, res) {
   }
 }
 
+async function fetchVendorSummaryInvoiceDetails(req, res) {
+  const { id } = req.params;
+  try {
+    const summary = await MonthlyVendorInvoice.model
+      .findById(id)
+      .populate("businessManager", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+      })
+      .populate("accountManager", {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        email: 1,
+      });
+    const response = await VendorInvoice.model
+      .find({
+        monthlyInvoiceId: new mongoose.Types.ObjectId(id),
+      })
+      .populate("vendor");
+    return res.status(200).send({
+      meta: summary,
+      response,
+    });
+  } catch (err) {
+    console.log("error", err);
+    return res.status(404).send(err);
+  }
+}
+
+async function signVendorSummaryInvoice(req, res) {
+  const { id } = req.params;
+  const { signer, type } = req.body;
+
+  let data = {};
+  if (type === "approver") {
+    data = {
+      businessManager: signer,
+      approvedAt: new Date(),
+      status: "approved",
+    };
+  } else {
+    return res.status(400).send({
+      message: "Signer is invalid or not authorized",
+    });
+  }
+  try {
+    const invoice = await MonthlyVendorInvoice.model.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(id),
+      },
+      {
+        $set: data,
+      },
+      { new: true }
+    );
+    // await vendorInvoiceHelper.notifyNextApprover(invoice);
+    return res.status(200).send({
+      message: "Signed",
+      invoice,
+    });
+  } catch (err) {
+    console.log("err", err);
+    return res.status(500).send(err);
+  }
+}
+
 module.exports = {
   fetchInvoices,
   vendorInvoicePreview,
@@ -585,4 +675,9 @@ module.exports = {
   fetchCustomerInvoices,
   fetchInvoiceDetailsPerCustomer,
   signCustomerInvoice,
+  fetchPreviewVendorInvoicesPerPeriod,
+  createConsolidatedVendorInvoice,
+  fetchVendorSummaryInvoices,
+  fetchVendorSummaryInvoiceDetails,
+  signVendorSummaryInvoice,
 };
