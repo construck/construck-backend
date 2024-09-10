@@ -257,27 +257,22 @@ async function sendEmail(
   </mjml>`;
   }
 
-  return send(
-    from,
-    to,
-    subject,
-    "",
-    mjml2html(templates[messageType], {
-      keepComments: false,
-    }).html
-  );
-  // .then(() =>
-  //   res.send({
-  //     error: false,
-  //     message: "Email Sent!",
-  //   })
-  // )
-  // .catch((err) => {
-  //   res.status(500).send({
-  //     error: true,
-  //     errorMessage: err.response,
-  //   });
-  // });
+  if (process.env.NODE_ENV === "production") {
+    return send(
+      from,
+      to,
+      subject,
+      "",
+      mjml2html(templates[messageType], {
+        keepComments: false,
+      }).html
+    );
+  } else {
+    console.log(
+      "Alert: Can not send email because backend is not running in production"
+    );
+    return;
+  }
 }
 
 module.exports = {

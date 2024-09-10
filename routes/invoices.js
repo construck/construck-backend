@@ -10,6 +10,18 @@ router.get("/vendor/:id/list", async (req, res) => {
 router.get("/customer/:id/preview", async (req, res) => {
   Invoices.fetchPreviewInvoicesByCustomer(req, res);
 });
+router.get("/vendors/summary/preview", async (req, res) => {
+  Invoices.fetchPreviewVendorInvoicesPerPeriod(req, res);
+});
+router.post("/vendors/summary/create", async (req, res) => {
+  Invoices.createConsolidatedVendorInvoice(req, res);
+});
+router.get("/vendors/summary/list", async (req, res) => {
+  Invoices.fetchVendorSummaryInvoices(req, res);
+});
+router.get("/vendors/:id/summary/details", async (req, res) => {
+  Invoices.fetchVendorSummaryInvoiceDetails(req, res);
+});
 router.get("/customer/list", async (req, res) => {
   Invoices.fetchCustomerInvoices(req, res);
 });
@@ -19,6 +31,7 @@ router.post("/customer/:id/create", async (req, res) => {
 router.get("/:id/vendor/details", async (req, res) => {
   Invoices.fetchInvoiceDetailsPerVendor(req, res);
 });
+
 router.get("/:id/customer/details", async (req, res) => {
   Invoices.fetchInvoiceDetailsPerCustomer(req, res);
 });
@@ -28,7 +41,6 @@ router.get("/list/outgoing/from-construck", async (req, res) => {
 router.get("/list/ingoing/from-vendors", async (req, res) => {
   Invoices.fetchAllVendorInvoices(req, res);
 });
-
 
 router.post("/create-invoice/vendor/:vendor", (req, res) => {
   Invoices.createVendorInvoice(req, res);
