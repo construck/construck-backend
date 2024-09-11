@@ -1461,11 +1461,18 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
 
+  // let projects =
+  //   userType !== "vendor" ? userProjects && JSON.parse(userProjects) : [];
+  // let prjs = projects?.map((p) => {
+  //   return p?.prjDescription;
+  // });
   let projects =
-    userType !== "vendor" ? userProjects && JSON.parse(userProjects) : [];
-  let prjs = projects?.map((p) => {
-    return p?.prjDescription;
-  });
+    userType !== "vendor" ? userProjects && userProjects.split(",") : [];
+  let prjs =
+    projects &&
+    projects?.map((p) => {
+      return new mongoose.Types.ObjectId(p);
+    });
   switch (userType) {
     case "vendor":
       if (!searchByPlateNumber && !searchByProject) {
