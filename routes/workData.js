@@ -2078,6 +2078,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       break;
   }
 
+
   try {
     let pipeline = [];
 
@@ -2203,6 +2204,20 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           preserveNullAndEmptyArrays: true,
         },
       },
+      {
+        $lookup: {
+          from: "customers",
+          localField: "project.client",
+          foreignField: "_id",
+          as: "project.client"
+        }
+      },
+      {
+        $unwind: {
+          path: "$project.client",
+          preserveNullAndEmptyArrays: true
+        }
+      }
     ];
 
     let workList = await workData.model.aggregate(pipeline);
