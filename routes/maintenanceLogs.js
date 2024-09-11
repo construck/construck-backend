@@ -19,6 +19,7 @@ router.get("/maintenance/logs", async (req, res) => {
   try {
     const jobCards = await MaintenanceLogs.model
       .find()
+      .limit(200)
       .sort({ jobCard_Id: -1 });
     if (!jobCards)
       return res.status(404).json({ message: "No JobCards Available" });
