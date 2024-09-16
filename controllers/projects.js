@@ -27,6 +27,7 @@ async function getInvoicePerProject(req, res) {
       {
         $match: {
           invoice: new mongoose.Types.ObjectId(id),
+          totalRevenue: { $gt: 0 },
         },
       },
       {
@@ -204,9 +205,10 @@ async function getInvoicePreviewPerProject(req, res) {
         $match: {
           "project._id": new mongoose.Types.ObjectId(id),
           status: { $in: ["stopped", "approved", "validated"] },
-          invoice: {$ne: ""},
-          invoice: {$ne: null},
-          invoice: {$exists: false},
+          totalRevenue: { $gt: 0 },
+          invoice: { $ne: "" },
+          invoice: { $ne: null },
+          invoice: { $exists: false },
           siteWork: false,
           workStartDate: {
             $gte: new Date(startDate),
@@ -382,7 +384,7 @@ async function signInvoice(req, res) {
       projectManager: signer,
       authorizedAt: new Date(),
       status: "authorized",
-      amount
+      amount,
     };
   } else {
     return res.status(400).send({
