@@ -119,7 +119,26 @@ async function createVendorInvoice(req, res) {
     if (!vendor) {
       return res.status(404).send({ message: "Vendor not found" });
     }
-    //
+
+    // CHECK IF INVOICE ALREADY EXISTS
+    const invoiceExists = await VendorInvoice.model.findOne({
+      month,
+      year,
+      vendor: vendor._id,
+    });
+    if (!_.isEmpty(invoiceExists)) {
+      const now = moment();
+      const createdAt = moment(invoiceExists.createdAt);
+      const diffMinutes = now.diff(createdAt, "minutes");
+
+      if (diffMinutes <= 5) {
+        res.status(200).send({
+          message:
+            "It looks like you have already created similar invoice, try again in 5mins",
+        });
+        return;
+      }
+    }
     // FIND DISPATCHES TO ASSIGN INVOICE TO
     const query = {
       "equipment.eqOwner": vendorName,
@@ -138,7 +157,7 @@ async function createVendorInvoice(req, res) {
     const dispatches = await Work.model.find(query, {
       _id: 1,
       totalExpenditure: 1,
-      totalRevenue: 1
+      totalRevenue: 1,
     });
 
     let dispatchIds = [];
