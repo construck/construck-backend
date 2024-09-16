@@ -2574,6 +2574,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         });
       } else if (w.siteWork === false) {
         if (
+          
           moment(Date.parse(w.dispatch.date)).isSameOrAfter(
             moment(startDate)
           ) &&
@@ -2634,7 +2635,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             Comment: w.comment
               ? w.comment
               : "" + " - " + (w.moreComment ? w.moreComment : ""),
-            Customer: w.project?.client?.name,
+            Customer: !_.isEmpty(w.project.client) ? w.project?.client?.name : "",
             Status: w.status,
             "Start index": w?.startIndex || 0,
             "End index": w?.endIndex || 0,
