@@ -893,8 +893,7 @@ router.get("/filtered/:page", async (req, res) => {
       .find(query)
       .select(
         `dispatch.targetTrips dispatch.drivers dispatch.astDriver dispatch.shift dispatch.date dispatch.otherJobType
-        project.prjDescription project.customer project._id
-        equipment._id equipment.plateNumber equipment.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
+        project equipment._id equipment.plateNumber equipment.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
         equipment.eqStatus equipment.millage equipment.rate equipment.supplierRate equipment.uom
         startTime endTime duration tripsDone totalRevenue totalExpenditure projectedRevenue status siteWork workStartDate workEndDate
         workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id driver reasonForRejection rejectedRevenue
@@ -2078,7 +2077,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       break;
   }
 
-
   try {
     let pipeline = [];
 
@@ -2209,15 +2207,15 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           from: "customers",
           localField: "project.client",
           foreignField: "_id",
-          as: "project.client"
-        }
+          as: "project.client",
+        },
       },
       {
         $unwind: {
           path: "$project.client",
-          preserveNullAndEmptyArrays: true
-        }
-      }
+          preserveNullAndEmptyArrays: true,
+        },
+      },
     ];
 
     let workList = await workData.model.aggregate(pipeline);
