@@ -7,7 +7,10 @@ const workData = require("../models/workData");
 
 router.get("/", async (req, res) => {
   try {
-    const vendors = await venData.model.find();
+    const vendors = await venData.model.find().populate("revenueAdmin", {
+      firstName: 1,
+      lastName: 1,
+    } );
     return res.status(200).send(vendors);
   } catch (err) {
     return res.send(err);
