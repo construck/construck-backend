@@ -13,6 +13,7 @@ const {
 const {
   generateVendorConsolidatedInvoice,
 } = require("../helpers/generate/generateVendorConsolidatedInvoice");
+const { generateMeta } = require("../helpers/generate/generateMeta");
 const getInvoicedDispatchesByVendors = require("../helpers/generate/getInvoicedDispatchesByVendors");
 const vendorInvoiceHelper = require("../helpers/mailer/vendorInvoice/notifyNextApprover");
 const customerInvoiceHelper = require("../helpers/mailer/customerInvoice/notifyNextApprover");
@@ -21,9 +22,30 @@ const Project = require("../models/projects");
 const CustomerInvoice = require("../models/customerInvoices");
 
 async function fetchInvoices(req, res) {
+  const { page, limit, month, year, project } = req.query;
   try {
+    const skip = (page - 1) * limit;
+    let query = {};
+    if (!_.isEmpty(month) && !_.isEmpty(year)) {
+      query = {
+        ...query,
+        month,
+        year,
+      };
+    }
+    if (!_.isEmpty(project)) {
+      query = {
+        ...query,
+        project: new mongoose.Types.ObjectId(project),
+      };
+    }
+
+    const count = await ProjectInvoice.model.countDocuments(query);
+    const meta = await generateMeta(count, parseInt(limit), parseInt(page));
     const response = await ProjectInvoice.model
-      .find()
+      .find(query)
+      .skip(skip)
+      .limit(limit)
       .sort({ _id: -1 })
       .populate("project", { _id: 1, prjDescription: 1 })
       .populate("revenueAdmin", {
@@ -54,7 +76,7 @@ async function fetchInvoices(req, res) {
         email: 1,
         signature: 1,
       });
-    return res.status(200).send(response);
+    return res.status(200).send({ meta, response });
   } catch (err) {
     return res.status(404).send(err);
   }
