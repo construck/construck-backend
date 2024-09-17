@@ -845,6 +845,7 @@ async function editDispatch(req, res) {
       response,
     });
   } catch (error) {
+    console.log('error', error)
     return res.status(503).send({
       message: "Something went wrong, refresh the page and try again",
       plateNumber: data.equipment.plateNumber,
