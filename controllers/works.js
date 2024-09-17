@@ -801,9 +801,6 @@ async function editDispatch(req, res) {
         ...data.project,
         _id: new mongoose.Types.ObjectId(data.project._id),
         client: new mongoose.Types.ObjectId(data.project.client),
-        projectAdmin: new mongoose.Types.ObjectId(data.project.projectAdmin),
-        projectManager: new mongoose.Types.ObjectId(data.project.projectManager),
-        siteManager: new mongoose.Types.ObjectId(data.project.siteManager),
       },
       "dispatch.shift": data.dispatch.shift,
       "dispatch.date": data.workStartDate,
@@ -815,9 +812,6 @@ async function editDispatch(req, res) {
         ...data.project,
         _id: new mongoose.Types.ObjectId(data.project._id),
         client: new mongoose.Types.ObjectId(data.project.client),
-        projectAdmin: new mongoose.Types.ObjectId(data.project.projectAdmin),
-        projectManager: new mongoose.Types.ObjectId(data.project.projectManager),
-        siteManager: new mongoose.Types.ObjectId(data.project.siteManager),
       },
       projectIid: new mongoose.Types.ObjectId(data.project._id),
       equipment: {
@@ -845,7 +839,6 @@ async function editDispatch(req, res) {
       response,
     });
   } catch (error) {
-    console.log('error', error)
     return res.status(503).send({
       message: "Something went wrong, refresh the page and try again",
       plateNumber: data.equipment.plateNumber,
