@@ -448,7 +448,7 @@ async function worksByEquipment(req, res) {
     query = {
       siteWork: false,
       "equipment._id": new mongoose.Types.ObjectId(id),
-      status: { $nin: ["approved", "released"] },
+      status: { $nin: ["recalled","approved", "released"] },
       workStartDate: {
         $gte: startdate,
         $lte: enddate,
