@@ -798,9 +798,9 @@ async function editDispatch(req, res) {
         _id: new mongoose.Types.ObjectId(data.equipment._id),
       },
       "dispatch.project": {
-        ...data.project,
         _id: new mongoose.Types.ObjectId(data.project._id),
         client: new mongoose.Types.ObjectId(data.project.client),
+        prjDescription: data.project.prjDescription,
       },
       "dispatch.shift": data.dispatch.shift,
       "dispatch.date": data.workStartDate,
@@ -809,11 +809,11 @@ async function editDispatch(req, res) {
         "dispatch.targetTrips": data.dispatch.targetTrips,
       }),
       project: {
-        ...data.project,
         _id: new mongoose.Types.ObjectId(data.project._id),
         client: new mongoose.Types.ObjectId(data.project.client),
+        prjDescription: data.project.prjDescription,
       },
-      projectIid: new mongoose.Types.ObjectId(data.project._id),
+      projectId: new mongoose.Types.ObjectId(data.project._id),
       equipment: {
         ...data.equipment,
         _id: new mongoose.Types.ObjectId(data.equipment._id),
