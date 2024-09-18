@@ -6,6 +6,8 @@ const Work = require("./../models/workData");
 const Project = require("../models/projects");
 const User = require("../models/users");
 const projectInvoiceHelper = require("../helpers/mailer/projectInvoice/notifyNextApprover");
+const Deduction = require("../models/deductionInvoices");
+const Addition = require("../models/additionInvoices");
 
 async function getInvoicesByProject(req, res) {
   const { id } = req.params;
@@ -176,17 +178,38 @@ async function getInvoicePerProject(req, res) {
         lastName: 1,
       }
     );
+    const deductions = await Deduction.model
+      .find({
+        projectInvoice: new mongoose.Types.ObjectId(id),
+      })
+      .sort({
+        _id: -1,
+      })
+      .populate("equipment", {
+        plateNumber: 1,
+      });
+    const additions = await Addition.model
+      .find({
+        projectInvoice: new mongoose.Types.ObjectId(id),
+      })
+      .sort({
+        _id: -1,
+      })
+      .populate("equipment", {
+        plateNumber: 1,
+      });
+    // FET DEDUCTIONS
     return res.status(200).send({
       meta: {
         project,
         invoice,
-        // siteManager: siteManager || null,
-        // projectManager: projectManager || null,
-        // revenueAdmin: revenueAdmin || null,
       },
+      deductions: !_.isEmpty(deductions) ? deductions : [],
+      additions: !_.isEmpty(additions) ? additions : [],
       invoice: response,
     });
   } catch (err) {
+    console.log("err", err);
     return res.status(500).send(err);
   }
 }

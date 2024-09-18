@@ -83,9 +83,29 @@ async function fetchInvoices(req, res) {
 }
 
 async function fetchAllVendorInvoices(req, res) {
+  const { page, limit, month, year, vendor } = req.query;
   try {
+    const skip = (page - 1) * limit;
+    let query = {};
+    if (!_.isEmpty(month) && !_.isEmpty(year)) {
+      query = {
+        ...query,
+        month,
+        year,
+      };
+    }
+    if (!_.isEmpty(vendor)) {
+      query = {
+        ...query,
+        vendor: new mongoose.Types.ObjectId(vendor),
+      };
+    }
+    const count = await VendorInvoice.model.countDocuments(query);
+    const meta = await generateMeta(count, parseInt(limit), parseInt(page));
     const response = await VendorInvoice.model
-      .find()
+      .find(query)
+      .skip(skip)
+      .limit(limit)
       .sort({ _id: -1 })
       .populate("vendor")
       .populate("vendorAdmin", {
@@ -102,7 +122,7 @@ async function fetchAllVendorInvoices(req, res) {
         email: 1,
         signature: 1,
       });
-    return res.status(200).send(response);
+    return res.status(200).send({ meta, response });
   } catch (err) {
     return res.status(404).send(err);
   }
@@ -390,9 +410,29 @@ async function createConsolidatedVendorInvoice(req, res) {
 }
 
 async function fetchCustomerInvoices(req, res) {
+  const { page, limit, month, year, customer } = req.query;
   try {
+    const skip = (page - 1) * limit;
+    let query = {};
+    if (!_.isEmpty(month) && !_.isEmpty(year)) {
+      query = {
+        ...query,
+        month,
+        year,
+      };
+    }
+    if (!_.isEmpty(customer)) {
+      query = {
+        ...query,
+        customer: new mongoose.Types.ObjectId(customer),
+      };
+    }
+    const count = await CustomerInvoice.model.countDocuments(query);
+    const meta = await generateMeta(count, parseInt(limit), parseInt(page));
     const response = await CustomerInvoice.model
-      .find()
+      .find(query)
+      .skip(skip)
+      .limit(limit)
       .sort({ _id: -1 })
       .populate("customer", { _id: 1, name: 1 })
       .populate("accountManager", {
@@ -402,7 +442,7 @@ async function fetchCustomerInvoices(req, res) {
         email: 1,
       })
       .populate("reviewer", { _id: 1, firstName: 1, lastName: 1, email: 1 });
-    return res.status(200).send(response);
+    return res.status(200).send({ meta, response });
   } catch (err) {
     return res.status(404).send(err);
   }

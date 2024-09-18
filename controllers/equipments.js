@@ -63,7 +63,7 @@ async function captureEquipmentUtilization(req, res) {
 
       let plateNumbers = response.map((e) => {
         return {
-          id: e._id, // new mongoose.Types.ObjectId(e.value),
+          id: e._id,
           equipmentCategory: e.eqDescription,
           plateNumber: e.plateNumber,
         };

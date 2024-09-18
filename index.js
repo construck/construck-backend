@@ -38,6 +38,8 @@ const fun = require("./utils/cron-functions");
 const dispatchCronjobs = require("./cronjobs/works");
 const equipmentCronjobs = require("./cronjobs/equipments");
 const invoices = require("./routes/invoices");
+const deductions = require("./routes/deductions");
+const additions = require("./routes/additions");
 
 const { NODE_ENV, CONS_MONGO_DB, PLATFORM_TOKEN } = process.env;
 
@@ -135,6 +137,8 @@ app.use("/api", auth, mechanical);
 app.use("/equipmentTypes", auth, equipmentTypes);
 app.use("/download", download);
 app.use("/invoices", invoices);
+app.use("/deductions", deductions);
+app.use("/additions", additions);
 
 app.listen(PORT, async () => {
   console.log(`Listening on Port ${PORT}`);
