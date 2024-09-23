@@ -1,11 +1,5 @@
 const mongoose = require("mongoose");
 const AdditionInvoiceSchema = mongoose.Schema({
-  equipment: {
-    type: mongoose.SchemaTypes.ObjectId,
-    transform: (v) => (v === "" ? null : v),
-    ref: "equipments",
-    required: true,
-  },
   projectInvoice: {
     type: mongoose.SchemaTypes.ObjectId,
     transform: (v) => (v === "" ? null : v),

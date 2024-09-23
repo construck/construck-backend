@@ -17,23 +17,16 @@ async function createAddition(req, res) {
         .status(404)
         .send({ message: "No validated invoice found found" });
     }
-    if (!_.isEmpty(invoiceExists) && invoiceExists.status !== "created") {
-      return res.status(404).send({
-        message:
-          "Deductions can not be created when invoice is already reviewed",
-      });
-    }
 
     const query = new Addition.model({
       note,
-      equipment,
       amount,
       projectInvoice: id,
     });
     const response = await query.save();
 
     return res.status(201).send({
-      message: "Deduction is successfully created",
+      message: "Addition is successfully created",
       response,
     });
   } catch (err) {

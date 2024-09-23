@@ -52,6 +52,18 @@ async function getInvoicePerProject(req, res) {
           project: {
             $first: "$project",
           },
+          driver: {
+            $first: "$driver",
+          },
+          dispatchId: {
+            $first: "$_id",
+          },
+          date: {
+            $first: "$workStartDate",
+          },
+          shift: {
+            $first: "$dispatch.shift",
+          },
         },
       },
       {
@@ -59,19 +71,21 @@ async function getInvoicePerProject(req, res) {
           _id: 1,
           "equipment.eqDescription": 1,
           "equipment.plateNumber": 1,
+          "equipment._id": 1,
           "equipment.uom": 1,
           "equipment.rate": 1,
           "dispatch.date": 1,
           "dispatch.shift": 1,
           "project.prjDescription": 1,
+          driver: 1,
+          dispatchId: 1,
           duration: 1,
           status: 1,
           date: 1,
           totalRevenue: 1,
           siteWork: 1,
-          workStartDate: 1,
           amount: 1,
-          siteWork: 1,
+          shift: 1,
         },
       },
       {
@@ -195,9 +209,6 @@ async function getInvoicePerProject(req, res) {
       .sort({
         _id: -1,
       })
-      .populate("equipment", {
-        plateNumber: 1,
-      });
     // FET DEDUCTIONS
     return res.status(200).send({
       meta: {

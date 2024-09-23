@@ -18,6 +18,18 @@ const DeductionInvoiceSchema = mongoose.Schema({
     ref: "vendorInvoices",
     required: false,
   },
+  dispatch: {
+    type: mongoose.SchemaTypes.ObjectId,
+    transform: (v) => (v === "" ? null : v),
+    ref: "work",
+    required: false,
+  },
+  driver: {
+    type: mongoose.SchemaTypes.ObjectId,
+    transform: (v) => (v === "" ? null : v),
+    ref: "users",
+    required: false,
+  },
   amount: {
     type: Number,
   },
