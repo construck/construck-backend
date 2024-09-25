@@ -1,6 +1,7 @@
 const ProjectInvoice = require("../models/projectInvoices");
 const Work = require("../models/workData");
 const Vendor = require("../models/vendors");
+const Deduction = require("../models/deductionInvoices");
 const VendorInvoice = require("../models/vendorInvoices");
 const MonthlyVendorInvoice = require("../models/monthlyVendorInvoices");
 const { default: mongoose, Types } = require("mongoose");
@@ -545,7 +546,20 @@ async function fetchInvoiceDetailsPerVendor(req, res) {
       },
     ];
     const response = await Work.model.aggregate(pipeline);
-    return res.status(200).send({ meta: vendorInvoice, response });
+    const deductions = await Deduction.model
+      .find({
+        vendor: new mongoose.Types.ObjectId(vendorInvoice?.vendor._id),
+        year: vendorInvoice.year,
+        month: vendorInvoice.month,
+      })
+      .populate("dispatch", {
+        _id: 1,
+        "equipment.plateNumber": 1,
+        workStartDate: 1,
+        "dispatch.shift": 1,
+        "project.prjDescription": 1,
+      });
+    return res.status(200).send({ meta: vendorInvoice, response, deductions });
   } catch (err) {
     return res.status(404).send(err);
   }

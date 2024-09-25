@@ -6,6 +6,12 @@ const DeductionInvoiceSchema = mongoose.Schema({
     ref: "equipments",
     required: true,
   },
+  vendor: {
+    type: mongoose.SchemaTypes.ObjectId,
+    transform: (v) => (v === "" ? null : v),
+    ref: "vendors",
+    required: false,
+  },
   projectInvoice: {
     type: mongoose.SchemaTypes.ObjectId,
     transform: (v) => (v === "" ? null : v),
@@ -23,6 +29,8 @@ const DeductionInvoiceSchema = mongoose.Schema({
     transform: (v) => (v === "" ? null : v),
     ref: "work",
     required: false,
+    unique: true,
+    index: { unique: true },
   },
   driver: {
     type: mongoose.SchemaTypes.ObjectId,
@@ -31,6 +39,12 @@ const DeductionInvoiceSchema = mongoose.Schema({
     required: false,
   },
   amount: {
+    type: Number,
+  },
+  year: {
+    type: Number,
+  },
+  month: {
     type: Number,
   },
   type: {

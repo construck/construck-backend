@@ -6,7 +6,8 @@ const _ = require("lodash");
 
 async function createDeduction(req, res) {
   const { id } = req.params;
-  const { type, equipment, amount, dispatch, driver } = req.body;
+  const { type, equipment, amount, dispatch, driver, vendor, year, month } =
+    req.body;
   try {
     // CHECK IF INVOICE ALREADY EXISTS
     const invoiceExists = await ProjectInvoice.model.findOne({
@@ -15,7 +16,16 @@ async function createDeduction(req, res) {
     if (_.isEmpty(invoiceExists)) {
       return res
         .status(404)
-        .send({ message: "No validated invoice found found" });
+        .send({ error: "No validated invoice found found" });
+    }
+    // CHECK IF DEDUCTION ALREADY EXISTS
+    const deductionExists = await Deduction.model.findOne({
+      dispatch,
+    });
+    if (!_.isEmpty(deductionExists)) {
+      return res
+        .status(404)
+        .send({ error: "Deduction already created before" });
     }
 
     const query = new Deduction.model({
@@ -25,9 +35,11 @@ async function createDeduction(req, res) {
       projectInvoice: id,
       dispatch,
       driver,
+      vendor,
+      year,
+      month,
     });
     const response = await query.save();
-    console.log("response", response);
 
     return res.status(201).send({
       message: "Invoice is successfully created",

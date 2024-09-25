@@ -96,6 +96,20 @@ async function getInvoicePerProject(req, res) {
     ];
     const response = await Work.model.aggregate(pipeline);
     // GET INVOICE INFORMATION
+    const dispatches = await Work.model.find(
+      {
+        invoice: new mongoose.Types.ObjectId(id),
+      },
+      {
+        _id: 1,
+        workStartDate: 1,
+        "equipment.plateNumber": 1,
+        "equipment.vendor": 1,
+        "equipment._id": 1,
+        "dispatch.shift": 1,
+        "driver": 1,
+      }
+    );
     const invoice = await ProjectInvoice.model
       .findOne({
         _id: new mongoose.Types.ObjectId(id),
@@ -208,7 +222,7 @@ async function getInvoicePerProject(req, res) {
       })
       .sort({
         _id: -1,
-      })
+      });
     // FET DEDUCTIONS
     return res.status(200).send({
       meta: {
@@ -218,6 +232,7 @@ async function getInvoicePerProject(req, res) {
       deductions: !_.isEmpty(deductions) ? deductions : [],
       additions: !_.isEmpty(additions) ? additions : [],
       invoice: response,
+      dispatches
     });
   } catch (err) {
     console.log("err", err);
