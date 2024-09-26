@@ -82,8 +82,6 @@ router.post("/login", async (req, res) => {
       .populate("driver")
       .populate("vendor");
     // CHECK IF PASSWORD IF CORRECT
-    console.log("password", user?.password);
-    console.log("user?.password", password);
     let allowed = await bcrypt.compare(password, user?.password);
     const isDefaultPassword = bcrypt.compareSync(password, "12345");
 

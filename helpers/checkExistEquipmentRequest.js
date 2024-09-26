@@ -9,7 +9,6 @@ async function checkExistEquipmentRequest(data) {
     shift: data?.shift,
   };
   const isExist = await EquipmentRequest.model.find(query);
-  console.log("##isExist", isExist.length, isExist);
   return isExist;
 }
 

@@ -79,7 +79,6 @@ router.get("/:id/details", async (req, res) => {
       });
     return res.status(200).send({ project });
   } catch (err) {
-    console.log("eer", err);
     return res.status(500).send(err);
   }
 });
@@ -666,7 +665,6 @@ router.post("/", async (req, res) => {
     let prjCreated = await prjToCreate.save();
     return res.status(201).send(prjCreated);
   } catch (err) {
-    console.log("22", err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {

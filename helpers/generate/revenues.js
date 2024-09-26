@@ -66,7 +66,7 @@ function generateRevenues(dispatch, duration, comment) {
       }
     }
   } catch (error) {
-    console.log("@@@@err", error);
+    console.log("err", error);
   }
   return {
     totalRevenue,
@@ -76,7 +76,6 @@ function generateRevenues(dispatch, duration, comment) {
 }
 
 const getTotalRevenue = (equipment, duration, comment, eqType) => {
-  console.log("duration", duration);
   let amount = 0;
   if (eqType === "TIPPER TRUCK" && comment === "Ibibazo bya panne") {
     if (duration >= TARGET_DURATION) {
@@ -85,7 +84,6 @@ const getTotalRevenue = (equipment, duration, comment, eqType) => {
       amount = equipment.rate * _.round(duration / HOURS_IN_A_DAY, 2);
     }
   } else {
-    console.log("something", (duration / 8) * equipment.rate);
     amount = duration === 0 ? 0 : equipment.rate;
   }
   return amount;

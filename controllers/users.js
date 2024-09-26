@@ -31,7 +31,6 @@ async function requestChangePassword(req, res) {
       message: "Go to email",
     });
   } catch (error) {
-    console.log("error", error);
     return res.status(500).send(error);
   }
 }

@@ -2657,7 +2657,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     return res.status(200).send(orderedList.filter((w) => w !== null));
   } catch (err) {
-    console.log("@@ee", err);
     return res.send(err);
   }
 });
@@ -2757,14 +2756,11 @@ router.get("/monthlyNonValidatedRevenues/:projectName", async (req, res) => {
 
 router.get("/monthlyNotPosted/:vendorId", async (req, res) => {
   let { vendorId } = req.params;
-  // let result = await getNotPostedRevenuedByProject(vendorId);
-  console.log("@@@init");
   try {
     let result = await getNotPostedRevenuedByVendor(vendorId);
 
     return res.status(200).send(result);
   } catch (error) {
-    console.log("error", error);
     return res.status(500).send({ error: "Error occurred, try again later" });
   }
 });
@@ -2940,7 +2936,6 @@ router.get(
       let monthlyRevenues = await workData.model.aggregate(pipeline);
       return res.send(monthlyRevenues);
     } catch (err) {
-      console.log("333", err);
       return res.status(500).send(err);
     }
   }
@@ -3082,7 +3077,6 @@ router.post("/", async (req, res) => {
     } ${workToCreate?.equipment?.plateNumber}`;
 
     let driverToken = await getDeviceToken(driver);
-    console.log("driverNotification", driverNotification);
 
     if (driverToken !== "none") {
       sendPushNotification(driverToken, {
@@ -3192,7 +3186,6 @@ router.post("/getAnalytics", async (req, res) => {
   ignoreCache = parseInt(ignoreCache) || 0;
   const cacheKey = "dispatches-analytics-dashboard-cache-key";
   const cachedData = cache.get(cacheKey);
-  console.log("ignoreCache", ignoreCache);
   if (ignoreCache !== 1 && !_.isEmpty(cachedData)) {
     return res.status(200).send(cachedData);
   }
@@ -3916,7 +3909,6 @@ router.put("/validateWork/:id", async (req, res) => {
 
     return res.status(200).send(workRec);
   } catch (error) {
-    console.log("##e", error);
     return res.status(500).send({
       error: error,
     });
@@ -4443,7 +4435,6 @@ router.put("/start/:id", async (req, res) => {
 router.put("/stop/:id", async (req, res) => {
   const validationError = validateStopDispatch(req.body);
   if (validationError) {
-    console.log("#validationError", validationError);
     return res
       .status(400)
       .send({ error: "validation error occurred, contact administrator" });
@@ -6886,7 +6877,6 @@ async function getDailyNotPostedRevenues(month, year, userId) {
 async function getNotPostedRevenuedByVendor(userId) {
   //get vendor from vendor collection
   const user = await userData.model.findById(userId);
-  console.log("@@user", user?.vendor);
 
   let pipeline = [
     {

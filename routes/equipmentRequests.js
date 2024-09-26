@@ -105,8 +105,6 @@ router.get("/", async (req, res) => {
       $limit: parseInt(pageSize),
     });
 
-    console.log(parseInt(pageNumber - 1) * parseInt(pageSize));
-
     const requests = await requestData.model.aggregate(pipeline);
 
     return res.status(200).send({

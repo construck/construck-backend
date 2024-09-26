@@ -1,13 +1,19 @@
 const Work = require("./../../models/workData");
+const Vendor = require("./../../models/vendors");
+const { default: mongoose, Types } = require("mongoose");
 
-async function getInvoicedDispatchesByVendors(vendor, year, month) {
+async function getInvoicedDispatchesByVendors(id, year, month) {
   const startOfMonth = new Date(year, month - 1, 1);
   const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
+
+  const vendor = await Vendor.model.findOne({
+    _id: new mongoose.Types.ObjectId(id),
+  });
 
   const pipeline = [
     {
       $match: {
-        "equipment.eqOwner": vendor,
+        "equipment.eqOwner": vendor.name,
         status: "released",
         totalExpenditure: { $gt: 0 },
         siteWork: false,
@@ -73,4 +79,4 @@ async function getInvoicedDispatchesByVendors(vendor, year, month) {
   return response;
 }
 
-module.exports = getInvoicedDispatchesByVendors ;
+module.exports = getInvoicedDispatchesByVendors;

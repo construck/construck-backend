@@ -34,7 +34,6 @@ async function checkExistDispatch(data) {
     workEndDate: 1,
     "equipment.plateNumber": 1,
   });
-  console.log('##isExist', isExist.length, isExist)
   return isExist;
 }
 

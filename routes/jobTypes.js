@@ -22,7 +22,6 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
-  console.log('id', id)
   if(id === "eqType") {
     return res.status(500).send({
       error: "Id is required",

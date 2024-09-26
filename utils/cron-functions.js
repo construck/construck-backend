@@ -27,7 +27,6 @@ async function getWorksToExpireToday() {
     NODE_END === "development"
       ? null
       : await getDispatchOfficers();
-  console.log('@@emaillist', list)
   let emailList = list?.map(($) => {
     return $.email;
   });

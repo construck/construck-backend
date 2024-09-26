@@ -90,7 +90,6 @@ router.post("/maintenance/logs", async (req, res) => {
 });
 
 router.put("/maintenance/logs/:id", async (req, res) => {
-  console.log("Req Params ", req.params);
   const {
     jobCard_id,
     entryDate,

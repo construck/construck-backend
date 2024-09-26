@@ -63,7 +63,6 @@ async function getListOfDisposedEquipments() {
     },
     { plateNumber: 1 }
   );
-  //   console.log("response", response.length);
   return response;
 }
 

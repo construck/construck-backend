@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const Invoices = require("../controllers/invoices");
 
-router.get("/vendor/:vendor/preview", async (req, res) => {
+router.get("/vendor/:id/preview", async (req, res) => {
   Invoices.vendorInvoicePreview(req, res);
 });
 router.get("/vendor/:id/list", async (req, res) => {
@@ -45,7 +45,7 @@ router.get("/list/ingoing/from-vendors", async (req, res) => {
   Invoices.fetchAllVendorInvoices(req, res);
 });
 
-router.post("/create-invoice/vendor/:vendor", (req, res) => {
+router.post("/create-invoice/vendor/:id", (req, res) => {
   Invoices.createVendorInvoice(req, res);
 });
 

@@ -130,11 +130,27 @@ async function fetchAllVendorInvoices(req, res) {
 }
 async function vendorInvoicePreview(req, res) {
   const { month, year } = req.query;
-  const { vendor } = req.params;
+  const { id } = req.params;
   try {
-    const response = await getInvoicedDispatchesByVendors(vendor, year, month);
+    const response = await getInvoicedDispatchesByVendors(id, year, month);
+    const deductions = await Deduction.model
+      .find({
+        vendor: new mongoose.Types.ObjectId(id),
+        year,
+        month,
+      })
+      .populate("dispatch", {
+        _id: 1,
+        "equipment.plateNumber": 1,
+        workStartDate: 1,
+        "dispatch.shift": 1,
+        "project.prjDescription": 1,
+      });
 
-    return res.status(200).send(response);
+    return res.status(200).send({
+      response,
+      deductions: deductions || [],
+    });
   } catch (err) {
     return res.status(404).send(err);
   }
@@ -142,7 +158,7 @@ async function vendorInvoicePreview(req, res) {
 
 async function createVendorInvoice(req, res) {
   const { month, year } = req.query;
-  const vendorName = req.params.vendor;
+  const { id } = req.params;
   const { amount, vendorAdmin, revenueAdmin } = req.body;
 
   const startOfMonth = new Date(year, month - 1, 1);
@@ -151,7 +167,7 @@ async function createVendorInvoice(req, res) {
     // FIND VENDOR BY NAME
     const vendor = await Vendor.model
       .findOne({
-        name: vendorName,
+        _id: new mongoose.Types.ObjectId(id),
       })
       .populate("revenueAdmin", {
         firstName: 1,
@@ -184,7 +200,7 @@ async function createVendorInvoice(req, res) {
     }
     // FIND DISPATCHES TO ASSIGN INVOICE TO
     const query = {
-      "equipment.eqOwner": vendorName,
+      "equipment.eqOwner": vendor.name,
       status: "released",
       totalExpenditure: { $gt: 0 },
       siteWork: false,
@@ -241,7 +257,6 @@ async function createVendorInvoice(req, res) {
       message: "Invoice is successfully created",
     });
   } catch (err) {
-    console.log(err);
     return res.status(503).send(err);
   }
 }
@@ -304,7 +319,6 @@ async function fetchPreviewInvoicesByCustomer(req, res) {
 
     return res.status(200).send(invoices);
   } catch (err) {
-    console.log("err", err);
     return res.status(404).send(err);
   }
 }
@@ -323,7 +337,6 @@ async function fetchPreviewVendorInvoicesPerPeriod(req, res) {
       .populate("vendor", { name: 1 });
     return res.status(200).send(invoices);
   } catch (err) {
-    console.log("err", err);
     return res.status(404).send(err);
   }
 }
@@ -383,7 +396,6 @@ async function createConsolidatedVendorInvoice(req, res) {
       amount
     );
 
-    console.log("@@@invoice", invoice);
 
     let ids = [];
     // LOOP AND CREATE ARRAY OF INVOICE IDS WITH MOONGOSE OBJECT ID
@@ -405,7 +417,6 @@ async function createConsolidatedVendorInvoice(req, res) {
 
     return res.status(200).send(invoice);
   } catch (err) {
-    console.log("err", err);
     return res.status(404).send(err);
   }
 }
@@ -548,7 +559,7 @@ async function fetchInvoiceDetailsPerVendor(req, res) {
     const response = await Work.model.aggregate(pipeline);
     const deductions = await Deduction.model
       .find({
-        vendor: new mongoose.Types.ObjectId(vendorInvoice?.vendor._id),
+        vendor: vendorInvoice.vendor._id,
         year: vendorInvoice.year,
         month: vendorInvoice.month,
       })
@@ -603,7 +614,6 @@ async function signVendorInvoice(req, res) {
       invoice,
     });
   } catch (err) {
-    console.log("err", err);
     return res.status(500).send(err);
   }
 }
@@ -683,7 +693,6 @@ async function signCustomerInvoice(req, res) {
       invoice,
     });
   } catch (err) {
-    console.log("err", err);
     return res.status(500).send(err);
   }
 }
