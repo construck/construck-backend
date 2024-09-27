@@ -70,6 +70,10 @@ const VendorInvoicesSchema = mongoose.Schema({
     transform: (v) => (v === "" ? null : v),
     ref: "monthlyVendorInvoices",
   },
+  vat: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 module.exports = {
