@@ -8,7 +8,8 @@ async function generateVendorInvoice(
   totalExpenditure,
   totalRevenue,
   vendorAdmin,
-  revenueAdmin
+  revenueAdmin,
+  vat
 ) {
   // FIND RECENT INVOICE
 
@@ -29,6 +30,7 @@ async function generateVendorInvoice(
     accountManager: ACCOUNT_MANAGER,
     reviewedAt: null,
     approvedAt: null,
+    vat
   });
   const response = await Invoice.save();
   return response;

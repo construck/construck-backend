@@ -448,7 +448,7 @@ async function worksByEquipment(req, res) {
     query = {
       siteWork: false,
       "equipment._id": new mongoose.Types.ObjectId(id),
-      status: { $nin: ["recalled","approved", "released"] },
+      status: { $nin: ["recalled", "approved", "released"] },
       workStartDate: {
         $gte: startdate,
         $lte: enddate,
@@ -860,9 +860,15 @@ async function createInvoice(req, res) {
     .format("YYYY-MM-DD");
   try {
     // TODO: FIND PROJECT BY NAME
-    const project = await Project.model.findOne({
-      _id: new mongoose.Types.ObjectId(id),
-    });
+    const project = await Project.model
+      .findOne({
+        _id: new mongoose.Types.ObjectId(id),
+      })
+      .populate("client", {
+        vat: 1,
+      });
+    // console.log("project", project);
+    // return;
     if (!project) {
       return res.status(404).send({ message: "Project not found" });
     }
@@ -890,13 +896,17 @@ async function createInvoice(req, res) {
       return res.status(404).send({ message: "No validated dispatched found" });
     }
 
+    // APPLY VAT IF CUSTOMER IS IN VAT
+    const vat = project.client.vat;
+
     // TODO: GENERATE INVOICE FOR GIVEN MONTH/YEAR
     const invoice = await generateInvoice(
       id,
       month,
       year,
       aggregatedRevenue,
-      project
+      project,
+      vat
     );
 
     // TODO: UPDATE STATUS AND INVOICE ID OF ALL WORKS WITH VALIDATED STATUS

@@ -159,8 +159,8 @@ async function vendorInvoicePreview(req, res) {
 async function createVendorInvoice(req, res) {
   const { month, year } = req.query;
   const { id } = req.params;
-  const { amount, vendorAdmin, revenueAdmin } = req.body;
-
+  const { amount, vendorAdmin, revenueAdmin, vat } = req.body;
+  
   const startOfMonth = new Date(year, month - 1, 1);
   const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
   try {
@@ -240,7 +240,8 @@ async function createVendorInvoice(req, res) {
       totalExpenditure,
       totalRevenue,
       vendorAdmin,
-      vendor?.revenueAdmin?._id || null
+      vendor?.revenueAdmin?._id || null,
+      vat || false
     );
 
     // UPDATE STATUS AND INVOICE ID OF ALL WORKS WITH VALIDATED STATUS
@@ -395,7 +396,6 @@ async function createConsolidatedVendorInvoice(req, res) {
       year,
       amount
     );
-
 
     let ids = [];
     // LOOP AND CREATE ARRAY OF INVOICE IDS WITH MOONGOSE OBJECT ID
