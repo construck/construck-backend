@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const custData = require("../models/customers");
+const Project = require("../models/projects");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const logData = require("../models/logs");
@@ -17,8 +18,8 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  let { name, phone, email, tinNumber } = req.body;
-  await createCustomer(name, phone, email, tinNumber, res);
+  let { name, phone, email, tinNumber, vat } = req.body;
+  await createCustomer(name, phone, email, tinNumber, vat, res);
 });
 
 router.post("/project", async (req, res) => {
@@ -30,6 +31,22 @@ router.put("/:id", async (req, res) => {
   let { id } = req.params;
   let { name, phone, email, tinNumber } = req.body;
   await updateCustomer(id, name, phone, email, tinNumber, res);
+});
+
+router.put("/:id/set-vat", async (req, res) => {
+  let { id } = req.params;
+  try {
+    const response = await custData.model.findByIdAndUpdate(id, {
+      vat: true,
+    });
+
+    return res.status(200).send({
+      response,
+      message: "VAT was set successfully",
+    });
+  } catch (err) {
+    return res.send(err);
+  }
 });
 
 router.put("/project/:id", async (req, res) => {
@@ -51,7 +68,7 @@ module.exports = router;
 
 async function getAllCustomers(res) {
   try {
-    const customers = await custData.model.find();
+    const customers = await custData.model.find().sort({ name: 1 });
     return res.status(200).send(customers);
   } catch (err) {
     return res.send(err);
@@ -61,19 +78,25 @@ async function getAllCustomers(res) {
 async function getCustomerById(id, res) {
   try {
     const customer = await custData.model.findById(id);
-    return res.status(200).send(customer);
+    const projects = await Project.model.find({
+      client: new mongoose.Types.ObjectId(id),
+    });
+    return res
+      .status(200)
+      .send({ customer, projects: !_.isEmpty(projects) ? projects : [] });
   } catch (err) {
     return res.send(err);
   }
 }
 
-async function createCustomer(name, phone, email, tinNumber, res) {
+async function createCustomer(name, phone, email, tinNumber, vat, res) {
   try {
     let customerToCreate = new custData.model({
       name,
       phone,
       email,
       tinNumber,
+      vat,
     });
     let customerCreated = await customerToCreate.save();
 

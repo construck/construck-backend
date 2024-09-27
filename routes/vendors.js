@@ -7,10 +7,13 @@ const workData = require("../models/workData");
 
 router.get("/", async (req, res) => {
   try {
-    const vendors = await venData.model.find().populate("revenueAdmin", {
-      firstName: 1,
-      lastName: 1,
-    } );
+    const vendors = await venData.model
+      .find()
+      .populate("revenueAdmin", {
+        firstName: 1,
+        lastName: 1,
+      })
+      .sort({ name: 1 });
     return res.status(200).send(vendors);
   } catch (err) {
     return res.send(err);
@@ -20,8 +23,6 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     let vendorToCreate = new venData.model(req.body);
-    let hashedPassword = await bcrypt.hash(req.body.password, 10);
-    vendorToCreate.password = hashedPassword;
     let vendorCreated = await vendorToCreate.save();
     return res.status(201).send(vendorCreated);
   } catch (err) {
@@ -54,35 +55,19 @@ router.put("/:id", async (req, res) => {
     return res.send(err);
   }
 });
-
-router.put("/resetPassword/:id", async (req, res) => {
-  let newPassword = "password";
+router.put("/:id/set-vat", async (req, res) => {
   let { id } = req.params;
-
   try {
-    let vendor = await venData.model.findById(id);
-    if (!vendor) {
-      return res.status(401).send({
-        message: "Vendor not found!",
-        error: true,
-      });
-    } else {
-      let hashedPassword = await bcrypt.hash(newPassword, 10);
-      vendor.password = hashedPassword;
-      await vendor.save();
-
-      return res.send({
-        message: "Allowed",
-        error: false,
-        newPassword,
-        vendor,
-      });
-    }
-  } catch (err) {
-    return res.status(500).send({
-      message: `${err}`,
-      error: true,
+    let vendor = await venData.model.findByIdAndUpdate(id, {
+      vat: true,
     });
+
+    return res.status(200).send({
+      response: vendor,
+      message: "VAT was set successfully",
+    });
+  } catch (err) {
+    return res.send(err);
   }
 });
 

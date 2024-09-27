@@ -30,6 +30,10 @@ const CustomerSchema = mongoose.Schema({
     type: mongoose.SchemaTypes.Date,
     default: Date.now(),
   },
+  vat: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 module.exports = {

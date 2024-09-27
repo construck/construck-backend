@@ -18,6 +18,10 @@ const VendorSchema = mongoose.Schema({
   tinNumber: {
     type: String,
   },
+  vat: {
+    type: Boolean,
+    default: false,
+  },
   revenueAdmin: {
     type: mongoose.SchemaTypes.ObjectId,
     transform: (v) => (v === "" ? null : v),
