@@ -78,6 +78,10 @@ const ProjectInvoicesSchema = mongoose.Schema(
       ref: "customerInvoices",
       required: false,
     },
+    vat: {
+      type: Boolean,
+      default: false,
+    },
   }
   // { timestamp: true }
 );

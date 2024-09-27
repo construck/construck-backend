@@ -2,7 +2,14 @@ const ProjectInvoice = require("../../models/projectInvoices");
 const User = require("../../models/users");
 const { ACCOUNT_MANAGER } = process.env;
 
-async function generateInvoice(id, month, year, aggregatedRevenue, project) {
+async function generateInvoice(
+  id,
+  month,
+  year,
+  aggregatedRevenue,
+  project,
+  vat
+) {
   // FIND RECENT INVOICE
 
   const recentInvoice = await ProjectInvoice.model
@@ -20,6 +27,7 @@ async function generateInvoice(id, month, year, aggregatedRevenue, project) {
     accountManager: ACCOUNT_MANAGER,
     siteManager: project.siteManager || null,
     projectManager: project.projectManager || project.invoiceAuthorizer || null,
+    vat,
   });
   const response = await Invoice.save();
   return response;

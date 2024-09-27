@@ -52,7 +52,7 @@ router.get("/:id/details", async (req, res) => {
   try {
     const project = await prjData.model
       .findOne({ _id: id })
-      .populate("client", { _id: 1, name: 1, tinNumber: 1 })
+      .populate("client", { _id: 1, name: 1, tinNumber: 1, vat: 1 })
       .populate("projectAdmin", {
         firstName: 1,
         lastName: 1,
