@@ -40,6 +40,7 @@ const equipmentCronjobs = require("./cronjobs/equipments");
 const invoices = require("./routes/invoices");
 const deductions = require("./routes/deductions");
 const additions = require("./routes/additions");
+const file = require("./routes/files");
 
 const { NODE_ENV, CONS_MONGO_DB, PLATFORM_TOKEN } = process.env;
 
@@ -139,6 +140,7 @@ app.use("/download", download);
 app.use("/invoices", invoices);
 app.use("/deductions", deductions);
 app.use("/additions", additions);
+app.use("/files", file);
 
 app.listen(PORT, async () => {
   console.log(`Listening on Port ${PORT}`);
