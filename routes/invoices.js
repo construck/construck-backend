@@ -52,6 +52,9 @@ router.post("/create-invoice/vendor/:id", (req, res) => {
 router.put("/vendor/sign/:id", async (req, res) => {
   Invoices.signVendorInvoice(req, res);
 });
+router.put("/:id/vendor/file", async (req, res) => {
+  Invoices.updateInvoiceFile(req, res);
+});
 router.put("/customer/sign/:id", async (req, res) => {
   Invoices.signCustomerInvoice(req, res);
 });

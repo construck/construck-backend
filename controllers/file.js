@@ -24,7 +24,7 @@ async function uploadFile(req, res) {
     return res.status(203).json({
       status: "success",
       message: "File uploaded successfully",
-      data: { url: fileUrl },
+      data: { url: fileUrl, name: req.file.filename },
     });
   } catch (error) {
     console.error("File upload error:", error);

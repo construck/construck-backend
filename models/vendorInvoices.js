@@ -74,6 +74,16 @@ const VendorInvoicesSchema = mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  ebmFile: {
+    type: String,
+    default: null,
+    required: false,
+  },
+  taxFile: {
+    type: String,
+    default: null,
+    required: false,
+  },
 });
 
 module.exports = {
