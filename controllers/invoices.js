@@ -160,7 +160,7 @@ async function createVendorInvoice(req, res) {
   const { month, year } = req.query;
   const { id } = req.params;
   const { amount, vendorAdmin, revenueAdmin, vat } = req.body;
-  
+
   const startOfMonth = new Date(year, month - 1, 1);
   const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
   try {
@@ -617,6 +617,43 @@ async function signVendorInvoice(req, res) {
     return res.status(500).send(err);
   }
 }
+async function updateInvoiceFile(req, res) {
+  const { id } = req.params;
+  const { file, type } = req.body;
+  console.log("file, type", file, type);
+
+  try {
+    let data = {};
+    if (type === "ebm") {
+      data = {
+        ebmFile: file,
+      };
+    }
+    if (type === "tax") {
+      data = {
+        taxFile: file,
+      };
+    }
+
+    const invoice = await VendorInvoice.model.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(id),
+      },
+      {
+        $set: data,
+      },
+      { new: true }
+    );
+    // await vendorInvoiceHelper.notifyNextApprover(invoice);
+    return res.status(200).send({
+      message: "File has been added successfully",
+      invoice,
+    });
+    return;
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+}
 
 async function fetchInvoiceDetailsPerCustomer(req, res) {
   const { id } = req.params;
@@ -784,4 +821,5 @@ module.exports = {
   fetchVendorSummaryInvoices,
   fetchVendorSummaryInvoiceDetails,
   signVendorSummaryInvoice,
+  updateInvoiceFile,
 };
