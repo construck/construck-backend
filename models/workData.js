@@ -23,6 +23,11 @@ const WorkSchema = new mongoose.Schema(
       transform: (v) => (v === "" ? null : v),
       ref: "equipments",
     },
+    customer: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === "" ? null : v),
+      ref: "customers",
+    },
     dispatch: {
       type: Object,
       date: {
@@ -105,28 +110,9 @@ const WorkSchema = new mongoose.Schema(
       type: Date,
     },
     workDurationDays: { type: Number, default: 0 },
-    dailyWork: [
-      {
-        date: Date,
-        startIndex: Number,
-        endIndex: Number,
-        duration: Number,
-        rate: Number,
-        uom: String,
-        totalRevenue: Number,
-        totalExpenditure: Number,
-        projectedRevenue: Number,
-        comment: String,
-        moreComment: String,
-        pending: Boolean,
-        rejectedReason: String,
-        status: String,
-        fuel: {
-          type: Number,
-          default: null,
-        },
-      },
-    ],
+    dailyWork: {
+      type: Object,
+    },
     appovedBy: {
       type: mongoose.SchemaTypes.ObjectId,
       transform: (v) => (v === "" ? null : v),

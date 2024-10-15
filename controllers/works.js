@@ -659,17 +659,29 @@ async function createDispatch(req, res) {
       });
     }
     // CREATE NEW DISPATCH
-    // TREAT IDS & DATES
+    const responseProject = await Project.model
+      .findOne({
+        _id: new mongoose.Types.ObjectId(data.project._id),
+      })
+      .populate("client", { _id: 1, name: 1, tinNumber: 1 });
+    const project = {
+      ...responseProject,
+      client: {
+        _id: `${responseProject.client._id}`,
+        name: responseProject.client.name,
+        tinNumber: responseProject.client.tinNumber,
+      },
+    };
+    data.dispatch.project = project;
+    data.projectId = project._id;
+    data.customer = new mongoose.Types.ObjectId(project.client._id);
     data = {
       ...data,
       equipment: {
         ...data.equipment,
         _id: new mongoose.Types.ObjectId(data.equipment._id),
       },
-      project: {
-        ...data.project,
-        _id: new mongoose.Types.ObjectId(data.project._id),
-      },
+      project,
       dispatch: {
         ...data.dispatch,
         date:
@@ -678,6 +690,7 @@ async function createDispatch(req, res) {
       date: moment(data.workStartDate),
     };
 
+    // return;
     const Dispatch = new Work.model(data);
     const response = await Dispatch.save();
 
@@ -691,7 +704,6 @@ async function createDispatch(req, res) {
       plateNumber: data.equipment.plateNumber,
       status: "CREATED",
       date: data.workStartDate,
-      // response,
     });
   } catch (error) {
     return res.status(503).send({
@@ -822,6 +834,7 @@ async function editDispatch(req, res) {
       workStartDate: data.workStartDate,
       workEndDate: data.workStartDate,
       uom: data.equipment.uom,
+      customer: new mongoose.Types.ObjectId(project.client._id),
     };
     const response = await Work.model.findOneAndUpdate(
       { _id: id },
