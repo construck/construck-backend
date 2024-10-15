@@ -791,29 +791,27 @@ async function editDispatch(req, res) {
       });
     }
   }
+  // FIND PROJECT/CUSTOMER INFORMATION
+  const project = await Project.model
+    .findOne({
+      _id: new mongoose.Types.ObjectId(data.project._id),
+    })
+    .populate("client", { _id: 1, name: 1, tinNumber: 1 });
   try {
     const newData = {
       "dispatch.equipment": {
         ...data.equipment,
         _id: new mongoose.Types.ObjectId(data.equipment._id),
       },
-      "dispatch.project": {
-        _id: new mongoose.Types.ObjectId(data.project._id),
-        client: new mongoose.Types.ObjectId(data.project.client),
-        prjDescription: data.project.prjDescription,
-      },
+      "dispatch.project": project,
       "dispatch.shift": data.dispatch.shift,
       "dispatch.date": data.workStartDate,
       "dispatch.astDriver": data.dispatch.astDriver,
       ...(data.dispatch.targetTrips && {
         "dispatch.targetTrips": data.dispatch.targetTrips,
       }),
-      project: {
-        _id: new mongoose.Types.ObjectId(data.project._id),
-        client: new mongoose.Types.ObjectId(data.project.client),
-        prjDescription: data.project.prjDescription,
-      },
-      projectId: new mongoose.Types.ObjectId(data.project._id),
+      project,
+      projectId: new mongoose.Types.ObjectId(project._id),
       equipment: {
         ...data.equipment,
         _id: new mongoose.Types.ObjectId(data.equipment._id),
