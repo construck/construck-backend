@@ -1733,7 +1733,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 $gte: moment(startDate).toDate(),
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project._id": { $in: prjs },
             },
             {
               siteWork: false,
@@ -1747,7 +1747,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .toDate(),
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project._id": { $in: prjs },
             },
           ],
         };
@@ -1760,8 +1760,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-              "equipment._id": new mongoose.Types.ObjectId(searchText),
-              "project.prjDescription": { $in: prjs },
+              "project._id": { $in: prjs },
             },
 
             {
@@ -1775,8 +1774,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "equipment._id": new mongoose.Types.ObjectId(searchText),
-              "project.prjDescription": { $in: prjs },
+              "project._id": { $in: prjs },
             },
           ],
         };
@@ -1789,8 +1787,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-              "project._id": new mongoose.Types.ObjectId(project),
-              "project.prjDescription": { $in: prjs },
+              "project._id": { $in: prjs },
             },
 
             {
@@ -1804,8 +1801,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "project._id": new mongoose.Types.ObjectId(project),
-              "project.prjDescription": { $in: prjs },
+              "project._id": { $in: prjs },
             },
           ],
         };
@@ -1818,9 +1814,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-              "project._id": new mongoose.Types.ObjectId(project),
               "equipment._id": new mongoose.Types.ObjectId(searchText),
-              "project.prjDescription": { $in: prjs },
+              "project._id": { $in: prjs },
             },
 
             {
@@ -1834,9 +1829,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "project._id": new mongoose.Types.ObjectId(project),
               "equipment._id": new mongoose.Types.ObjectId(searchText),
-              "project.prjDescription": { $in: prjs },
+              "project._id": { $in: prjs },
             },
           ],
         };
@@ -1854,7 +1848,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 $gte: moment(startDate).toDate(),
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project._id": { $in: prjs },
             },
             {
               siteWork: false,
@@ -1868,7 +1862,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .toDate(),
               },
 
-              "project.prjDescription": { $in: prjs },
+              "project._id": { $in: prjs },
             },
           ],
         };
@@ -1883,7 +1877,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               },
 
               "equipment._id": new mongoose.Types.ObjectId(searchText),
-              "project.prjDescription": { $in: prjs },
+              "project._id": { $in: prjs },
             },
 
             {
@@ -1898,7 +1892,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .toDate(),
               },
               "equipment._id": new mongoose.Types.ObjectId(searchText),
-              "project.prjDescription": { $in: prjs },
+              "project._id": { $in: prjs },
             },
           ],
         };
@@ -1912,8 +1906,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 $gte: moment(startDate).toDate(),
               },
 
-              "project._id": new mongoose.Types.ObjectId(project),
-              "project.prjDescription": { $in: prjs },
+              "project._id": { $in: prjs },
             },
 
             {
@@ -1927,8 +1920,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "project._id": new mongoose.Types.ObjectId(project),
-              "project.prjDescription": { $in: prjs },
+              "project._id": { $in: prjs },
             },
           ],
         };
@@ -1941,9 +1933,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
-              "project._id": new mongoose.Types.ObjectId(project),
               "equipment._id": new mongoose.Types.ObjectId(searchText),
-              "project.prjDescription": { $in: prjs },
+              "project._id": { $in: prjs },
             },
 
             {
@@ -1957,9 +1948,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   .add(59, "seconds")
                   .toDate(),
               },
-              "project._id": new mongoose.Types.ObjectId(project),
               "equipment._id": new mongoose.Types.ObjectId(searchText),
-              "project.prjDescription": { $in: prjs },
+              "project._id": { $in: prjs },
             },
           ],
         };
