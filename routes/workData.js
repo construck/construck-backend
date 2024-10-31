@@ -4103,14 +4103,7 @@ router.put("/stop/:id", async (req, res) => {
       .populate("workDone");
 
     //You can only stop jobs in progress
-    if (
-      work?.status === "created" ||
-      work?.status === "on going" ||
-      work?.status === "in progress" ||
-      (work?.siteWork &&
-        moment(postingDate).isSameOrAfter(moment(work?.workStartDate), "day") &&
-        moment(postingDate).isSameOrBefore(moment(work?.workEndDate), "day"))
-    ) {
+    if (work?.status === "created") {
       let equipment = await eqData.model.findById(work?.equipment?._id);
       let workEnded = false;
 
@@ -4353,27 +4346,9 @@ router.put("/stop/:id", async (req, res) => {
               let durationRation =
                 duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
               work.duration = duration / HOURS_IN_A_DAY;
-              // revenue = rate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
               revenue = duration === 0 ? 0 : rate;
-              expenditure = 0 ? 0 : supplierRate;
-              // supplierRate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
+              expenditure = duration === 0 ? 0 : supplierRate;
             }
-            // if (
-            //   !targetTrips ||
-            //   targetTrips == "0" ||
-            //   equipment?.eqDescription !== "TIPPER TRUCK"
-            // ) {
-            //   {
-            //     let targetDuration = 5;
-            //     let durationRation =
-            //       duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
-            //     work.duration = duration / HOURS_IN_A_DAY;
-            //     // revenue = rate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
-            //     revenue = duration === 0 ? 0 : rate;
-            //     expenditure =
-            //       supplierRate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
-            //   }
-            // }
           }
         }
 
@@ -4384,7 +4359,6 @@ router.put("/stop/:id", async (req, res) => {
         work.comment = comment;
         work.moreComment = moreComment;
         work.equipment = equipment;
-
         let savedRecord = await work.save();
         if (employee) await employee.save();
         await equipment.save();
@@ -4442,7 +4416,9 @@ router.put("/stop/:id", async (req, res) => {
         return res.status(201).send(savedRecord);
       }
     } else {
-      return res.status(200).send(work);
+      return res.status(500).send({
+        error: "Sorry, this work has already been stopped",
+      });
     }
   } catch (err) {
     return res.status(500).send(err);
