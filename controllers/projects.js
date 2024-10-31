@@ -30,6 +30,7 @@ async function getInvoicePerProject(req, res) {
         $match: {
           invoice: new mongoose.Types.ObjectId(id),
           totalRevenue: { $gt: 0 },
+          status: {$in: ["released", "approved", "validated", "stopped"]},
         },
       },
       {
