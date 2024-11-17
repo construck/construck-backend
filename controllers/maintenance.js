@@ -58,7 +58,7 @@ async function createJobCard(req, res) {
         "-" +
         (new Date().getUTCMonth() < 10
           ? `0${new Date().getMonth() + 1}`
-          : new Date().getUTCMonth()) +
+          : `${new Date().getUTCMonth() + 1}`) +
         "-" +
         new Date().getFullYear().toString().substr(2),
       entryDate,
