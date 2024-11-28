@@ -307,16 +307,86 @@ async function fetchPreviewInvoicesByCustomer(req, res) {
     const projectIds = projects.map((project) => project._id);
 
     // GET INVOICES BY PROJECTS IDS
-    const invoices = await ProjectInvoice.model
-      .find({
-        project: { $in: projectIds },
-        customerInvoice: { $exists: false },
-        customerInvoice: { $eq: "" },
-        customerInvoice: { $eq: null },
-        year,
-        month,
-      })
-      .populate("project", { prjDescription: 1 });
+    // const invoices = await ProjectInvoice.model
+    //   .find({
+    //     project: { $in: projectIds },
+    //     customerInvoice: { $exists: false },
+    //     customerInvoice: { $eq: "" },
+    //     customerInvoice: { $eq: null },
+    //     year,
+    //     month,
+    //   })
+    //   .populate("project", { prjDescription: 1 });
+
+    const query = [
+      {
+        $match: {
+          project: { $in: projectIds },
+          customerInvoice: { $exists: false },
+          customerInvoice: { $eq: "" },
+          customerInvoice: { $eq: null },
+          year: parseInt(year),
+          month: parseInt(month),
+        },
+      },
+      {
+        $lookup: {
+          from: "projects",
+          localField: "project",
+          foreignField: "_id",
+          as: "project",
+        },
+      },
+      {
+        $unwind: {
+          path: "$project",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "deductioninvoices",
+          localField: "_id",
+          foreignField: "projectInvoice",
+          as: "deductions",
+        },
+      },
+      {
+        $lookup: {
+          from: "additioninvoices",
+          localField: "_id",
+          foreignField: "projectInvoice",
+          as: "additions",
+        },
+      },
+      {
+        $addFields: {
+          totalDeductions: {
+            $sum: {
+              $map: {
+                input: "$deductions",
+                as: "deduction",
+                in: {
+                  $ifNull: ["$$deduction.amount", 0],
+                },
+              },
+            },
+          },
+          totalAdditions: {
+            $sum: {
+              $map: {
+                input: "$additions",
+                as: "additions",
+                in: {
+                  $ifNull: ["$$additions.amount", 0],
+                },
+              },
+            },
+          },
+        },
+      },
+    ];
+    const invoices = await ProjectInvoice.model.aggregate(query);
 
     return res.status(200).send(invoices);
   } catch (err) {
@@ -818,81 +888,81 @@ async function fetchVendorSummaryInvoiceDetails(req, res) {
         email: 1,
       });
 
-      const query = [
-        {
-          $match: {
-            // month: parseInt(month),
-            // year: parseInt(year),
-            monthlyInvoiceId: new mongoose.Types.ObjectId(id),
-            // status: "approved",
-            // monthlyInvoiceId: { $exists: false },
-            // monthlyInvoiceId: { $eq: "" },
-            // monthlyInvoiceId: { $eq: null },
-          },
+    const query = [
+      {
+        $match: {
+          // month: parseInt(month),
+          // year: parseInt(year),
+          monthlyInvoiceId: new mongoose.Types.ObjectId(id),
+          // status: "approved",
+          // monthlyInvoiceId: { $exists: false },
+          // monthlyInvoiceId: { $eq: "" },
+          // monthlyInvoiceId: { $eq: null },
         },
-        {
-          $lookup: {
-            from: "vendors",
-            localField: "vendor",
-            foreignField: "_id",
-            as: "vendor",
-          },
+      },
+      {
+        $lookup: {
+          from: "vendors",
+          localField: "vendor",
+          foreignField: "_id",
+          as: "vendor",
         },
-        {
-          $unwind: {
-            path: "$vendor",
-            preserveNullAndEmptyArrays: true,
-          },
+      },
+      {
+        $unwind: {
+          path: "$vendor",
+          preserveNullAndEmptyArrays: true,
         },
-        {
-          $lookup: {
-            from: "deductioninvoices",
-            localField: "vendor._id",
-            foreignField: "vendor",
-            as: "deduction",
-          },
+      },
+      {
+        $lookup: {
+          from: "deductioninvoices",
+          localField: "vendor._id",
+          foreignField: "vendor",
+          as: "deduction",
         },
-        {
-          $unwind: {
-            path: "$deduction",
-            preserveNullAndEmptyArrays: true,
-          },
+      },
+      {
+        $unwind: {
+          path: "$deduction",
+          preserveNullAndEmptyArrays: true,
         },
-        {
-          $group: {
-            _id: {
-              vendor: "$vendor",
-              month: "$month",
-              year: "$year",
-              status: "$status",
-            },
-            deductions: {
-              $sum: {
-                $ifNull: ["$deduction.amount", 0],
-              },
-            },
-            documents: { $push: "$$ROOT" },
+      },
+      {
+        $group: {
+          _id: {
+            vendor: "$vendor",
+            month: "$month",
+            year: "$year",
+            status: "$status",
           },
-        },
-        {
-          $replaceRoot: {
-            newRoot: {
-              $mergeObjects: [
-                { $arrayElemAt: ["$documents", 0] },
-                { totalDeduction: "$deductions" },
-              ],
+          deductions: {
+            $sum: {
+              $ifNull: ["$deduction.amount", 0],
             },
           },
+          documents: { $push: "$$ROOT" },
         },
-        {
-          $addFields: {
-            totalVendorAmount: {
-              $subtract: ["$amount", "$totalDeduction"],
-            },
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: [
+              { $arrayElemAt: ["$documents", 0] },
+              { totalDeduction: "$deductions" },
+            ],
           },
         },
-      ];
-      const response = await VendorInvoice.model.aggregate(query);
+      },
+      {
+        $addFields: {
+          totalVendorAmount: {
+            $subtract: ["$amount", "$totalDeduction"],
+          },
+        },
+      },
+    ];
+    const response = await VendorInvoice.model.aggregate(query);
     // const response = await VendorInvoice.model
     //   .find({
     //     monthlyInvoiceId: new mongoose.Types.ObjectId(id),
