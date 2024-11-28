@@ -325,19 +325,85 @@ async function fetchPreviewInvoicesByCustomer(req, res) {
 }
 async function fetchPreviewVendorInvoicesPerPeriod(req, res) {
   const { month, year } = req.query;
+  console.log("##", parseInt(month), year);
   try {
-    const invoices = await VendorInvoice.model
-      .find({
-        month,
-        year,
-        status: "approved",
-        monthlyInvoiceId: { $exists: false },
-        monthlyInvoiceId: { $eq: "" },
-        monthlyInvoiceId: { $eq: null },
-      })
-      .populate("vendor", { name: 1 });
+    const query = [
+      {
+        $match: {
+          month: parseInt(month),
+          year: parseInt(year),
+          status: "approved",
+          monthlyInvoiceId: { $exists: false },
+          monthlyInvoiceId: { $eq: "" },
+          monthlyInvoiceId: { $eq: null },
+        },
+      },
+      {
+        $lookup: {
+          from: "vendors",
+          localField: "vendor",
+          foreignField: "_id",
+          as: "vendor",
+        },
+      },
+      {
+        $unwind: {
+          path: "$vendor",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "deductioninvoices",
+          localField: "vendor._id",
+          foreignField: "vendor",
+          as: "deduction",
+        },
+      },
+      {
+        $unwind: {
+          path: "$deduction",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: {
+            vendor: "$vendor",
+            month: "$month",
+            year: "$year",
+            status: "$status",
+          },
+          deductions: {
+            $sum: {
+              $ifNull: ["$deduction.amount", 0],
+            },
+          },
+          documents: { $push: "$$ROOT" },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: [
+              { $arrayElemAt: ["$documents", 0] },
+              { totalDeduction: "$deductions" },
+            ],
+          },
+        },
+      },
+      {
+        $addFields: {
+          totalVendorAmount: {
+            $subtract: ["$amount", "$totalDeduction"],
+          },
+        },
+      },
+    ];
+    const invoices = await VendorInvoice.model.aggregate(query);
     return res.status(200).send(invoices);
   } catch (err) {
+    console.log("err", err);
     return res.status(404).send(err);
   }
 }
@@ -751,11 +817,87 @@ async function fetchVendorSummaryInvoiceDetails(req, res) {
         phone: 1,
         email: 1,
       });
-    const response = await VendorInvoice.model
-      .find({
-        monthlyInvoiceId: new mongoose.Types.ObjectId(id),
-      })
-      .populate("vendor");
+
+      const query = [
+        {
+          $match: {
+            // month: parseInt(month),
+            // year: parseInt(year),
+            monthlyInvoiceId: new mongoose.Types.ObjectId(id),
+            // status: "approved",
+            // monthlyInvoiceId: { $exists: false },
+            // monthlyInvoiceId: { $eq: "" },
+            // monthlyInvoiceId: { $eq: null },
+          },
+        },
+        {
+          $lookup: {
+            from: "vendors",
+            localField: "vendor",
+            foreignField: "_id",
+            as: "vendor",
+          },
+        },
+        {
+          $unwind: {
+            path: "$vendor",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: "deductioninvoices",
+            localField: "vendor._id",
+            foreignField: "vendor",
+            as: "deduction",
+          },
+        },
+        {
+          $unwind: {
+            path: "$deduction",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $group: {
+            _id: {
+              vendor: "$vendor",
+              month: "$month",
+              year: "$year",
+              status: "$status",
+            },
+            deductions: {
+              $sum: {
+                $ifNull: ["$deduction.amount", 0],
+              },
+            },
+            documents: { $push: "$$ROOT" },
+          },
+        },
+        {
+          $replaceRoot: {
+            newRoot: {
+              $mergeObjects: [
+                { $arrayElemAt: ["$documents", 0] },
+                { totalDeduction: "$deductions" },
+              ],
+            },
+          },
+        },
+        {
+          $addFields: {
+            totalVendorAmount: {
+              $subtract: ["$amount", "$totalDeduction"],
+            },
+          },
+        },
+      ];
+      const response = await VendorInvoice.model.aggregate(query);
+    // const response = await VendorInvoice.model
+    //   .find({
+    //     monthlyInvoiceId: new mongoose.Types.ObjectId(id),
+    //   })
+    //   .populate("vendor");
     return res.status(200).send({
       meta: summary,
       response,
