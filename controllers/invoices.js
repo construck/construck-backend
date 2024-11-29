@@ -815,13 +815,122 @@ async function fetchInvoiceDetailsPerCustomer(req, res) {
         phone: 1,
         email: 1,
       });
-    const projectInvoices = await ProjectInvoice.model
-      .find({
-        customerInvoice: id,
-      })
-      .populate("project", {
-        prjDescription: 1,
-      });
+      console.log('###id', id)
+    const query = [
+      {
+        $match: {
+          customerInvoice: new mongoose.Types.ObjectId(id),
+        },
+      },
+      // FETCH PROJECT INFORMATION
+      {
+        $lookup: {
+          from: "projects",
+          localField: "project",
+          foreignField: "_id",
+          as: "project",
+        },
+      },
+      {
+        $unwind: {
+          path: "$project",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      // FETCH DEDUCTIONS OF INVOICES
+      {
+        $lookup: {
+          from: "deductioninvoices",
+          localField: "_id",
+          foreignField: "projectInvoice",
+          as: "deductions",
+        },
+      },
+      // FETCH ADDITIONS OF INVOICES
+      {
+        $lookup: {
+          from: "additioninvoices",
+          localField: "_id",
+          foreignField: "projectInvoice",
+          as: "additions",
+        },
+      },
+      // SUM OF DEDUCTIONS AND ADDITIONS
+      {
+        $addFields: {
+          totalDeductions: {
+            $sum: {
+              $map: {
+                input: "$deductions",
+                as: "deduction",
+                in: {
+                  $ifNull: ["$$deduction.amount", 0],
+                },
+              },
+            },
+          },
+          totalAdditions: {
+            $sum: {
+              $map: {
+                input: "$additions",
+                as: "additions",
+                in: {
+                  $ifNull: ["$$additions.amount", 0],
+                },
+              },
+            },
+          },
+        },
+      },
+
+      // SUB TOTAL
+      {
+        $addFields: {
+          subTotal: {
+            $add: [
+              "$amount",
+              "$totalAdditions",
+              {
+                $multiply: [-1, "$totalDeductions"],
+              },
+            ],
+          },
+        },
+      },
+
+      // APPLY VAT
+      {
+        $addFields: {
+          vatAmount: {
+            $cond: {
+              if: "$vat",
+              then: {
+                $multiply: ["$subTotal", 0.18],
+              },
+              else: 0,
+            },
+          },
+        },
+      },
+      // COMPUTE GRANT TOTAL
+      {
+        $addFields: {
+          grandTotal: {
+            $add: ["$subTotal", "$vatAmount"],
+          },
+        },
+      },
+    ];
+    const projectInvoices = await ProjectInvoice.model.aggregate(query);
+
+    // const projectInvoices = await ProjectInvoice.model
+    //   .find({
+    //     customerInvoice: id,
+    //   })
+    //   .populate("project", {
+    //     prjDescription: 1,
+    //   });
+
     return res
       .status(200)
       .send({ meta: customerInvoice, response: projectInvoices });
@@ -891,13 +1000,7 @@ async function fetchVendorSummaryInvoiceDetails(req, res) {
     const query = [
       {
         $match: {
-          // month: parseInt(month),
-          // year: parseInt(year),
           monthlyInvoiceId: new mongoose.Types.ObjectId(id),
-          // status: "approved",
-          // monthlyInvoiceId: { $exists: false },
-          // monthlyInvoiceId: { $eq: "" },
-          // monthlyInvoiceId: { $eq: null },
         },
       },
       {
