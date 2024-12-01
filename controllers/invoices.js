@@ -901,15 +901,16 @@ async function fetchInvoiceDetailsPerCustomer(req, res) {
       // APPLY VAT
       {
         $addFields: {
-          vatAmount: {
-            $cond: {
-              if: "$vat",
-              then: {
-                $multiply: ["$subTotal", 0.18],
-              },
-              else: 0,
-            },
-          },
+          vatAmount: 0
+          // vatAmount: {
+          //   $cond: {
+          //     if: "$vat",
+          //     then: {
+          //       $multiply: ["$subTotal", 0.18],
+          //     },
+          //     else: 0,
+          //   },
+          // },
         },
       },
       // COMPUTE GRANT TOTAL
