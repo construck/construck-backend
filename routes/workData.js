@@ -2218,10 +2218,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         )
       ) {
         work = {
+          "#": w._id,
           "Dispatch date": w.siteWork
             ? moment().format("M/D/YYYY")
             : moment(Date.parse(w.dispatch.date)).format("M/D/YYYY"),
-          "Posted On": moment(Date.parse(w.createdOn)).format("M/D/YYYY"),
+          // "Posted On": moment(Date.parse(w.createdOn)).format("M/D/YYYY"),
           Shift: w.dispatch.shift === "nightShift" ? "N" : "D",
           "Site work": w.siteWork,
           Project: w.project.prjDescription,
