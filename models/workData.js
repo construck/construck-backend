@@ -39,6 +39,13 @@ const WorkSchema = new mongoose.Schema(
       transform: (v) => (v === "" ? null : v),
       ref: "users",
     },
+    drivers: [
+      {
+        type: mongoose.SchemaTypes.ObjectId,
+        transform: (v) => (v === '' ? null : v),
+        ref: 'users',
+      },
+    ],
     workDone: {
       type: mongoose.SchemaTypes.ObjectId,
       transform: (v) => (v === "" ? null : v),

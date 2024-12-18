@@ -395,7 +395,6 @@ async function fetchPreviewInvoicesByCustomer(req, res) {
 }
 async function fetchPreviewVendorInvoicesPerPeriod(req, res) {
   const { month, year } = req.query;
-  console.log("##", parseInt(month), year);
   try {
     const query = [
       {
