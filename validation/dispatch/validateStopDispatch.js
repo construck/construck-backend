@@ -2,8 +2,8 @@ const Joi = require("joi");
 
 const stopDispatchSchema = Joi.object({
   duration: Joi.string().required(),
-  tripsDone: Joi.string(),
-  comment: Joi.string().allow(null, ""),
+  tripsDone: Joi.string().optional(),
+  comment: Joi.string().allow(null, "").optional(),
   stoppedBy: Joi.string().required(),
   postingDate: Joi.string().required(),
   fuel: Joi.string().required(),

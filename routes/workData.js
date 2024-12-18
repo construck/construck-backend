@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const axios = require("axios");
 const NodeCache = require("node-cache");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
@@ -36,6 +37,8 @@ const validateEditDispatch = require("../validation/dispatch/validateEditDispatc
 
 const DURATION_LIMIT = 16;
 const cache = new NodeCache({ stdTTL: 7200 });
+
+const { NEXTGEN_BACKEND } = process.env;
 
 function isValidObjectId(id) {
   if (ObjectId.isValid(id)) {
@@ -4067,12 +4070,28 @@ router.put("/start/:id", async (req, res) => {
 
 router.put("/stop/:id", async (req, res) => {
   const validationError = validateStopDispatch(req.body);
+  let { id } = req.params;
+
   if (validationError) {
+    console.log('validationError', validationError)
     return res
       .status(400)
       .send({ error: "validation error occurred, contact administrator" });
   }
-  let { id } = req.params;
+  try {
+    // FORWARD ORIGINAL REQUEST TO NEXTGEN BACKEND
+    const response = await axios.put(
+      `${NEXTGEN_BACKEND}/dispatches/stop/${id}`,
+      req.body
+    );
+
+    return res.status(200).send(response.data);
+  } catch (error) {
+    console.log("error", error);
+    return res.status(500).send(error);
+  }
+  return;
+
   let {
     endIndex,
     tripsDone,

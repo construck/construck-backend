@@ -487,6 +487,8 @@ async function worksByEquipment(req, res) {
 
 async function bulkPostSingleDispatch(req, res) {
   const data = req.body;
+  // console.log("@@@#",data);
+  // return;
   try {
     if (!_.isEmpty(data)) {
       data.map(async (dispatch) => {
