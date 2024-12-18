@@ -487,19 +487,31 @@ async function worksByEquipment(req, res) {
 
 async function bulkPostSingleDispatch(req, res) {
   const data = req.body;
-  // console.log("@@@#",data);
-  // return;
   try {
     if (!_.isEmpty(data)) {
       data.map(async (dispatch) => {
-        const { _id } = dispatch;
-        delete dispatch._id;
+        const {
+          _id,
+          duration,
+          fuel,
+          status,
+          totalRevenue,
+          tripsDone,
+          totalExpenditure,
+        } = dispatch;
         await Work.model.updateOne(
           {
             _id: new mongoose.Types.ObjectId(_id),
           },
           {
-            $set: dispatch,
+            $set: {
+              duration,
+              fuel,
+              status,
+              totalRevenue,
+              tripsDone,
+              totalExpenditure,
+            },
           }
         );
       });

@@ -814,7 +814,6 @@ async function fetchInvoiceDetailsPerCustomer(req, res) {
         phone: 1,
         email: 1,
       });
-      console.log('###id', id)
     const query = [
       {
         $match: {
