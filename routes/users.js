@@ -31,7 +31,7 @@ router.get("/", async (req, res) => {
       {
         password: 0,
       }
-    );
+    ).populate("driver");
     ignoreCache !== 1 && cache.set(cacheKey, users);
     return res.status(200).send(users);
   } catch (err) {
