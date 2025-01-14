@@ -206,10 +206,11 @@ router.get("/filtered/:page", async (req, res) => {
   let projects =
     userType !== "vendor" ? userProjects && userProjects.split(",") : [];
   let prjs = []
-    // projects &&
-    // projects?.map((p) => {
-    //   return new mongoose.Types.ObjectId(p);
-    // });
+  console.log('projects', projects.length)
+    projects &&
+    projects?.map((p) => {
+      return new mongoose.Types.ObjectId(p);
+    });
   switch (userType) {
     case "vendor":
       if (!searchByPlateNumber && !searchByProject) {
