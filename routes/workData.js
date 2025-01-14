@@ -205,11 +205,11 @@ router.get("/filtered/:page", async (req, res) => {
 
   let projects =
     userType !== "vendor" ? userProjects && userProjects.split(",") : [];
-  let prjs =
-    projects &&
-    projects?.map((p) => {
-      return new mongoose.Types.ObjectId(p);
-    });
+  let prjs = []
+    // projects &&
+    // projects?.map((p) => {
+    //   return new mongoose.Types.ObjectId(p);
+    // });
   switch (userType) {
     case "vendor":
       if (!searchByPlateNumber && !searchByProject) {
@@ -2376,6 +2376,7 @@ router.get("/monthlyValidatedRevenues/:projectName", async (req, res) => {
     let result = await getValidatedRevenuesByProject(projectName);
     return res.send(result);
   } catch (error) {
+    console.log('@@2', error)
     return res.status(503).send({ error: "Error occurred, try again later" });
   }
 });
