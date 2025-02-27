@@ -205,9 +205,9 @@ router.get("/filtered/:page", async (req, res) => {
 
   let projects =
     userType !== "vendor" ? userProjects && userProjects.split(",") : [];
-  let prjs = []
-  console.log('projects', projects.length)
-    projects &&
+  let prjs = [];
+  console.log("projects", projects.length);
+  projects &&
     projects?.map((p) => {
       return new mongoose.Types.ObjectId(p);
     });
@@ -2377,7 +2377,7 @@ router.get("/monthlyValidatedRevenues/:projectName", async (req, res) => {
     let result = await getValidatedRevenuesByProject(projectName);
     return res.send(result);
   } catch (error) {
-    console.log('@@2', error)
+    console.log("@@2", error);
     return res.status(503).send({ error: "Error occurred, try again later" });
   }
 });
@@ -3651,53 +3651,68 @@ router.put("/reject/:id", async (req, res) => {
   let { id } = req.params;
   let { reasonForRejection } = req.body;
   try {
-    let work = await workData.model
-      .findById(id)
+    console.log("dispatch", id);
+    const dispatch = await workData.model
+      .findOne({
+        _id: new mongoose.Types.ObjectId(id),
+        status: { $ne: "rejected" },
+      })
       .populate("project")
       .populate("equipment")
-      .populate("driver")
-      .populate("dispatch")
-      .populate("appovedBy")
-      .populate("workDone");
+      .populate("dispatch");
+    console.log("dispatch", dispatch);
 
-    work.status = "rejected";
-    work.reasonForRejection = reasonForRejection;
-    // work.reasonForRejection = "Reason";
-    work.rejectedRevenue = work.totalRevenue;
-    work.rejectedDuration = work.duration;
-    // work.rejectedExpenditure = work.totalExpenditure;
-    // work.projectedRevenue = 0;
+    if (_.isEmpty(dispatch)) {
+      return res.status(409).send({
+        error: "Dispatch is not found or it has already marked as rejected",
+      });
+    }
 
-    let savedRecord = await work.save();
+    // work.status = "rejected";
+    // work.reasonForRejection = reasonForRejection;
+    // work.rejectedRevenue = work.totalRevenue;
+    // work.rejectedDuration = work.duration;
+
+    // const savedRecord = await work.save();
+    const response = await workData.model.updateOne(
+      { _id: new mongoose.Types.ObjectId(dispatch._id) },
+      {
+        status: "rejected",
+        reasonForRejection,
+        rejectedRevenue: dispatch.totalRevenue,
+        rejectedDuration: dispatch.duration,
+      }
+    );
 
     let log = {
       action: "DISPATCH REJECTED",
       doneBy: req.body.rejectedBy,
-      payload: work,
+      payload: response,
     };
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
 
-    let receipts = await getProjectAdminEmail(work.project.prjDescription);
+    let receipts = await getProjectAdminEmail(dispatch.project.prjDescription);
 
     if (receipts.length > 0) {
       await sendEmail(
         "appinfo@construck.rw",
         receipts,
-        "Work Rejected",
-        "workRejected",
+        "Dispatch Rejected",
+        "Dispatch rejected",
         "",
         {
-          equipment: work?.equipment,
-          project: work?.project,
-          postingDate: moment(work?.workStartDate).format("DD-MMM-YYYY"),
+          equipment: response?.equipment,
+          project: response?.project,
+          postingDate: moment(response?.workStartDate).format("DD-MMM-YYYY"),
           reasonForRejection: reasonForRejection,
         }
       );
     }
-    return res.status(201).send(savedRecord);
+    return res.status(201).send({ savedRecord: response });
   } catch (err) {
-    return res.send("Error occured!!");
+    console.log("Error occured!!", err);
+    return res.status(503).send("Error occured!!");
   }
 });
 
@@ -3894,65 +3909,66 @@ router.put("/recall/:id", async (req, res) => {
   }
 });
 
-router.put("/reject/:id", async (req, res) => {
-  let { id } = req.params;
-  let { reasonForRejection } = req.body;
-  try {
-    let work = await workData.model
-      .findById(id)
-      .populate("project")
-      .populate("equipment")
-      .populate("driver")
-      .populate("dispatch")
-      .populate("appovedBy")
-      .populate("workDone");
+// router.put("/reject/:id", async (req, res) => {
+//   let { id } = req.params;
+//   let { reasonForRejection } = req.body;
+//   try {
+//     let work = await workData.model
+//       .findById(id)
+//       .populate("project")
+//       .populate("equipment")
+//       .populate("driver")
+//       .populate("dispatch")
+//       .populate("appovedBy")
+//       .populate("workDone");
+//       console.log("work", );
+//     let ownedByConstruck = workRec.equipment.eqOwner == "Construck";
 
-    let ownedByConstruck = workRec.equipment.eqOwner == "Construck";
+//     work.status = "rejected";
+//     work.reasonForRejection = reasonForRejection;
+//     work.rejectedRevenue = work.totalRevenue;
+//     work.totalRevenue = 0;
+//     work.totalExpenditure = 0;
+//     work.rejectedDuration = work.duration;
+//     work.rejectedExpenditure = work.totalExpenditure;
 
-    work.status = "rejected";
-    work.reasonForRejection = reasonForRejection;
-    // work.reasonForRejection = "Reason";
-    work.rejectedRevenue = work.totalRevenue;
-    work.totalRevenue = 0;
-    work.totalExpenditure = 0;
-    work.rejectedDuration = work.duration;
-    work.rejectedExpenditure = work.totalExpenditure;
-    // work.projectedRevenue = 0;
+//     let savedRecord = await work.save();
 
-    let savedRecord = await work.save();
-
-    let log = {
-      action: "DISPATCH REJECTED",
-      doneBy: req.body.rejectedBy,
-      payload: work,
-    };
-    let logTobeSaved = new logData.model(log);
-    await logTobeSaved.save();
-    const { NODE_ENV } = process.env;
-    let receipts =
-      NODE_ENV === "production"
-        ? await getProjectAdminEmail(work.project.prjDescription)
-        : [];
-    if (receipts.length > 0) {
-      await sendEmail(
-        "appinfo@construck.rw",
-        "receipts",
-        "Work Rejected",
-        "workRejected",
-        "",
-        {
-          equipment: work?.equipment,
-          project: work?.project,
-          postingDate: moment(work?.workStartDate).format("DD-MMM-YYYY"),
-          reasonForRejection: reasonForRejection,
-        }
-      );
-    }
-    return res.status(201).send(savedRecord);
-  } catch (err) {
-    return res.send("Error occured!!");
-  }
-});
+//     let log = {
+//       action: "DISPATCH REJECTED",
+//       doneBy: req.body.rejectedBy,
+//       payload: work,
+//     };
+//     let logTobeSaved = new logData.model(log);
+//     await logTobeSaved.save();
+//     const { NODE_ENV } = process.env;
+//     let receipts =
+//       NODE_ENV === "production"
+//         ? await getProjectAdminEmail(work.project.prjDescription)
+//         : [];
+//         console.log("production");
+//     if (receipts.length > 0) {
+//       console.log("@#$2");
+//       await sendEmail(
+//         "appinfo@construck.rw",
+//         "receipts",
+//         "Work Rejected",
+//         "workRejected",
+//         "",
+//         {
+//           equipment: work?.equipment,
+//           project: work?.project,
+//           postingDate: moment(work?.workStartDate).format("DD-MMM-YYYY"),
+//           reasonForRejection: reasonForRejection,
+//         }
+//       );
+//     }
+//     return res.status(201).send(savedRecord);
+//   } catch (err) {
+//     console.log("@@",err);
+//     return res.send("Error occured!!");
+//   }
+// });
 
 router.put("/start/:id", async (req, res) => {
   let { id } = req.params;
@@ -4075,7 +4091,7 @@ router.put("/stop/:id", async (req, res) => {
   let { id } = req.params;
 
   if (validationError) {
-    console.log('validationError', validationError)
+    console.log("validationError", validationError);
     return res
       .status(400)
       .send({ error: "validation error occurred, contact administrator" });
