@@ -3,6 +3,7 @@ const moment = require("moment");
 const _ = require("lodash");
 const ProjectInvoice = require("./../models/projectInvoices");
 const Work = require("./../models/workData");
+const PriceEquipment = require("./../models/priceEquipment");
 const Project = require("../models/projects");
 const User = require("../models/users");
 const projectInvoiceHelper = require("../helpers/mailer/projectInvoice/notifyNextApprover");
@@ -30,7 +31,7 @@ async function getInvoicePerProject(req, res) {
         $match: {
           invoice: new mongoose.Types.ObjectId(id),
           totalRevenue: { $gt: 0 },
-          status: {$in: ["released", "approved", "validated", "stopped"]},
+          status: { $in: ["released", "approved", "validated", "stopped"] },
         },
       },
       {
@@ -97,20 +98,22 @@ async function getInvoicePerProject(req, res) {
     ];
     const response = await Work.model.aggregate(pipeline);
     // GET INVOICE INFORMATION
-    const dispatches = await Work.model.find(
-      {
-        invoice: new mongoose.Types.ObjectId(id),
-      },
-      {
-        _id: 1,
-        workStartDate: 1,
-        "equipment.plateNumber": 1,
-        "equipment.vendor": 1,
-        "equipment._id": 1,
-        "dispatch.shift": 1,
-        "driver": 1,
-      }
-    );
+    const dispatches = await Work.model
+      .find(
+        {
+          invoice: new mongoose.Types.ObjectId(id),
+        },
+        {
+          _id: 1,
+          workStartDate: 1,
+          "equipment.plateNumber": 1,
+          "equipment.vendor": 1,
+          "equipment._id": 1,
+          "dispatch.shift": 1,
+          driver: 1,
+        }
+      )
+      .populate("priceEquipment");
     const invoice = await ProjectInvoice.model
       .findOne({
         _id: new mongoose.Types.ObjectId(id),
@@ -233,7 +236,7 @@ async function getInvoicePerProject(req, res) {
       deductions: !_.isEmpty(deductions) ? deductions : [],
       additions: !_.isEmpty(additions) ? additions : [],
       invoice: response,
-      dispatches
+      dispatches,
     });
   } catch (err) {
     console.log("err", err);

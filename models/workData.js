@@ -23,6 +23,11 @@ const WorkSchema = new mongoose.Schema(
       transform: (v) => (v === "" ? null : v),
       ref: "equipments",
     },
+    priceEquipment: {
+      type: mongoose.SchemaTypes.ObjectId,
+      transform: (v) => (v === '' ? null : v),
+      ref: 'price_equipments',
+    },
     customer: {
       type: mongoose.SchemaTypes.ObjectId,
       transform: (v) => (v === "" ? null : v),
