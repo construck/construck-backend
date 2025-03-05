@@ -40,6 +40,55 @@ async function getInvoicePerProject(req, res) {
         },
       },
       {
+        $lookup: {
+          from: "price_lists",
+          let: { clientId: "$project.client._id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $or: [
+                    { $in: ["$$clientId", "$companies"] }, // Check if project client has a specific price list
+                    { $eq: ["$default", true] }, // Use default price list if none is found
+                  ],
+                },
+                active: true,
+                effectiveStartDate: { $lte: new Date() },
+                effectiveEndDate: { $gte: new Date() },
+              },
+            },
+            { $sort: { default: -1 } }, // Prefer non-default if available
+            { $limit: 1 },
+          ],
+          as: "priceList",
+        },
+      },
+      {
+        $unwind: { path: "$priceList", preserveNullAndEmptyArrays: true },
+      },
+      {
+        $lookup: {
+          from: "price_equipments",
+          let: { equipmentId: "$equipment._id", priceListId: "$priceList._id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$equipment", "$$equipmentId"] },
+                    { $eq: ["$priceList", "$$priceListId"] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "priceEquipment",
+        },
+      },
+      {
+        $unwind: { path: "$priceEquipment", preserveNullAndEmptyArrays: true },
+      },
+      {
         $group: {
           _id: "$equipment.plateNumber",
           amount: {
@@ -66,6 +115,7 @@ async function getInvoicePerProject(req, res) {
           shift: {
             $first: "$dispatch.shift",
           },
+          priceEquipment: { $first: "$priceEquipment" },
         },
       },
       {
@@ -88,6 +138,7 @@ async function getInvoicePerProject(req, res) {
           siteWork: 1,
           amount: 1,
           shift: 1,
+          priceEquipment: 1,
         },
       },
       {
