@@ -42,14 +42,15 @@ async function getInvoicePerProject(req, res) {
       {
         $lookup: {
           from: "price_lists",
-          let: { clientId: "$project.client._id" },
+          // let: { clientId: "$project.client._id" },
+          let: { clientId: { $toObjectId: "$project.client._id" } }, 
           pipeline: [
             {
               $match: {
                 $expr: {
                   $or: [
-                    { $in: ["$$clientId", "$companies"] }, // Check if project client has a specific price list
-                    { $eq: ["$default", true] }, // Use default price list if none is found
+                    { $in: ["$$clientId", "$companies"] }, 
+                    { $eq: ["$default", true] }, 
                   ],
                 },
                 active: true,
@@ -57,7 +58,7 @@ async function getInvoicePerProject(req, res) {
                 effectiveEndDate: { $gte: new Date() },
               },
             },
-            { $sort: { default: -1 } }, // Prefer non-default if available
+            { $sort: { default: -1 } },
             { $limit: 1 },
           ],
           as: "priceList",
@@ -148,7 +149,6 @@ async function getInvoicePerProject(req, res) {
       },
     ];
     const response = await Work.model.aggregate(pipeline);
-    // GET INVOICE INFORMATION
     const dispatches = await Work.model
       .find(
         {
