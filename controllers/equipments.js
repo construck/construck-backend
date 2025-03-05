@@ -8,6 +8,7 @@ const mongoose = require("mongoose");
 const mailer = require("./../helpers/mailer/equipmentReport");
 const helper = require("./../helpers/generateEquipmentTable");
 const Maintenance = require("../models/maintenance");
+const WorkshopCard = require("../models/workshop_cards");
 
 const {
   getListOfEquipmentOnDuty,
@@ -68,21 +69,23 @@ async function captureEquipmentUtilization(req, res) {
           plateNumber: e.plateNumber,
         };
       });
-      const maintenance = await Maintenance.model.find(
-        {
-          jobCard_status: "opened",
-        },
-        {
-          plate: 1,
-          status: 1,
-          jobCard_status: 1,
-        }
-      );
-      let plateNumbersInMaintenance = maintenance.map((e) => {
+      const cards = await WorkshopCard.model
+        .find(
+          {
+            status: "open",
+          },
+          {
+            equipment: 1,
+            status: 1,
+            // jobCard_status: 1,
+          }
+        )
+        .populate("equipment");
+      let plateNumbersInMaintenance = cards.map((e) => {
         return {
-          id: new mongoose.Types.ObjectId(e.plate.value),
-          equipmentCategory: e.plate.eqDescription,
-          plateNumber: e.plate.text,
+          id: new mongoose.Types.ObjectId(e.equipment._id),
+          equipmentCategory: e.equipment.eqDescription,
+          plateNumber: e.equipment.plateNumber,
           status: "workshop",
           date,
         };
@@ -170,22 +173,24 @@ async function getEquipmentUtilizationByDate(req, res) {
         plateNumber: e.plateNumber,
       };
     });
-    const maintenance = await Maintenance.model.find(
-      {
-        jobCard_status: "opened",
-      },
-      {
-        plate: 1,
-        status: 1,
-        jobCard_status: 1,
-      }
-    );
+    const maintenance = await WorkshopCard.model
+      .find(
+        {
+          status: "open",
+        },
+        {
+          equipment: 1,
+          status: 1,
+        }
+      )
+      .populate("equipment");
     let plateNumbersInMaintenance = maintenance.map((e) => {
       return {
-        id: new mongoose.Types.ObjectId(e.plate.value),
-        equipmentCategory: e.plate.eqDescription,
-        plateNumber: e.plate.text,
+        id: new mongoose.Types.ObjectId(e.equipment._id),
+        equipmentCategory: e.equipment.eqDescription,
+        plateNumber: e.equipment.plateNumber,
         status: "workshop",
+        date,
       };
     });
     let plateNumbersNotInMaintenance = plateNumbers
@@ -448,9 +453,7 @@ async function checkEquipmentDispatchable(req, res) {
       return e.plateNumber;
     });
     // 4. COMBINED ALL LISTS
-    let combined = _.uniq([
-      ...listDisposedEquip,
-    ]);
+    let combined = _.uniq([...listDisposedEquip]);
     let availableEquipment = await Equipment.model.find({
       plateNumber: { $nin: combined },
     });

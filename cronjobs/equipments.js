@@ -19,20 +19,20 @@ async function equipmentCronjobs(req, res) {
   );
   scheduleEvery6PM.start();
 }
-async function equipmentStatus(req, res) {
-  cron.schedule(
-    "0 0 * * *", // Run every day at 00:00 PM
-    async () => {
-      await EquipmentController.changeEquipmentStatus(req, res);
-      await helper.cronJobLogger(
-        "Equipment",
-        "Change equipment status for equipments with dispatch on the same day"
-      );
-    },
-    {
-      scheduled: true,
-      timezone: "Africa/Kigali",
-    }
-  );
-}
-module.exports = { equipmentCronjobs, equipmentStatus };
+// async function equipmentStatus(req, res) {
+//   cron.schedule(
+//     "0 0 * * *", // Run every day at 00:00 PM
+//     async () => {
+//       await EquipmentController.changeEquipmentStatus(req, res);
+//       await helper.cronJobLogger(
+//         "Equipment",
+//         "Change equipment status for equipments with dispatch on the same day"
+//       );
+//     },
+//     {
+//       scheduled: true,
+//       timezone: "Africa/Kigali",
+//     }
+//   );
+// }
+module.exports = { equipmentCronjobs };

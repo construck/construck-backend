@@ -3,6 +3,7 @@ const moment = require("moment");
 const Equipment = require("./../../models/equipments");
 const Work = require("./../../models/workData");
 const Maintenance = require("./../../models/maintenance");
+const WorkshopCard = require("../../models/workshop_cards");
 
 async function getListOfEquipmentOnDuty(startDate, endDate, shift, siteWork) {
   siteWork = siteWork === "true";
@@ -41,18 +42,19 @@ async function getListOfEquipmentOnDuty(startDate, endDate, shift, siteWork) {
 }
 
 async function getListOfEquipmentInWorkshop(workStartDate) {
-  const maintenance = await Maintenance.model.find(
-    {
-      jobCard_status: "opened",
-      entryDate: { $gte: workStartDate },
-    },
-    {
-      plate: 1,
-      status: 1,
-      jobCard_status: 1,
-      entryDate: 1,
-    }
-  );
+  const maintenance = await WorkshopCard.model
+    .find(
+      {
+        status: "open",
+        entryDate: { $gte: workStartDate },
+      },
+      {
+        equipment: 1,
+        status: 1,
+        entryDate: 1,
+      }
+    )
+    .populate("equipment");
   return maintenance || [];
 }
 
@@ -71,63 +73,63 @@ async function checkIfEquipmentWasInWorkshop(id, entrydate, endrepair) {
   endrepair = moment(endrepair).endOf("day");
 
   let query = {
-    "plate.value": id,
-    jobCard_status: "closed",
+    "equipment": id,
+    status: "closed",
   };
-  // DISPATCH(entrydate & endrepair) FALLS BETWEEN JOB CARD(entryDate, endRepair)
+  // DISPATCH(entrydate & endrepair) FALLS BETWEEN JOB CARD(entryDate, exitDate)
   const queryOne = {
     entryDate: { $lte: entrydate },
-    endRepair: { $gte: endrepair },
+    exitDate: { $gte: endrepair },
   };
-  // DISPATCH(entrydate) FALLS BETWEEN JOB CARD(entryDate, endRepair), but endrepair is above endRepair
+  // DISPATCH(entrydate) FALLS BETWEEN JOB CARD(entryDate, exitDate), but endrepair is above exitDate
   const queryTwo = {
     $and: [
       {
         entryDate: { $lt: entrydate },
       },
       {
-        endRepair: { $gt: moment(entrydate).add(1, "days") },
+        exitDate: { $gt: moment(entrydate).add(1, "days") },
       },
       {
-        endRepair: { $lte: endrepair },
+        exitDate: { $lte: endrepair },
       },
     ],
   };
-  // DISPATCH(endrepair) FALLS BETWEEN JOB CARD(entryDate, endRepair), but entryDate is less than entrydate
+  // DISPATCH(endrepair) FALLS BETWEEN JOB CARD(entryDate, exitDate), but entryDate is less than entrydate
   const queryThree = {
     $and: [
       {
         entryDate: { $lt: moment(endrepair).startOf("day") },
       },
       {
-        endRepair: { $gte: moment(endrepair).subtract(1, "days") },
+        exitDate: { $gte: moment(endrepair).subtract(1, "days") },
       },
       {
         entryDate: { $gt: entrydate },
       },
     ],
   };
-  // DISPATCH(entrydate & endrepair) FALLS OUTSIDE JOB CARD(entryDate, endRepair)
+  // DISPATCH(entrydate & endrepair) FALLS OUTSIDE JOB CARD(entryDate, exitDate)
   const queryFour = {
     entryDate: { $gt: entrydate },
-    endRepair: { $lt: endrepair },
+    exitDate: { $lt: endrepair },
   };
 
   let maintenance = [];
-  maintenance = await Maintenance.model.findOne(
+  maintenance = await WorkshopCard.model.findOne(
     {
       ...query,
       $or: [queryOne, queryTwo, queryThree, queryFour],
     },
     {
       entryDate: 1,
-      endRepair: 1,
+      exitDate: 1,
       plate: 1,
     }
   );
   if (
     moment(maintenance?.entryDate).format("YYYY-MM-DD") ===
-    moment(maintenance?.endRepair).format("YYYY-MM-DD")
+    moment(maintenance?.exitDate).format("YYYY-MM-DD")
   ) {
     maintenance = [];
   }
