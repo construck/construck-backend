@@ -278,7 +278,6 @@ async function getInvoicePerProject(req, res) {
       .sort({
         _id: -1,
       });
-    // FET DEDUCTIONS
     return res.status(200).send({
       meta: {
         project,
