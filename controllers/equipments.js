@@ -72,12 +72,11 @@ async function captureEquipmentUtilization(req, res) {
       const cards = await WorkshopCard.model
         .find(
           {
-            status: "open",
+            status: { $in: ["open", "in_testing"] },
           },
           {
             equipment: 1,
             status: 1,
-            // jobCard_status: 1,
           }
         )
         .populate("equipment");
@@ -176,7 +175,7 @@ async function getEquipmentUtilizationByDate(req, res) {
     const maintenance = await WorkshopCard.model
       .find(
         {
-          status: "open",
+          status: { $in: ["open", "in_testing"] },
         },
         {
           equipment: 1,
