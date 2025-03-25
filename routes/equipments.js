@@ -17,9 +17,9 @@ const cache = new NodeCache({ stdTTL: 7200 });
 router.get("/", async (req, res) => {
   const cacheKey = "equipment-types-cache-key";
   const cachedData = cache.get(cacheKey);
-  if (cachedData) {
-    return res.json(cachedData);
-  }
+  // if (cachedData) {
+  //   return res.json(cachedData);
+  // }
   try {
     const equipments = await eqData.model
       .find()
@@ -54,7 +54,7 @@ router.get("/", async (req, res) => {
         return w.eqStatus === "ct" && w.eqOwner === "Construck";
       }).length,
     };
-    cache.set(cacheKey, data);
+    // cache.set(cacheKey, data);
     return res.status(200).send(data);
   } catch (err) {
     return res.status(500).send(error);

@@ -48,6 +48,11 @@ const EquipmentSchema = new mongoose.Schema(
     millage: {
       type: Number,
     },
+    nextMileage: {
+      type: Number,
+      default: 0,
+      required: false
+    },
     assignedToSiteWork: { type: Boolean, default: false },
     vendor: {
       type: mongoose.SchemaTypes.ObjectId,

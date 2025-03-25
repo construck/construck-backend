@@ -898,7 +898,7 @@ router.get("/filtered/:page", async (req, res) => {
       .select(
         `dispatch.targetTrips dispatch.drivers dispatch.astDriver dispatch.shift dispatch.date dispatch.otherJobType
         project equipment._id equipment.plateNumber equipment.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
-        equipment.eqStatus equipment.millage equipment.rate equipment.supplierRate equipment.uom
+        equipment.eqStatus equipment.millage equipment.rate equipment.supplierRate equipment.uom createdAt
         startTime endTime duration tripsDone totalRevenue totalExpenditure projectedRevenue status siteWork workStartDate workEndDate
         workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id driver reasonForRejection rejectedRevenue
         `
