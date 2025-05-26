@@ -617,7 +617,7 @@ async function fetchInvoiceDetailsPerVendor(req, res) {
   try {
     const vendorInvoice = await VendorInvoice.model
       .findById(id)
-      .populate("vendor", { name: 1, phone: 1, email: 1 })
+      .populate("vendor", { name: 1, phone: 1, email: 1, vat: 1 })
       .populate("vendorAdmin", {
         firstName: 1,
         lastName: 1,
@@ -636,6 +636,7 @@ async function fetchInvoiceDetailsPerVendor(req, res) {
         phone: 1,
         email: 1,
       });
+    console.log("@@@vendorInvoice", vendorInvoice);
     const pipeline = [
       {
         $match: {
@@ -899,7 +900,7 @@ async function fetchInvoiceDetailsPerCustomer(req, res) {
       // APPLY VAT
       {
         $addFields: {
-          vatAmount: 0
+          vatAmount: 0,
           // vatAmount: {
           //   $cond: {
           //     if: "$vat",
@@ -1019,7 +1020,7 @@ async function fetchVendorSummaryInvoiceDetails(req, res) {
       {
         $lookup: {
           from: "deductioninvoices",
-          localField: "vendor._id",
+          localField: "vendor",
           foreignField: "vendor",
           as: "deduction",
         },
@@ -1058,6 +1059,7 @@ async function fetchVendorSummaryInvoiceDetails(req, res) {
       },
       {
         $addFields: {
+          // totalVendorAmount: "$amount",
           totalVendorAmount: {
             $subtract: ["$amount", "$totalDeduction"],
           },
