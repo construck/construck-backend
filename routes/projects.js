@@ -49,6 +49,7 @@ router.get("/v2", async (req, res) => {
 
 router.get("/:id/details", async (req, res) => {
   const { id } = req.params;
+  console.log("@@@id", id);
   try {
     const project = await prjData.model
       .findOne({ _id: id })
@@ -76,10 +77,14 @@ router.get("/:id/details", async (req, res) => {
         lastName: 1,
         phone: 1,
         email: 1,
-      });
+      })
+      .lean();
     return res.status(200).send({ project });
   } catch (err) {
-    return res.status(500).send(err);
+    // return res.status(500).send(err);
+    return res
+      .status(500)
+      .send({ error: "An error occurred while project information." });
   }
 });
 

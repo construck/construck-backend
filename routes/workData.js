@@ -184,7 +184,6 @@ router.get("/filtered2", async (req, res) => {
   }
 });
 
-
 router.get("/filtered/:page", async (req, res) => {
   let {
     startDate,
@@ -4104,10 +4103,20 @@ router.put("/stop/:id", async (req, res) => {
       req.body
     );
 
-    return res.status(200).send(response.data);
+    return res.status(201).send(response.data);
   } catch (error) {
-    console.log("error", error);
-    return res.status(500).send(error);
+    // console.log('###hello', error)
+    let driverToken = await getDeviceToken(driver);
+
+    if (driverToken !== "none") {
+      sendPushNotification(driverToken, {
+        title: "Error occurred, try again later",
+        body: "Umubyizi ushabitse ntabwo wujuje ibisabwa, reba neza amasaha, index, hamwe nandi makuru yose",
+      });
+    }
+    return res.status(200).send({
+      error: "Error occurred, try again later",
+    });
   }
   return;
 

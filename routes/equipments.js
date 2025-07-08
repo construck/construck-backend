@@ -57,7 +57,7 @@ router.get("/", async (req, res) => {
     // cache.set(cacheKey, data);
     return res.status(200).send(data);
   } catch (err) {
-    return res.status(500).send(error);
+    return res.status(500).send(err);
   }
 });
 router.get("/enter-workshop", async (req, res) => {
