@@ -844,6 +844,7 @@ async function editDispatch(req, res) {
       },
       equipmentId: new mongoose.Types.ObjectId(data.equipment._id),
       driver: new mongoose.Types.ObjectId(data.driver),
+      drivers:[new mongoose.Types.ObjectId(data.driver)],
       workDone: new mongoose.Types.ObjectId(data.workDone),
       workStartDate: data.workStartDate,
       workEndDate: data.workStartDate,

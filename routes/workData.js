@@ -2324,7 +2324,7 @@ router.get("/monthlyRevenuePerProject/:id", async (req, res) => {
     {
       $match: {
         "project._id": new mongoose.Types.ObjectId(id),
-        workStartDate: { $gte: new Date("2024-07-01") },
+        workStartDate: { $gte: new Date("2024-06-01"), },
         siteWork: false,
         status: { $in: ["stopped", "approved", "validated"] },
         $or: [{ invoice: { $exists: false } }, { invoice: null }],

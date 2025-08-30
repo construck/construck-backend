@@ -301,6 +301,7 @@ async function getInvoicePreviewPerProject(req, res) {
   );
   const endDate = moment([year, month - 1, 1])
     .endOf("month")
+    .endOf("day")
     .format("YYYY-MM-DD");
   try {
     const pipeline = [
