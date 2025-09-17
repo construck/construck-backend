@@ -836,6 +836,7 @@ async function editDispatch(req, res) {
       ...(data.dispatch.targetTrips && {
         "dispatch.targetTrips": data.dispatch.targetTrips,
       }),
+      "dispatch.jobType": new mongoose.Types.ObjectId(data.workDone),
       project,
       projectId: new mongoose.Types.ObjectId(project._id),
       equipment: {
