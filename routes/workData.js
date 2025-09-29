@@ -218,7 +218,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workEndDate: {
                 $gte: moment(startDate),
               },
@@ -226,7 +226,7 @@ router.get("/filtered/:page", async (req, res) => {
             },
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -243,7 +243,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workEndDate: {
                 $gte: moment(startDate),
               },
@@ -256,7 +256,7 @@ router.get("/filtered/:page", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -276,7 +276,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workEndDate: {
                 $gte: moment(startDate),
               },
@@ -287,7 +287,7 @@ router.get("/filtered/:page", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -305,7 +305,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workEndDate: {
                 $gte: moment(startDate),
               },
@@ -316,7 +316,7 @@ router.get("/filtered/:page", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -339,7 +339,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -353,7 +353,7 @@ router.get("/filtered/:page", async (req, res) => {
             },
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -370,7 +370,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -386,7 +386,7 @@ router.get("/filtered/:page", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -404,7 +404,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -421,7 +421,7 @@ router.get("/filtered/:page", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -439,7 +439,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -456,7 +456,7 @@ router.get("/filtered/:page", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -479,7 +479,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -494,7 +494,7 @@ router.get("/filtered/:page", async (req, res) => {
             },
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -512,7 +512,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -528,7 +528,7 @@ router.get("/filtered/:page", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -546,7 +546,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -563,7 +563,7 @@ router.get("/filtered/:page", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -581,7 +581,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -598,7 +598,7 @@ router.get("/filtered/:page", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -621,7 +621,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -636,7 +636,7 @@ router.get("/filtered/:page", async (req, res) => {
             },
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -653,7 +653,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -669,7 +669,7 @@ router.get("/filtered/:page", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -687,7 +687,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -703,7 +703,7 @@ router.get("/filtered/:page", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -721,7 +721,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -739,7 +739,7 @@ router.get("/filtered/:page", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -762,7 +762,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -775,7 +775,7 @@ router.get("/filtered/:page", async (req, res) => {
             },
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -791,7 +791,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -806,7 +806,7 @@ router.get("/filtered/:page", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -823,7 +823,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -838,7 +838,7 @@ router.get("/filtered/:page", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -855,7 +855,7 @@ router.get("/filtered/:page", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
               },
@@ -871,7 +871,7 @@ router.get("/filtered/:page", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $nin: ["recalled", "draft"] },
+              status: { $nin: ["recalled"] },
               workStartDate: {
                 $gte: moment(startDate),
                 $lte: moment(endDate)
@@ -892,6 +892,8 @@ router.get("/filtered/:page", async (req, res) => {
     let fullWorkList = await workData.model.find(query).select(`workStartDate`);
 
     let dataCount = fullWorkList.length;
+    // console.log("::", fullWorkList);
+    // return;
 
     let workList = await workData.model
       .find(query)
@@ -913,6 +915,7 @@ router.get("/filtered/:page", async (req, res) => {
 
     return res.status(200).send({ workList, dataCount });
   } catch (err) {
+    console.log("###err", err);
     return res.send(err);
   }
 });
@@ -1446,14 +1449,14 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
     $or: [
       {
         siteWork: true,
-        status: { $ne: "recalled" },
+        status: { $nin: [ "recalled", "draft" ]},
         workEndDate: {
           $gte: new Date(startDate),
         },
       },
       {
         siteWork: false,
-        status: { $ne: "recalled" },
+        status: { $nin: [ "recalled", "draft" ]},
         workStartDate: {
           $gte: new Date(startDate),
           $lte: new Date(endDate),
@@ -1483,7 +1486,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1491,7 +1494,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             },
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1511,7 +1514,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1521,7 +1524,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
 
               workStartDate: {
                 $gte: moment(startDate).toDate(),
@@ -1543,7 +1546,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1553,7 +1556,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
 
               workStartDate: {
                 $gte: moment(startDate).toDate(),
@@ -1575,7 +1578,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1586,7 +1589,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
 
               workStartDate: {
                 $gte: moment(startDate).toDate(),
@@ -1613,7 +1616,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1621,7 +1624,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             },
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1639,7 +1642,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1649,7 +1652,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1668,7 +1671,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1678,7 +1681,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1697,7 +1700,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1708,7 +1711,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1732,7 +1735,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1741,7 +1744,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             },
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1760,7 +1763,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1769,7 +1772,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1787,7 +1790,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1796,7 +1799,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1814,7 +1817,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1824,7 +1827,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1847,7 +1850,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1856,7 +1859,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             },
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1875,7 +1878,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1886,7 +1889,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1905,7 +1908,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1915,7 +1918,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1933,7 +1936,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1943,7 +1946,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1966,14 +1969,14 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
             },
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -1990,7 +1993,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -1999,7 +2002,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -2017,7 +2020,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -2043,7 +2046,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           $or: [
             {
               siteWork: true,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workEndDate: {
                 $gte: moment(startDate).toDate(),
               },
@@ -2053,7 +2056,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
             {
               siteWork: false,
-              status: { $ne: "recalled" },
+              status: { $nin:[ "recalled", "draft"] },
               workStartDate: {
                 $gte: moment(startDate).toDate(),
                 $lte: moment(endDate)
@@ -2324,7 +2327,7 @@ router.get("/monthlyRevenuePerProject/:id", async (req, res) => {
     {
       $match: {
         "project._id": new mongoose.Types.ObjectId(id),
-        workStartDate: { $gte: new Date("2024-06-01"), },
+        workStartDate: { $gte: new Date("2024-06-01") },
         siteWork: false,
         status: { $in: ["stopped", "approved", "validated"] },
         $or: [{ invoice: { $exists: false } }, { invoice: null }],
@@ -2377,13 +2380,13 @@ router.get("/monthlyValidatedRevenues/:projectName", async (req, res) => {
     let result = await getValidatedRevenuesByProject(projectName);
     return res.send(result);
   } catch (error) {
-    console.log("@@2", error);
     return res.status(503).send({ error: "Error occurred, try again later" });
   }
 });
 
 router.get("/monthlyNonValidatedRevenues/:projectName", async (req, res) => {
   let { projectName } = req.params;
+  console.log(":#:", projectName);
   try {
     let result = await getNonValidatedRevenuesByProject(projectName);
     return res.status(200).send(result);
@@ -5215,6 +5218,7 @@ async function getValidatedRevenuesByProject(prjDescription) {
 }
 
 async function getNonValidatedRevenuesByProject(prjDescription) {
+  console.log(":#:", prjDescription);
   let pipeline = [
     {
       $match: {
