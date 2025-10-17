@@ -75,6 +75,9 @@ typings/
 # Yarn Integrity file
 .yarn-integrity
 
+# Yarn 2+ directory (we use Yarn Classic)
+.yarn
+
 # dotenv environment variables file
 .env
 .env.production
