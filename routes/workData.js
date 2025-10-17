@@ -190,6 +190,7 @@ router.get("/filtered/:page", async (req, res) => {
     endDate,
     searchText,
     project,
+    driver,
     isVendor,
     vendorName,
     userType,
@@ -201,6 +202,7 @@ router.get("/filtered/:page", async (req, res) => {
   let perPage = 15;
   let query = {};
   let searchByPlateNumber = searchText && searchText.length >= 1;
+  let searchDriver = driver && driver.length >= 1;
   let searchByProject = project && project.length >= 1;
 
   let projects =
@@ -887,9 +889,6 @@ router.get("/filtered/:page", async (req, res) => {
     let fullWorkList = await workData.model.find(query).select(`workStartDate`);
 
     let dataCount = fullWorkList.length;
-    console.log("::", fullWorkList);
-    // return;
-
     let workList = await workData.model
       .find(query)
       .select(
