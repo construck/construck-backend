@@ -201,9 +201,9 @@ router.get("/filtered/:page", async (req, res) => {
   let { page } = req.params;
   let perPage = 15;
   let query = {};
-  let searchByPlateNumber = searchText && searchText.length >= 1;
-  let searchDriver = driver && driver.length >= 1;
-  let searchByProject = project && project.length >= 1;
+  let searchByPlateNumber = searchText && searchText !== "undefined" && searchText.length >= 1;
+  let searchDriver = driver && driver !== "undefined" && driver.length >= 1;
+  let searchByProject = project && project !== "undefined" && project.length >= 1;
 
   let projects =
     userType !== "vendor" ? userProjects && userProjects.split(",") : [];
@@ -1458,8 +1458,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       },
     ],
   };
-  let searchByPlateNumber = searchText && searchText.length >= 1;
-  let searchByProject = project && project.length >= 1;
+  let searchByPlateNumber = searchText && searchText !== "undefined" && searchText.length >= 1;
+  let searchByProject = project && project !== "undefined" && project.length >= 1;
+  console.log(":searchByProject:", project)
+  
 
   // let projects =
   //   userType !== "vendor" ? userProjects && JSON.parse(userProjects) : [];
@@ -2291,6 +2293,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     return res.status(200).send(orderedList.filter((w) => w !== null));
   } catch (err) {
+    console.log("::", err)
     return res.send(err);
   }
 });

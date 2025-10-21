@@ -9,6 +9,7 @@
     "dev:staging": "nodemon --env-file=.env.staging  index.js",
     "dev:production": "nodemon --env-file=.env.production index.js",
     "deploy:staging": "git push staging dev:master",
+    "deploy:push": "git push push dev:master",
     "deploy:production": "git push production dev:master",
     "deploy:playground": "git push playground dev:master"
   },
