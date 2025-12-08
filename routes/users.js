@@ -18,13 +18,6 @@ const useragent = require("express-useragent");
 router.use(useragent.express());
 
 router.get("/", async (req, res) => {
-  let { ignoreCache } = req.query;
-  ignoreCache = parseInt(ignoreCache) || 0;
-  const cacheKey = "get-users-cache-key";
-  // const cachedData = cache.get(cacheKey);
-  // if (ignoreCache !== 1 && !_.isEmpty(cachedData)) {
-  //   return res.status(200).send(cachedData);
-  // }
   try {
     let users = await userData.model
       .find(
@@ -34,7 +27,6 @@ router.get("/", async (req, res) => {
         }
       )
       .populate("driver");
-    // ignoreCache !== 1 && cache.set(cacheKey, users);
     return res.status(200).send(users);
   } catch (err) {
     return res.send(err);

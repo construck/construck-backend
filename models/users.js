@@ -37,6 +37,11 @@ const UserSchema = mongoose.Schema(
       transform: (v) => (v === "" ? null : v),
       ref: "vendors",
     },
+  role: {
+    type: mongoose.SchemaTypes.ObjectId,
+    transform: (v) => (v === '' ? null : v),
+    ref: 'user_roles',
+  },
     assignedProjects: {
       type: [],
     },
