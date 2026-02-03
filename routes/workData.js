@@ -71,7 +71,7 @@ router.get("/", async (req, res) => {
     return res.status(200).send(
       workList.filter((w) => {
         w.workDone !== null;
-      })
+      }),
     );
   } catch (err) {
     return res.send(err);
@@ -115,7 +115,7 @@ router.get("/v3", async (req, res) => {
         equipment.eqStatus equipment.millage equipment.rate equipment.supplieRate equipment.uom
         startTime endTime duration tripsDone totalRevenue totalExpenditure projectedRevenue status siteWork workStartDate workEndDate
         workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id 
-        `
+        `,
       )
 
       // .populate("project")
@@ -171,7 +171,7 @@ router.get("/filtered2", async (req, res) => {
         equipment.eqStatus equipment.millage equipment.rate equipment.supplierRate equipment.uom
         startTime endTime duration tripsDone totalRevenue totalExpenditure projectedRevenue status siteWork workStartDate workEndDate
         workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id 
-        `
+        `,
       )
       .populate("driver")
       .populate("createdBy", "firstName lastName")
@@ -201,9 +201,11 @@ router.get("/filtered/:page", async (req, res) => {
   let { page } = req.params;
   let perPage = 15;
   let query = {};
-  let searchByPlateNumber = searchText && searchText !== "undefined" && searchText.length >= 1;
+  let searchByPlateNumber =
+    searchText && searchText !== "undefined" && searchText.length >= 1;
   let searchDriver = driver && driver !== "undefined" && driver.length >= 1;
-  let searchByProject = project && project !== "undefined" && project.length >= 1;
+  let searchByProject =
+    project && project !== "undefined" && project.length >= 1;
 
   let projects =
     userType !== "vendor" ? userProjects && userProjects.split(",") : [];
@@ -897,7 +899,7 @@ router.get("/filtered/:page", async (req, res) => {
         equipment.eqStatus equipment.millage equipment.rate equipment.supplierRate equipment.uom createdAt
         startTime endTime duration tripsDone totalRevenue totalExpenditure projectedRevenue status siteWork workStartDate workEndDate
         workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id driver reasonForRejection rejectedRevenue
-        `
+        `,
       )
       .populate("driver", "firstName lastName phone userType driver")
       .populate("createdBy", "firstName lastName")
@@ -931,7 +933,7 @@ router.get("/v3/:vendorName", async (req, res) => {
           "driver.createdOn": false,
           "driver.__v": false,
           "driver._id": false,
-        }
+        },
       )
 
       // .populate("project")
@@ -1007,7 +1009,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           "driver.createdOn": false,
           "driver.__v": false,
           "driver._id": false,
-        }
+        },
       )
       .populate("equipment")
       .populate("driver")
@@ -1025,7 +1027,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         (w.siteWork === true &&
           _.filter(w.dailyWork, (dW) => {
             return dW.date === moment().format("DD-MMM-YYYY");
-          }).length === 0)
+          }).length === 0),
     );
     // .filter(
     //   (w) =>
@@ -1083,7 +1085,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         let dateNotPosted = datesArray.filter(
           (d) =>
             !_.includes(datesPostedDatesOnly, d) &&
-            !_.includes(datesPendingPosted, d)
+            !_.includes(datesPendingPosted, d),
         );
 
         var uniqueDatesNotPosted = Array.from(new Set(dateNotPosted));
@@ -1117,7 +1119,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               : //  ? w.startIndex
                 "0.0",
             millage: parseFloat(
-              w.equipment.millage ? w.equipment.millage : 0
+              w.equipment.millage ? w.equipment.millage : 0,
             ).toFixed(2),
             duration:
               dP.uom == "hour"
@@ -1160,7 +1162,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
                 //   w.startIndex
                 "0.0",
             millage: parseFloat(
-              w.equipment.millage ? w.equipment.millage : 0
+              w.equipment.millage ? w.equipment.millage : 0,
             ).toFixed(2),
             duration: 0 + " hours",
             dispatch: w.dispatch,
@@ -1195,7 +1197,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               : //  ? w.startIndex
                 "0.0",
             millage: parseFloat(
-              w.equipment.millage ? w.equipment.millage : 0
+              w.equipment.millage ? w.equipment.millage : 0,
             ).toFixed(2),
             duration: 0 + " hours",
             dispatch: w.dispatch,
@@ -1228,7 +1230,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             : //  ? w.startIndex
               "0.0",
           millage: parseFloat(
-            w.equipment.millage ? w.equipment.millage : 0
+            w.equipment.millage ? w.equipment.millage : 0,
           ).toFixed(2),
           duration:
             w?.uom === "hour"
@@ -1294,7 +1296,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
             "driver.createdOn": false,
             "driver.__v": false,
             "driver._id": false,
-          }
+          },
         )
         .populate("equipment")
         .populate("driver")
@@ -1368,7 +1370,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
                 : //  ? w.startIndex
                   "0.0",
               millage: parseFloat(
-                w.equipment.millage ? w.equipment.millage : 0
+                w.equipment.millage ? w.equipment.millage : 0,
               ).toFixed(2),
               // millage: w.equipment.millage ? w.equipment.millage : 0,
             });
@@ -1400,7 +1402,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
               : //  ? w.startIndex
                 "0.0",
             millage: parseFloat(
-              w.equipment.millage ? w.equipment.millage : 0
+              w.equipment.millage ? w.equipment.millage : 0,
             ).toFixed(2),
           };
         }
@@ -1458,10 +1460,21 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       },
     ],
   };
-  let searchByPlateNumber = searchText && searchText !== "undefined" && searchText.length >= 1;
-  let searchByProject = project && project !== "undefined" && project.length >= 1;
-  console.log(":searchByProject:", project)
-  
+  console.log(
+    "##DATE: START >< END",
+    moment.utc(new Date(startDate)).toDate(),
+    moment
+      .utc(new Date(endDate))
+      .add(23, "hours")
+      .add(59, "minutes")
+      .add(59, "seconds")
+      .toDate(),
+  );
+  let searchByPlateNumber =
+    searchText && searchText !== "undefined" && searchText.length >= 1;
+  let searchByProject =
+    project && project !== "undefined" && project.length >= 1;
+  console.log(":searchByProject:", project);
 
   // let projects =
   //   userType !== "vendor" ? userProjects && JSON.parse(userProjects) : [];
@@ -1967,14 +1980,14 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               siteWork: true,
               status: { $nin: ["recalled", "draft"] },
               workEndDate: {
-                $gte: moment(startDate).toDate(),
+                $gte: moment.utc(startDate).startOf("day"),
               },
             },
             {
               siteWork: false,
               status: { $nin: ["recalled", "draft"] },
               workStartDate: {
-                $gte: moment(startDate).toDate(),
+                $gte: moment.utc(startDate).startOf("day"),
                 $lte: moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
@@ -1991,7 +2004,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               siteWork: true,
               status: { $nin: ["recalled", "draft"] },
               workEndDate: {
-                $gte: moment(startDate).toDate(),
+                $gte: moment.utc(startDate).startOf("day"),
               },
               "equipment._id": new mongoose.Types.ObjectId(searchText),
             },
@@ -2000,7 +2013,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               siteWork: false,
               status: { $nin: ["recalled", "draft"] },
               workStartDate: {
-                $gte: moment(startDate).toDate(),
+                $gte: moment.utc(startDate).startOf("day"),
                 $lte: moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
@@ -2018,7 +2031,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               siteWork: true,
               status: { $nin: ["recalled", "draft"] },
               workEndDate: {
-                $gte: moment(startDate).toDate(),
+                $gte: moment.utc(startDate).startOf("day"),
               },
               "project._id": new mongoose.Types.ObjectId(project),
             },
@@ -2026,7 +2039,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             {
               siteWork: false,
               workStartDate: {
-                $gte: moment(startDate).toDate(),
+                $gte: moment.utc(startDate).startOf("day"),
                 $lte: moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
@@ -2044,7 +2057,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               siteWork: true,
               status: { $nin: ["recalled", "draft"] },
               workEndDate: {
-                $gte: moment(startDate).toDate(),
+                $gte: moment.utc(startDate).startOf("day"),
               },
               "project._id": new mongoose.Types.ObjectId(project),
               "equipment._id": new mongoose.Types.ObjectId(searchText),
@@ -2054,7 +2067,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               siteWork: false,
               status: { $nin: ["recalled", "draft"] },
               workStartDate: {
-                $gte: moment(startDate).toDate(),
+                $gte: moment.utc(startDate).startOf("day"),
                 $lte: moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
@@ -2206,6 +2219,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
     ];
 
     let workList = await workData.model.aggregate(pipeline);
+    console.log("##DISPATCHES", workList);
 
     let listToSend = workList;
 
@@ -2217,7 +2231,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       if (
         moment(Date.parse(w.dispatch.date)).isSameOrAfter(moment(startDate)) &&
         moment(Date.parse(w.dispatch.date)).isSameOrBefore(
-          moment(endDate).add(23, "hours").add(59, "minutes").add(59, "seconds")
+          moment(endDate)
+            .add(23, "hours")
+            .add(59, "minutes")
+            .add(59, "seconds"),
         )
       ) {
         work = {
@@ -2293,7 +2310,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     return res.status(200).send(orderedList.filter((w) => w !== null));
   } catch (err) {
-    console.log("::", err)
+    console.log("::", err);
     return res.send(err);
   }
 });
@@ -2306,7 +2323,7 @@ router.get("/:id", async (req, res) => {
       .populate("equipment")
       .populate("driver")
       .populate("dispatch")
-      .populate("appovedBy")
+      .populate("approvedBy")
       .populate("createdBy")
       .populate("workDone");
 
@@ -2446,7 +2463,7 @@ router.get("/validatedList/:projectName", async (req, res) => {
     let result = await getValidatedListByProjectAndMonth(
       projectName,
       month,
-      year
+      year,
     );
 
     return res.send(result);
@@ -2462,7 +2479,7 @@ router.get("/nonValidatedList/:projectName", async (req, res) => {
     let result = await getNonValidatedListByProjectAndMonth(
       projectName,
       month,
-      year
+      year,
     );
 
     return res.send(result);
@@ -2576,7 +2593,7 @@ router.get(
     } catch (err) {
       return res.status(500).send(err);
     }
-  }
+  },
 );
 
 router.get("/monthlyNotPosted/:vendorId", async (req, res) => {
@@ -2610,12 +2627,12 @@ router.post("/", async (req, res) => {
       if (e.siteWork) {
         message.push(
           `Site work from ${moment(e.workStartDate).format(
-            "MMM DD, YYYY"
-          )} to ${moment(e.workEndDate).format("MMM DD, YYYY")}`
+            "MMM DD, YYYY",
+          )} to ${moment(e.workEndDate).format("MMM DD, YYYY")}`,
         );
       } else {
         message.push(
-          `Single dispatch on ${moment(e.workStartDate).format("MMM DD, YYYY")}`
+          `Single dispatch on ${moment(e.workStartDate).format("MMM DD, YYYY")}`,
         );
       }
     });
@@ -2641,10 +2658,10 @@ router.post("/", async (req, res) => {
     }
     equipment.assignedToSiteWork = req.body?.siteWork;
     equipment.assignedDate = moment(req.body?.workStartDate).format(
-      "YYYY-MM-DD"
+      "YYYY-MM-DD",
     );
     equipment.assignedEndDate = moment(req.body?.workEndDate).format(
-      "YYYY-MM-DD"
+      "YYYY-MM-DD",
     );
     equipment.assignedShift = req.body?.dispatch?.shift;
     let driver = req.body?.driver === "NA" ? null : req.body?.driver;
@@ -2709,7 +2726,7 @@ router.post("/", async (req, res) => {
     let driverNotification = `${
       driverData?.firstName + " " + driverData?.lastName
     } Muhawe akazi kuri ${req.body?.project?.prjDescription} taliki ${moment(
-      req.body?.workStartDate
+      req.body?.workStartDate,
     ).format("DD-MMM-YYYY")} - ${req.body?.dispatch?.shift}, muzakoresha ${
       workToCreate?.equipment?.eqDescription
     } ${workToCreate?.equipment?.plateNumber}`;
@@ -2837,7 +2854,7 @@ router.post("/getAnalytics", async (req, res) => {
   let totalDays = 0;
   let daysDiff = _.round(
     moment(endDate).diff(moment(startDate)) / MS_IN_A_DAY,
-    0
+    0,
   );
   try {
     let workList = await workData.model.find({}).or([
@@ -2921,7 +2938,7 @@ router.post("/getAnalytics", async (req, res) => {
             moment(endDate)
               .add(23, "hours")
               .add(59, "minutes")
-              .add(59, "seconds")
+              .add(59, "seconds"),
           ) < 0;
 
         //PStart before RangeStart and PEnd after RangeStart and PEnd before RangeEnd
@@ -2933,7 +2950,7 @@ router.post("/getAnalytics", async (req, res) => {
             moment(endDate)
               .add(23, "hours")
               .add(59, "minutes")
-              .add(59, "seconds")
+              .add(59, "seconds"),
           ) < 0;
 
         //PStart before to RangeStart and PEnd After RangeEnd
@@ -2948,7 +2965,7 @@ router.post("/getAnalytics", async (req, res) => {
             moment(endDate)
               .add(23, "hours")
               .add(59, "minutes")
-              .add(59, "seconds")
+              .add(59, "seconds"),
           ) >= 0;
 
         //PStart after RangeStart and PEnd before RangeEnd
@@ -2959,7 +2976,7 @@ router.post("/getAnalytics", async (req, res) => {
             moment(endDate)
               .add(23, "hours")
               .add(59, "minutes")
-              .add(59, "seconds")
+              .add(59, "seconds"),
           ) < 0;
 
         //PStart after RangeStart and PEnd after RangeEnd
@@ -2970,7 +2987,7 @@ router.post("/getAnalytics", async (req, res) => {
             moment(endDate)
               .add(23, "hours")
               .add(59, "minutes")
-              .add(59, "seconds")
+              .add(59, "seconds"),
           ) > 0 &&
           moment(endDate).diff(moment(w.workStartDate)) > 0;
 
@@ -2981,32 +2998,32 @@ router.post("/getAnalytics", async (req, res) => {
           //day diff = PEnd - RangeStart
           daysDiff = _.round(
             moment(w.workEndDate).diff(moment(startDate), "days"),
-            0
+            0,
           );
         } else if (case3) {
           //days diff = RangeEnd - RangeStart
           daysDiff = _.round(
             moment(endDate).diff(moment(startDate), "days"),
-            0
+            0,
           );
         } else if (case4) {
           {
             //days diff = PEnd-PStart
             daysDiff = _.round(
               moment(w.workEndDate).diff(moment(w.workStartDate), "days"),
-              0
+              0,
             );
           }
         } else if (case5) {
           //days diff = RangeEnd - PStart
           daysDiff = _.round(
             moment(endDate).diff(moment(w.workStartDate), "days"),
-            0
+            0,
           );
         } else {
           daysDiff = _.round(
             moment(endDate).diff(moment(startDate), "days"),
-            0
+            0,
           );
         }
 
@@ -3047,7 +3064,7 @@ router.post("/getAnalytics", async (req, res) => {
           let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
           for (let i = 0; i < workDurationDays - 1; i++) {
             datesToPost.push(
-              workStartDate.add(1, "days").format("DD-MMM-YYYY")
+              workStartDate.add(1, "days").format("DD-MMM-YYYY"),
             );
           }
 
@@ -3068,7 +3085,7 @@ router.post("/getAnalytics", async (req, res) => {
                 moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
-                  .add(59, "seconds")
+                  .add(59, "seconds"),
               )
             ) {
               totalRevenue = totalRevenue + p.totalRevenue;
@@ -3078,7 +3095,7 @@ router.post("/getAnalytics", async (req, res) => {
                   parseInt(
                     w.equipment?.uom === "hour"
                       ? w.equipment?.rate * 5
-                      : w.equipment?.rate
+                      : w.equipment?.rate,
                   );
                 logs.push({
                   seq: 1,
@@ -3102,7 +3119,7 @@ router.post("/getAnalytics", async (req, res) => {
                 moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
-                  .add(59, "seconds")
+                  .add(59, "seconds"),
               )
             ) {
               totalRevenue = totalRevenue + 0;
@@ -3112,7 +3129,7 @@ router.post("/getAnalytics", async (req, res) => {
                   parseInt(
                     w.equipment?.uom === "hour"
                       ? w.equipment?.rate * 5
-                      : w.equipment?.rate
+                      : w.equipment?.rate,
                   );
 
                 logs.push({
@@ -3136,7 +3153,7 @@ router.post("/getAnalytics", async (req, res) => {
               moment(endDate)
                 .add(23, "hours")
                 .add(59, "minutes")
-                .add(59, "seconds")
+                .add(59, "seconds"),
             )
           ) {
             totalRevenue = totalRevenue + w.totalRevenue;
@@ -3146,7 +3163,7 @@ router.post("/getAnalytics", async (req, res) => {
                 parseInt(
                   w.equipment?.uom === "hour"
                     ? w.equipment?.rate * 5
-                    : w.equipment?.rate
+                    : w.equipment?.rate,
                 );
               logs.push({
                 seq: 3,
@@ -3268,11 +3285,11 @@ router.put("/:id", async (req, res) => {
   delete updateObj.driver;
   try {
     updateObj.equipment._id = new mongoose.Types.ObjectId(
-      req?.body?.equipment?._id
+      req?.body?.equipment?._id,
     );
     let currentWork = await workData.model.updateOne(
       { _id: new mongoose.Types.ObjectId(id) },
-      updateObj
+      updateObj,
     );
     // IF DISPATCH IS SCHEDULE THE CURRENT DATE, CHANGE EQUIP STATUS TO DISPATCHED
     let todayDate = moment()
@@ -3285,7 +3302,7 @@ router.put("/:id", async (req, res) => {
       moment(req.body.workStartDate),
       moment(req.body.workEndDate),
       "day",
-      "[]"
+      "[]",
     );
 
     if (isBetween) {
@@ -3293,7 +3310,7 @@ router.put("/:id", async (req, res) => {
         { _id: new mongoose.Types.ObjectId(req?.body?.equipment?._id) },
         {
           eqStatus: "dispatched",
-        }
+        },
       );
     }
     {
@@ -3307,7 +3324,7 @@ router.put("/:id", async (req, res) => {
         assignedToSiteWork: null,
         assignedDate: null,
         assignedShift: null,
-      }
+      },
     );
 
     await employeeData.model.findOneAndUpdate(
@@ -3317,7 +3334,7 @@ router.put("/:id", async (req, res) => {
         assignedToSiteWork: req.body?.siteWork,
         assignedDate: moment(req.body?.dispatch?.date),
         assignedShift: req.body?.dispatch?.shift,
-      }
+      },
     );
 
     return res.status(200).send({ message: "done" });
@@ -3345,7 +3362,7 @@ router.put("/approve/:id", async (req, res) => {
       { "equipment._id": eqId },
       {
         $set: { eqStatus: "standby", assignedDate: null, assignedShift: "" },
-      }
+      },
     );
 
     work.status = "approved";
@@ -3414,7 +3431,7 @@ router.put("/approveDailyWork/:id", async (req, res) => {
           approvedExpenditure:
             _approvedExpenditure + parseFloat(approvedExpenditure),
         },
-      }
+      },
     );
 
     //log saving
@@ -3477,7 +3494,7 @@ router.put("/validateDailyWork/:id", async (req, res) => {
           approvedDuration: _approvedDuration - approvedDuration,
           approvedExpenditure: _approvedExpenditure - approvedExpenditure,
         },
-      }
+      },
     );
 
     //log saving
@@ -3532,7 +3549,7 @@ router.put("/validateWork/:id", async (req, res) => {
           approvedDuration: _approvedDuration - approvedDuration,
           approvedExpenditure: _approvedExpenditure - approvedExpenditure,
         },
-      }
+      },
     );
 
     //log saving
@@ -3609,7 +3626,7 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
           rejectedExpenditure:
             _rejectedExpenditure + parseFloat(rejectedExpenditure),
         },
-      }
+      },
     );
 
     //log saving
@@ -3637,7 +3654,7 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
           project: work?.project,
           postingDate: moment(postingDate).format("DD-MMM-YYYY"),
           reasonForRejection: reason,
-        }
+        },
       );
     }
     return res.status(200).send(work);
@@ -3681,7 +3698,7 @@ router.put("/reject/:id", async (req, res) => {
         reasonForRejection,
         rejectedRevenue: dispatch.totalRevenue,
         rejectedDuration: dispatch.duration,
-      }
+      },
     );
 
     let log = {
@@ -3706,7 +3723,7 @@ router.put("/reject/:id", async (req, res) => {
           project: response?.project,
           postingDate: moment(response?.workStartDate).format("DD-MMM-YYYY"),
           reasonForRejection: reasonForRejection,
-        }
+        },
       );
     }
     return res.status(201).send({ savedRecord: response });
@@ -3777,7 +3794,7 @@ router.put("/rejectValidated/:projectName", async (req, res) => {
     const endOfMonth = moment()
       .endOf("month")
       .format(
-        `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
+        `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`,
       );
 
     let q1 = await workData.model.updateMany(
@@ -3792,7 +3809,7 @@ router.put("/rejectValidated/:projectName", async (req, res) => {
         $set: {
           status: "rejected",
         },
-      }
+      },
     );
 
     return res.send({});
@@ -4010,7 +4027,7 @@ router.put("/start/:id", async (req, res) => {
             millage: startIndex,
             fuel: fuel,
           },
-        }
+        },
       );
 
       let equipment = await eqData.model.findById(work?.equipment?._id);
@@ -4028,7 +4045,7 @@ router.put("/start/:id", async (req, res) => {
             ? moment(postingDate).diff(moment(work.workStartDate), "days")
             : moment(postingDate, "DD.MM.YYYY").diff(
                 moment(work.workStartDate),
-                "days"
+                "days",
               ),
           startTime: postingDate,
           date: moment(postingDate).isValid()
@@ -4100,7 +4117,7 @@ router.put("/stop/:id", async (req, res) => {
     // FORWARD ORIGINAL REQUEST TO NEXTGEN BACKEND
     const response = await axios.put(
       `${NEXTGEN_BACKEND}/dispatches/stop/${id}`,
-      req.body
+      req.body,
     );
 
     return res.status(201).send(response.data);
@@ -4304,7 +4321,7 @@ router.put("/stop/:id", async (req, res) => {
               assignedDate: null,
               assignedShift: "",
             },
-          }
+          },
         );
         let startIndex = work.startIndex ? work.startIndex : 0;
         let equipment = await eqData.model.findById(work?.equipment?._id);
@@ -4823,7 +4840,7 @@ router.put("/swamend/:id", async (req, res) => {
           "dailyWork.$.moreComment": dailyWork.moreComment,
           "dailyWork.$.status": "",
         },
-      }
+      },
     );
 
     work.duration = currentDuration - prevDuration + dailyWork.duration;
@@ -4986,7 +5003,7 @@ router.put("/driverassistants/", async (req, res) => {
   try {
     let driversData = await workData.model.find(
       { driver: { $ne: null } },
-      { "dispatch.drivers": 1 }
+      { "dispatch.drivers": 1 },
     );
     let allAssistants = [];
 
@@ -5074,7 +5091,7 @@ async function getReceiverEmailList(userType) {
       {
         userType: { $in: userType },
       },
-      { email: 1, _id: 0 }
+      { email: 1, _id: 0 },
     );
     return reipts?.map(($) => {
       return $.email;
@@ -5618,7 +5635,7 @@ async function getValidatedListByProjectAndMonth(prjDescription, month, year) {
 async function getNonValidatedListByProjectAndMonth(
   prjDescription,
   month,
-  year
+  year,
 ) {
   let pipeline = [
     {
@@ -6843,7 +6860,7 @@ async function updateCustomerRecord(oldCustomerName, newCustomerName) {
       {
         "project.customer": oldCustomerName,
       },
-      { $set: { "project.customer": newCustomerName } }
+      { $set: { "project.customer": newCustomerName } },
     );
   } catch (err) {}
 }
@@ -7204,7 +7221,7 @@ async function stopWork(
   moreComment,
   postingDate,
   stoppedBy,
-  duration
+  duration,
 ) {
   // let dd = postingDate?.split(".")[0];
   // let mm = postingDate?.split(".")[1];
@@ -7240,7 +7257,7 @@ async function stopWork(
       let savedRecord;
 
       let worksAfterEffectiveDate = dailyWorks?.filter((d) =>
-        moment(d?.date).isSameOrAfter(moment(postingDate))
+        moment(d?.date).isSameOrAfter(moment(postingDate)),
       );
 
       worksAfterEffectiveDate.map(async (dailyWork) => {
