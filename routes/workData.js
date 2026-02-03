@@ -1980,14 +1980,14 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               siteWork: true,
               status: { $nin: ["recalled", "draft"] },
               workEndDate: {
-                $gte: moment.utc(startDate).startOf("day"),
+                $gte: moment.utc(startDate).startOf("day").toDate(),
               },
             },
             {
               siteWork: false,
               status: { $nin: ["recalled", "draft"] },
               workStartDate: {
-                $gte: moment.utc(startDate).startOf("day"),
+                $gte: moment.utc(startDate).startOf("day").toDate(),
                 $lte: moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
@@ -2004,7 +2004,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               siteWork: true,
               status: { $nin: ["recalled", "draft"] },
               workEndDate: {
-                $gte: moment.utc(startDate).startOf("day"),
+                $gte: moment.utc(startDate).startOf("day").toDate(),
               },
               "equipment._id": new mongoose.Types.ObjectId(searchText),
             },
@@ -2013,7 +2013,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               siteWork: false,
               status: { $nin: ["recalled", "draft"] },
               workStartDate: {
-                $gte: moment.utc(startDate).startOf("day"),
+                $gte: moment.utc(startDate).startOf("day").toDate(),
                 $lte: moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
@@ -2031,7 +2031,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               siteWork: true,
               status: { $nin: ["recalled", "draft"] },
               workEndDate: {
-                $gte: moment.utc(startDate).startOf("day"),
+                $gte: moment.utc(startDate).startOf("day").toDate(),
               },
               "project._id": new mongoose.Types.ObjectId(project),
             },
@@ -2039,7 +2039,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             {
               siteWork: false,
               workStartDate: {
-                $gte: moment.utc(startDate).startOf("day"),
+                $gte: moment.utc(startDate).startOf("day").toDate(),
                 $lte: moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
@@ -2057,7 +2057,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               siteWork: true,
               status: { $nin: ["recalled", "draft"] },
               workEndDate: {
-                $gte: moment.utc(startDate).startOf("day"),
+                $gte: moment.utc(startDate).startOf("day").toDate(),
               },
               "project._id": new mongoose.Types.ObjectId(project),
               "equipment._id": new mongoose.Types.ObjectId(searchText),
@@ -2067,7 +2067,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               siteWork: false,
               status: { $nin: ["recalled", "draft"] },
               workStartDate: {
-                $gte: moment.utc(startDate).startOf("day"),
+                $gte: moment.utc(startDate).startOf("day").toDate(),
                 $lte: moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
