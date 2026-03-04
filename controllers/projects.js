@@ -49,8 +49,8 @@ async function getInvoicePerProject(req, res) {
               $match: {
                 $expr: {
                   $or: [
-                    { $in: ["$$clientId", "$companies"] }, 
-                    { $eq: ["$default", true] }, 
+                    { $in: ["$$clientId", { $ifNull: ["$companies", []] }] },
+                    { $eq: ["$default", true] },
                   ],
                 },
                 active: true,
